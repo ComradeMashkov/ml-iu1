@@ -1,0 +1,79 @@
+/*-- scss:defaults --*/
+// =====================================================================
+//  Тема САЙТА — минимальный академический вид (CS231n / MIT OCW):
+//  типографика, узкая контентная колонка, строгие таблицы-расписания,
+//  никаких hero, карточек, теней и эмодзи. Шрифты — через <link> в head.
+// =====================================================================
+
+$ink:     #20232A;
+$accent:  #215CAF;   // ETH-синий
+$muted:   #6B7178;
+$line:    #E2E5E9;
+$surface: #F7F8FA;
+
+$primary:    $accent;
+$body-color: $ink;
+$body-bg:    #ffffff;
+$link-color: $accent;
+$border-radius: 0;
+
+$font-family-sans-serif: "Fira Sans", "Helvetica Neue", Arial, sans-serif !default;
+$font-family-monospace:  "Fira Mono", SFMono-Regular, Menlo, monospace !default;
+$headings-font-family:   "Fira Sans", "Helvetica Neue", Arial, sans-serif !default;
+$headings-font-weight:   600;
+
+// узкая контентная колонка, как на курсовых страницах
+$content-max-width: 860px;
+
+/*-- scss:rules --*/
+body { font-size: 1.02rem; line-height: 1.65; font-weight: 400; }
+
+// ---- Навбар: светлый, тонкий, без «бренда» ----
+.navbar {
+  background: #ffffff !important; border-bottom: 1px solid $line;
+  font-size: .94rem;
+}
+.navbar .navbar-brand { font-weight: 600; color: $ink !important; letter-spacing: .01em; }
+.navbar .nav-link { color: $ink !important; }
+.navbar .nav-link:hover { color: $accent !important; }
+
+// ---- Заголовки с тонким академическим правилом ----
+h1 { font-size: 1.9rem; font-weight: 600; line-height: 1.15; }
+h2 { font-size: 1.32rem; font-weight: 600; margin-top: 2.2rem;
+     padding-bottom: .3rem; border-bottom: 1px solid $line; }
+h3 { font-size: 1.08rem; font-weight: 600; margin-top: 1.4rem; color: $ink; }
+
+// ---- Masthead (шапка главной) ----
+.masthead { margin: .5rem 0 1.6rem; padding-bottom: 1.1rem; border-bottom: 2px solid $ink; }
+.masthead .course-id { font-size: .82rem; letter-spacing: .12em; text-transform: uppercase;
+  color: $muted; font-weight: 600; }
+.masthead h1 { margin: .35rem 0 .5rem; }
+.masthead .meta { color: $muted; font-size: .95rem; }
+
+// ---- Таблицы (расписание — главный визуальный элемент) ----
+table { font-size: .94rem; width: 100%; border-collapse: collapse; margin: 1rem 0; }
+thead th { text-align: left; background: $surface; color: $ink; font-weight: 600;
+  border-bottom: 2px solid $accent !important; }
+th, td { padding: .5rem .65rem; border-bottom: 1px solid $line; vertical-align: top; }
+tbody tr:hover { background: $surface; }
+
+// ---- Ссылки ----
+a { color: $accent; text-underline-offset: 2px; }
+a:hover { text-decoration: underline; }
+
+// ---- Простые заметки вместо пастельных плашек ----
+.note { border-left: 3px solid $accent; background: $surface;
+  padding: .7rem 1rem; margin: 1.1rem 0; font-size: .96rem; }
+.note .label { font-weight: 600; color: $accent; }
+
+// ---- Описание модулей: definition-list вместо карточек ----
+dl.modules { margin: 1rem 0; }
+dl.modules dt { font-weight: 600; margin-top: .8rem; }
+dl.modules dd { margin: 0 0 .2rem 0; color: $muted; }
+
+// ---- Код ----
+code { color: #b1003a; background: $surface; padding: .05rem .3rem; border-radius: 2px; }
+pre code { color: inherit; background: transparent; padding: 0; }
+
+.muted { color: $muted; }
+hr { border: none; border-top: 1px solid $line; margin: 1.6rem 0; }

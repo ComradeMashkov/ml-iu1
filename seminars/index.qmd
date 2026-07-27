@@ -1,0 +1,52 @@
+---
+title: "Лаборатории"
+subtitle: "17 итераций одного инженерного проекта"
+---
+
+Лаборатория заканчивается проверяемым артефактом: кодом, данными, протоколом эксперимента или релизом.
+До S7 студенты осваивают инструменты индивидуально; с S4 параллельно развивается командный проект.
+
+## Блок 1 · Инженерная гигиена и постановка
+
+| # | Тема | Артефакт |
+|:--:|---|---|
+| S1 | uv, Git/GitHub flow, pre-commit, Makefile, smoke CI | репозиторий, поднимающийся одной командой |
+| S2 | Сенсорные данные: единицы, timestamps, ресемплинг, синхронизация, окна | проверенный data pipeline |
+| S3 | sklearn `Pipeline`: baseline, GroupKFold/time split, gap, метрики | честный baseline + split manifest |
+| S4 | Старт проекта: задача, ODD, цена ошибок, данные, baseline и бюджеты | project card + команда + репо |
+
+: {tbl-colwidths="[6,64,30]"}
+
+## Блок 2 · Модели для сенсорных рядов
+
+| # | Тема | Артефакт |
+|:--:|---|---|
+| S5 | PyTorch: tensors, autograd, Dataset/DataLoader, training loop | обучаемая модель + unit-тесты |
+| S6 | 1D-CNN для ИМУ и журнал экспериментов | CNN и сравнение со sklearn-baseline |
+| S7 | TCN/LSTM для телеметрии; Transformer — extension | sequence-модель + ablation |
+| S8 | **Чекпоинт A:** data pipeline, baseline, error analysis, review | воспроизводимый baseline release |
+| S9 | Residual learning поверх физического оценщика | гибридная модель + физический baseline |
+| S10 | Domain shift, калибровка, стресс-тесты по режимам | robustness report |
+| S11 | Аномалии/RUL: событийные метрики, задержка детекции | детектор или RUL-модель |
+| S12 | **Чекпоинт B:** model freeze и deployment contract | модель + интерфейс + PR-ревью |
+
+: {tbl-colwidths="[6,64,30]"}
+
+## Блок 3 · Edge, production и защита
+
+| # | Тема | Артефакт |
+|:--:|---|---|
+| S13 | PTQ/QAT, ONNX, численная проверка, accuracy–size curve | версионированная INT8-модель |
+| S14 | ONNX Runtime C++, ARM64 compatibility, корректный benchmark | C++-бинарь + p50/p95 отчёт |
+| S15 | Docker, smoke/full CI, model checks, артефакты релиза | воспроизводимый release pipeline |
+| S16 | **Release candidate:** интеграция, profiling, PR-ревью | тегированный RC + исправления |
+| S17 | Командное демо и индивидуальная защита | релиз, model card, defense |
+
+: {tbl-colwidths="[6,64,30]"}
+
+::: {.note}
+[Definition of done.]{.label} Число без версии кода, хеша данных, конфигурации, split manifest и команды
+воспроизведения не считается результатом эксперимента.
+:::
+
+[Расписание с лекциями](../index.qmd#расписание) · [Проект, протокол и рубрика](../project/index.qmd)

@@ -1,0 +1,126 @@
+---
+# ============================================================================
+#  ШАБЛОН ЛЕКЦИИ (ETH-стиль: формулы + графики, metropolis-вид).
+#  Скопируйте файл (напр. в L02-....qmd), заполните слоты. Файлы с «_» в начале
+#  имени Quarto не публикует. Предпросмотр: quarto preview lectures/_template.qmd
+#  Графикам нужен Python из зафиксированного uv-окружения (`uv sync --frozen`).
+# ============================================================================
+title: "Заголовок лекции"
+subtitle: "Лекция N · Машинное обучение · ИУ-1 (САУ ЛА)"
+author: "Машков И.И. · кафедра ИУ-1"
+institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
+format:
+  revealjs:
+    theme: [default, ../assets/theme/slides.scss]
+    width: 1280
+    height: 720
+    margin: 0.04
+    center: true
+    slide-number: c/t
+    progress: true
+    transition: none
+    fig-format: svg
+    fig-align: center
+    footer: "Машинное обучение · ИУ-1 · LN"
+    chalkboard: true
+    include-in-header:
+      - text: |
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+jupyter: python3
+---
+
+```{python}
+#| echo: false
+#| output: false
+# единый стиль графиков курса (один раз на лекцию)
+import sys; sys.path.append("../assets")
+import numpy as np
+import matplotlib.pyplot as plt
+from figstyle import set_style, INK, ACCENT, ACCENT2, GREEN, AMBER, MUTED
+set_style()
+```
+
+<!-- ===================== ПАТТЕРН: ПЛАН ЛЕКЦИИ ===================== -->
+## План лекции
+
+- результат обучения 1 — что студент сможет сделать
+- результат обучения 2 — как проверит корректность
+- результат обучения 3 — какой артефакт продолжит на лаборатории
+
+::: {.notes}
+Заметки докладчика (клавиша «S»): тайминг, акценты, вопрос залу и ожидаемый ответ.
+:::
+
+<!-- ===================== ПАТТЕРН: РАЗДЕЛИТЕЛЬ ===================== -->
+# Часть 1 · Название {.divider background-color="#23373B"}
+
+<!-- ============ ПАТТЕРН: ФОРМУЛА СЛЕВА + ГРАФИК СПРАВА (основной) ============ -->
+## Заголовок слайда
+
+:::: {.columns}
+::: {.column width="44%"}
+Короткая мысль и **ключевая формула**:
+
+$$\hat{\theta} = \arg\min_{\theta}\ \frac1N\sum_i \mathcal{L}(f_\theta(x_i), y_i) + \lambda\lVert\theta\rVert_2^2$$
+
+- пункт 1
+- пункт 2
+:::
+::: {.column width="56%"}
+```{python}
+#| echo: false
+x = np.linspace(0, 10, 200)
+fig, ax = plt.subplots(figsize=(6.3, 4.6))
+ax.plot(x, np.sin(x), color=ACCENT, lw=3.0, label='сигнал')
+ax.plot(x, np.sin(x)+0.2*np.random.default_rng(0).standard_normal(x.size),
+        color=MUTED, lw=1.4, alpha=.8, label='+ шум')
+ax.set_xlabel('t'); ax.set_ylabel('y'); ax.legend(loc='upper right')
+plt.show()
+```
+[Подпись к рисунку: что показано и какой вывод.]{.figcap}
+:::
+::::
+
+<!-- ===================== ПАТТЕРН: ГРАФИК НА ВЕСЬ СЛАЙД ===================== -->
+## Один крупный график
+
+```{python}
+#| echo: false
+c = np.linspace(1, 15, 200)
+fig, ax = plt.subplots(figsize=(11.0, 5.0))
+ax.plot(c, 1.4/np.sqrt(c), color=ACCENT, lw=3.0, label='train')
+ax.plot(c, 1.4/np.sqrt(c)+0.0016*c**2+0.04, color=ACCENT2, lw=3.0, label='test')
+ax.set_xlabel('ёмкость модели'); ax.set_ylabel('ошибка'); ax.legend()
+plt.show()
+```
+
+<!-- ===================== ПАТТЕРН: КОД (подсветка строк, не исполняется) ===================== -->
+## Код: Python / C++
+
+```{.python code-line-numbers="1|3-4"}
+import torch.nn as nn
+model = nn.Sequential(nn.Conv1d(6, 32, 5), nn.ReLU(),
+                      nn.AdaptiveAvgPool1d(1), nn.Flatten(),
+                      nn.Linear(32, n_classes))   # x: [B, 6, T] — окно ИМУ
+```
+
+<!-- ===================== ПАТТЕРН: ТАБЛИЦА ===================== -->
+## Сравнение (когда табличный вид уместен)
+
+| Подход | Точность | Latency | Память |
+|---|:--:|:--:|:--:|
+| fp32 | высокая | высокая | высокая |
+| int8 | высокая | средняя | низкая |
+
+<!-- ===================== ПАТТЕРН: ВЫВОДЫ ===================== -->
+## Выводы
+
+- тезис одной строкой
+- когда применимо, когда нет
+- что попробовать на семинаре Sx
+
+## Источники {.smaller}
+
+::: {#refs}
+:::

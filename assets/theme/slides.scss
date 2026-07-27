@@ -1,0 +1,115 @@
+/*-- scss:defaults --*/
+// =====================================================================
+//  Тема СЛАЙДОВ (reveal.js) в духе ETH / Beamer-metropolis:
+//  белый фон, лёгкий Fira Sans, типографика LaTeX, тонкие правила,
+//  тёмные секционные слайды, слайды держатся на ГРАФИКАХ.
+//  Шрифты грузятся через <link> в head (include-in-header во front-matter).
+// =====================================================================
+
+$ink:    #20232A;   // текст
+$accent: #215CAF;   // ETH-синий
+$dark:   #23373B;   // фон секционных слайдов (metropolis mDarkTeal)
+$muted:  #6B7178;
+$rule:   #D7DBDF;
+
+$body-bg:    #FFFFFF;
+$body-color: $ink;
+$link-color: $accent;
+$selection-bg: rgba(33,92,175,.20);
+
+$font-family-sans-serif: "Fira Sans", "Helvetica Neue", Arial, sans-serif !default;
+$font-family-monospace:  "Fira Mono", "JetBrains Mono", SFMono-Regular, monospace !default;
+
+$presentation-font-size-root: 30px;
+$presentation-font-smaller: 0.8;
+$presentation-heading-font: "Fira Sans", "Helvetica Neue", Arial, sans-serif !default;
+$presentation-heading-color: $ink !default;
+$presentation-heading-font-weight: 600;
+$presentation-line-height: 1.35;
+$code-block-font-size: 0.62em;
+
+/*-- scss:rules --*/
+.reveal { font-weight: 300; letter-spacing: .002em; }              // лёгкий вес — metropolis-воздух
+
+// ---- Frametitle (заголовок слайда) ----
+.reveal h2 {
+  font-weight: 600; font-size: 1.20em; line-height: 1.15;
+  margin: 0 0 .55em 0; padding-bottom: .18em;
+  border-bottom: 2px solid $accent;                                // тонкое правило под заголовком
+}
+.reveal h3 { font-weight: 600; font-size: .95em; color: $ink; margin: .3em 0 .2em; }
+.reveal h2 + h3, .reveal h2 + p { margin-top: 0; }
+
+// ---- Титульный слайд ----
+#title-slide { text-align: left; }
+#title-slide .title {
+  font-size: 1.9em; font-weight: 600; line-height: 1.06; color: $ink;
+  border-top: 3px solid $accent; padding-top: .35em; margin-top: 0;
+}
+#title-slide .subtitle {
+  font-weight: 400; color: $muted; font-size: .6em; letter-spacing: .01em;
+  margin: .25em 0 1.6em; padding-bottom: .9em; border-bottom: 1px solid $rule;
+}
+#title-slide .author, #title-slide .quarto-title-authors { font-size: .56em; color: $ink; font-weight: 400; justify-content: flex-start; }
+#title-slide .institute, #title-slide .date { font-size: .44em; color: $muted; }
+#title-slide .quarto-title-authors { display: block; }
+
+// ---- Секционные слайды:  # Заголовок {.divider} ----
+.reveal section.divider { text-align: left; }
+.reveal section.divider h1,
+.reveal section.divider h2 {
+  color: #fff !important; border: none; font-weight: 600; font-size: 1.6em;
+}
+.reveal section.divider h1::before {
+  content: ""; display: block; width: 64px; height: 3px;
+  background: lighten($accent, 18%); margin-bottom: .35em;
+}
+
+// ---- Списки: маленькие квадратные маркеры в акценте ----
+.reveal ul { list-style: none; margin-left: .2em; }
+.reveal ul li { position: relative; padding-left: 1.1em; margin: .28em 0; }
+.reveal ul li::before {
+  content: ""; position: absolute; left: 0; top: .55em;
+  width: .42em; height: .42em; background: $accent;
+}
+.reveal ol { margin-left: 1.1em; }
+
+// ---- Колонки: вертикально по центру, графики не растягиваем ----
+.reveal .columns { align-items: center; gap: 1.3em; }
+.reveal .columns img { margin-top: .1em; }
+
+// вывод исполняемых ячеек (stdout) — моноширинно, аккуратно
+.reveal .cell-output pre { margin: .3em 0 0; }
+.reveal .cell-output code { font-size: .8em; color: $ink; border: none; background: #F4F6F8; }
+
+// ---- Математика крупнее и в фокусе ----
+.reveal .MathJax, .reveal mjx-container { color: $ink; }
+.reveal .eq-lead mjx-container { font-size: 1.15em !important; }
+
+// ---- Подписи к рисункам ----
+.reveal figure figcaption,
+.reveal .figcap { color: $muted; font-size: .52em; line-height: 1.3; margin-top: .25em; }
+.reveal .source { color: $muted; font-size: .44em; }
+
+// ---- Подвал и прогресс ----
+.reveal .footer { color: $muted; font-size: .42em; font-weight: 400; }
+.reveal .slide-number { background: transparent; color: $muted; font-weight: 400; }
+.reveal .progress { color: $accent; height: 4px; }
+
+// ---- Ссылки ----
+.reveal a { color: $accent; text-decoration: none; border-bottom: 1px solid rgba(33,92,175,.3); }
+
+// ---- Код ----
+.reveal pre { box-shadow: none; }
+.reveal pre code { border: 1px solid $rule; border-radius: 3px; }
+
+// ---- Таблицы ----
+.reveal table { font-size: .72em; border-collapse: collapse; }
+.reveal table th { border-bottom: 2px solid $accent; font-weight: 600; }
+.reveal table td, .reveal table th { border-bottom: 1px solid $rule; padding: .2em .6em; }
+
+// ---- Утилиты ----
+.reveal .muted { color: $muted; }
+.reveal .small { font-size: .8em; }
+.reveal .center { text-align: center; }
+.reveal .accent { color: $accent; }

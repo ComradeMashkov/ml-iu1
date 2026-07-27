@@ -1,0 +1,55 @@
+project:
+  type: website
+  output-dir: _site
+  preview:
+    port: 4242
+    browser: true
+
+website:
+  title: "Машинное обучение · ИУ-1"
+  description: "Инженерный курс ML для систем управления ЛА: сенсорика, честная валидация, Edge AI и MLOps."
+  page-navigation: true
+  reader-mode: true
+  navbar:
+    background: light
+    foreground: dark
+    title: "ML · ИУ-1"
+    left:
+      - text: "Главная"
+        href: index.qmd
+      - text: "Программа"
+        href: syllabus.qmd
+      - text: "Лекции"
+        href: lectures/index.qmd
+      - text: "Лаборатории"
+        href: seminars/index.qmd
+      - text: "Проект"
+        href: project/index.qmd
+  page-footer:
+    border: true
+    left: "© 2026 · Машков И.И. · кафедра ИУ-1"
+    center: "Машинное обучение для систем управления ЛА"
+    right: "Собрано с [Quarto](https://quarto.org)"
+
+format:
+  html:
+    theme:
+      - cosmo
+      - assets/theme/custom.scss
+    include-in-header:
+      - text: |
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+    toc: true
+    toc-title: "На странице"
+    toc-depth: 3
+    code-copy: true
+    code-overflow: wrap
+    fig-cap-location: bottom
+    smooth-scroll: true
+    link-external-newwindow: true
+    link-external-icon: true
+
+bibliography: assets/references.bib
+lang: ru

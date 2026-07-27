@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="ML IU-1">
+  <rect width="64" height="64" rx="14" fill="#0E2238"/>
+  <text x="31" y="34" font-family="Newsreader, Georgia, serif" font-size="25" font-weight="700"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="middle">ML</text>
+  <circle cx="49" cy="48" r="4.5" fill="#1A5FB4"/>
+</svg>
