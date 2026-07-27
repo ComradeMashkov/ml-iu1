@@ -19,6 +19,7 @@ dev = [
 
 [tool.uv]
 package = false
+required-version = "==0.11.32"
 
 [tool.ruff]
 target-version = "py312"
