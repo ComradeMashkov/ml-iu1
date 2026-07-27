@@ -26,6 +26,8 @@ website:
         href: lectures/index.qmd
       - text: "Лаборатории"
         href: seminars/index.qmd
+      - text: "Python online"
+        href: playground.qmd
       - text: "Проект"
         href: project/index.qmd
     right:
