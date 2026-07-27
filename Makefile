@@ -1,4 +1,4 @@
-.PHONY: setup render preview check sites-dist
+.PHONY: setup render preview check
 
 QUARTO_PYTHON := $(CURDIR)/.venv/bin/python
 
@@ -13,6 +13,3 @@ preview:
 
 check:
 	uv run ruff check assets
-
-sites-dist: render
-	./scripts/build-sites-static.sh
