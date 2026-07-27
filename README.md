@@ -60,8 +60,8 @@ make preview
 ## Публикация
 
 Workflow устанавливает Python 3.12, uv, зависимости из lock-файла и Quarto, затем собирает `_site`.
-После создания GitHub-репозитория остаётся включить Pages с источником **GitHub Actions** и добавить
-`site-url`/`repo-url` в `_quarto.yml`, если нужны ссылки на исходники и issues.
+Основная публичная версия публикуется через GitHub Pages:
+<https://comrademashkov.github.io/ml-iu1/>.
 
 Публичная production-версия также поддерживается через Sites. Команда `make sites-dist` собирает
 Quarto и готовит статический Worker-артефакт; `.openai/hosting.json` связывает каталог с существующим сайтом.

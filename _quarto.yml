@@ -8,6 +8,9 @@ project:
 website:
   title: "Машинное обучение · ИУ-1"
   description: "Инженерный курс ML для систем управления ЛА: сенсорика, честная валидация, Edge AI и MLOps."
+  site-url: "https://comrademashkov.github.io/ml-iu1/"
+  repo-url: "https://github.com/ComradeMashkov/ml-iu1"
+  repo-actions: [source, issue]
   page-navigation: true
   reader-mode: true
   navbar:
@@ -25,6 +28,10 @@ website:
         href: seminars/index.qmd
       - text: "Проект"
         href: project/index.qmd
+    right:
+      - icon: github
+        href: "https://github.com/ComradeMashkov/ml-iu1"
+        aria-label: "Исходники курса на GitHub"
   page-footer:
     border: true
     left: "© 2026 · Машков И.И. · кафедра ИУ-1"
