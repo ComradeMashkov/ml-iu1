@@ -1,6 +1,7 @@
 # Quarto
 /_site/
 /.quarto/
+/dist/
 *_files/
 /_freeze/
 _quarto_internal_scss_error.scss
