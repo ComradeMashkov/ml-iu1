@@ -11,7 +11,7 @@ subtitle: "17 итераций одного инженерного проект�
 | # | Тема | Артефакт |
 |:--:|---|---|
 | [S1](S01-engineering-toolchain.qmd) | uv, Git/GitHub flow, pre-commit, Makefile, smoke CI | репозиторий, поднимающийся одной командой |
-| S2 | Сенсорные данные: единицы, timestamps, ресемплинг, синхронизация, окна | проверенный data pipeline |
+| [S2](S02-sensor-data-pipeline.qmd) | Сенсорные данные: единицы, timestamps, ресемплинг, синхронизация, окна | проверенный data pipeline |
 | S3 | sklearn `Pipeline`: baseline, GroupKFold/time split, gap, метрики | честный baseline + split manifest |
 | S4 | Старт проекта: задача, ODD, цена ошибок, данные, baseline и бюджеты | project card + команда + репо |
 
