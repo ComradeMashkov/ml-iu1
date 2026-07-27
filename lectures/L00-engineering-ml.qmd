@@ -571,18 +571,18 @@ $$R_{\mathcal D}(\theta)=
 
 ```{python}
 #| echo: false
-parts = [('TRAIN', 0, 0.62, ACCENT, 'подбираем $\\theta$'),
-         ('VALIDATION', .62, .82, AMBER, 'выбираем модель / порог'),
-         ('TEST', .82, 1.0, ACCENT2, 'одна финальная оценка')]
-fig, ax = plt.subplots(figsize=(10.8, 3.0))
-for name, lo, hi, col, txt in parts:
-    ax.barh([0], [hi-lo], left=[lo], color=col, height=.42)
-    ax.text((lo+hi)/2, 0, name, ha='center', va='center', color='white',
-            fontsize=14, fontweight='bold')
-    ax.text((lo+hi)/2, -.38, txt, ha='center', va='top', color=INK, fontsize=12)
+parts = [('TRAIN', 0, 0.62, ACCENT),
+         ('VALIDATION', .62, .82, AMBER),
+         ('TEST', .82, 1.0, ACCENT2)]
+fig, ax = plt.subplots(figsize=(10.8, 2.65))
+for name, lo, hi, col in parts:
+    ax.barh([0], [hi-lo], left=[lo], color=col, height=.52)
+    short = {'TRAIN': 'подбор $\\theta$', 'VALIDATION': 'модель + $\\tau$', 'TEST': 'финал'}[name]
+    ax.text((lo+hi)/2, .035, f'{name}\n{short}', ha='center', va='center',
+            color='white', fontsize=12.5, fontweight='bold', linespacing=1.45)
 ax.annotate('test вскрываем после фиксации решения', xy=(.91, .24), xytext=(.62, .62),
             arrowprops=dict(arrowstyle='->', color=ACCENT2), color=ACCENT2, fontsize=12)
-ax.set_xlim(0, 1); ax.set_ylim(-.75, .85); ax.axis('off'); plt.show()
+ax.set_xlim(0, 1); ax.set_ylim(-.40, .82); ax.axis('off'); plt.show()
 ```
 
 Если вы десять раз смотрели на test и меняли модель, test стал частью **validation**.
@@ -1318,10 +1318,7 @@ plt.show()
 
 ## Эксперимент имеет цифровой паспорт
 
-$$
-\texttt{run\_id}=
-H(\text{code},\text{data},\text{config},\text{environment})
-$$
+**Идентификатор запуска:** `run_id = hash(code, data, config, environment)`
 
 ```{.yaml}
 run_id: imu-fault-2026-09-14-7f3c2a
