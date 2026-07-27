@@ -570,6 +570,7 @@ $$R_{\mathcal D}(\theta)=
 ## Train · validation · test: три разные роли
 
 ```{python}
+#| label: train-validation-test-roles
 #| echo: false
 parts = [('TRAIN', 0, 0.62, ACCENT),
          ('VALIDATION', .62, .82, AMBER),
