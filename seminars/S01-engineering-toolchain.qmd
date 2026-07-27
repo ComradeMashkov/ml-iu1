@@ -1,0 +1,954 @@
+---
+title: "Воспроизводимый репозиторий"
+subtitle: "Семинар S1 · от пустого проекта до зелёного CI"
+author: "Машков И.И. · кафедра ИУ-1"
+institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
+format:
+  revealjs:
+    theme: [default, ../assets/theme/slides.scss]
+    width: 1280
+    height: 720
+    margin: 0.04
+    center: true
+    slide-number: c/t
+    show-slide-number: all
+    progress: true
+    history: true
+    transition: none
+    fig-format: svg
+    fig-align: center
+    footer: "Машинное обучение · ИУ-1 · S1"
+    chalkboard: true
+    include-in-header:
+      - text: |
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+---
+
+## Артефакт пары
+
+К концу S1 у каждого есть **собственный GitHub-репозиторий**, в котором:
+
+1. среда Python восстанавливается командой `make setup`;
+2. форматирование, lint и тесты запускаются командой `make check`;
+3. изменения идут через отдельную ветку и pull request;
+4. GitHub Actions повторяет локальную проверку и показывает зелёный `smoke`.
+
+**Definition of done:** ссылка на открытый PR с успешным workflow.
+
+::: {.notes}
+**Тайминг:** 0:00–0:03.
+
+**Ход:** сначала показать конечный артефакт, не объясняя инструменты. Попросить студентов открыть
+пустой текстовый файл и сохранить туда ссылку на будущий PR — в конце пары ссылка должна стать
+проверяемым результатом.
+
+**Акцент:** цель не «поставить пять утилит», а сделать эксперимент переносимым между ноутбуком,
+командой и CI.
+:::
+
+## Сегодня строим одну цепочку доверия
+
+```text
+Git-история
+    ↓
+pyproject.toml + uv.lock
+    ↓
+одинаковые команды в Makefile
+    ↓
+локальный pre-commit
+    ↓
+тот же make check в GitHub Actions
+```
+
+Если любое звено нельзя повторить на чистой машине, результат ML-эксперимента **не воспроизводим**.
+
+::: {.notes}
+**Тайминг:** 0:03–0:05.
+
+**Вопрос группе:** «Что из этой цепочки фиксирует код, что фиксирует среду, а что доказывает
+исполняемость?» Ожидаемый ответ: Git — код и историю; lock-файл — точные зависимости; CI — независимый
+повтор проверки.
+:::
+
+## Прежде чем писать код: pre-flight
+
+Откройте терминал и выполните:
+
+```{.bash code-line-numbers="1-6"}
+git --version
+gh --version
+gh auth status
+uv --version
+make --version
+python --version
+```
+
+- GitHub CLI должен видеть ваш аккаунт;
+- Python может быть любым — проект запросит **3.12** через uv;
+- Windows: используем WSL2, потому что дальше в курсе будут Docker и C++.
+
+::: {.notes}
+**Тайминг:** 0:05–0:08.
+
+**Действие преподавателя:** вывести команды на экран, дать две минуты на запуск. Студенты ставили
+инструменты до пары; сейчас только диагностируем. Если у одного человека нет инструмента — объединить
+его в пару, установку вынести после семинара.
+
+**Контроль:** `gh auth status` сообщает активный аккаунт; `uv` и `make` найдены в `PATH`.
+:::
+
+# Часть 1 · Репозиторий — контракт эксперимента {.divider background-color="#23373B"}
+
+## Хороший репозиторий отвечает на пять вопросов
+
+```text
+iu1-ml-s1/
+├── pyproject.toml          # какие прямые зависимости допустимы?
+├── uv.lock                 # какие точные версии выбраны?
+├── Makefile                # как поднять и проверить проект?
+├── .pre-commit-config.yaml # что проверяется до коммита?
+├── .github/workflows/      # что независимо повторяет GitHub?
+├── src/ml_sau/             # исполняемый код
+└── tests/                  # проверяемое ожидаемое поведение
+```
+
+README объясняет **зачем**, файлы автоматизации доказывают **как**.
+
+::: {.notes}
+**Тайминг:** 0:08–0:10.
+
+**Ход:** пройти сверху вниз. Не обсуждать архитектуру больших Python-пакетов — сегодня нужен
+минимальный, но настоящий инженерный скелет.
+
+**Вопрос:** «Можно ли восстановить среду только по `.venv`?» Ожидаемый ответ: нет; это локальный
+артефакт, его нельзя переносить и коммитить.
+:::
+
+## Создаём удалённый репозиторий и рабочую ветку
+
+```{.bash code-line-numbers="1|2|3-4"}
+gh repo create iu1-ml-s1 --private --add-readme --clone
+cd iu1-ml-s1
+git switch -c s1/reproducible-environment
+git status -sb
+```
+
+Имя ветки описывает **результат изменения**, а не имя автора:
+
+```text
+s1/reproducible-environment
+```
+
+::: {.notes}
+**Тайминг:** 0:10–0:14.
+
+**Действие студентов:** создать private-репозиторий, перейти в него и открыть новую ветку. Если имя
+занято, добавить короткий суффикс, например `iu1-ml-s1-mashkov`.
+
+**Контроль:** первая строка `git status -sb` начинается с
+`## s1/reproducible-environment`.
+
+[Sources]
+- https://docs.github.com/en/get-started/using-github/github-flow
+- https://git-scm.com/docs/git-switch
+:::
+
+## Три состояния файла в Git
+
+| Состояние | Что это означает | Чем посмотреть |
+|---|---|---|
+| working tree | файл изменён локально | `git diff` |
+| index / staged | снимок выбран для следующего коммита | `git diff --cached` |
+| commit / `HEAD` | снимок записан в историю | `git show --stat` |
+
+`git add` не «добавляет в Git навсегда» — он формирует **следующий снимок**.
+
+::: {.notes}
+**Тайминг:** 0:14–0:16.
+
+**Мини-демо:** изменить README, показать `git diff`; выполнить `git add README.md`, снова показать
+`git diff`, затем `git diff --cached`. Это снимает типичную путаницу между рабочей копией и index.
+
+[Sources]
+- https://git-scm.com/docs/git-status
+- https://git-scm.com/docs/git-add
+:::
+
+## Безопасный цикл изменений
+
+```{.bash code-line-numbers="1|2|3|4|5"}
+git status -sb
+git diff
+git add path/to/file
+git diff --cached
+git commit -m "Add reproducible project skeleton"
+```
+
+Перед коммитом ответьте:
+
+- какие файлы попадут в снимок?
+- можно ли проверить изменение одной командой?
+- объясняет ли сообщение коммита результат?
+
+::: {.notes}
+**Тайминг:** 0:16–0:18.
+
+**Антипаттерн:** не показывать `git add .` как единственный путь. Сначала научить явно выбирать
+файлы и смотреть staged diff. Массовое добавление допустимо, когда студент понимает состав снимка.
+:::
+
+## Чекпоинт 1 · Git готов
+
+На экране должны быть:
+
+```text
+✓ remote origin → ваш GitHub-репозиторий
+✓ branch s1/reproducible-environment
+✓ clean или понятный git status -sb
+```
+
+Проверьте remote:
+
+```bash
+git remote -v
+```
+
+::: {.notes}
+**Тайминг:** 0:18–0:20.
+
+**Формат проверки:** поднятый зелёный стикер/рука, когда три пункта выполнены. Не двигаться дальше,
+пока не готово не менее 80% группы; оставшихся распределить к соседям.
+:::
+
+# Часть 2 · Среда восстанавливается из текста {.divider background-color="#23373B"}
+
+## Диапазон версий и точное решение — разные вещи
+
+:::: {.columns}
+::: {.column width="48%"}
+`pyproject.toml` задаёт **намерение**:
+
+```toml
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "numpy>=2.0,<3",
+]
+```
+:::
+::: {.column width="52%"}
+`uv.lock` фиксирует **решение**:
+
+```text
+Python 3.12
+numpy 2.x.y
+pytest 8.x.y
+ruff 0.x.y
++ транзитивные зависимости и хеши
+```
+:::
+::::
+
+Оба файла коммитятся. Каталог `.venv/` — **никогда**.
+
+::: {.notes}
+**Тайминг:** 0:20–0:23.
+
+**Метафора:** `pyproject.toml` — технические требования; `uv.lock` — утверждённая спецификация
+конкретной сборки.
+
+**Акцент:** lock-файл uv кроссплатформенный и должен храниться в системе контроля версий. Он
+управляется uv, вручную его не редактируем.
+
+[Sources]
+- https://docs.astral.sh/uv/concepts/projects/layout/
+- https://docs.astral.sh/uv/concepts/projects/sync/
+:::
+
+## Инициализируем проект
+
+```{.bash code-line-numbers="1|2|3-5"}
+uv init --bare --name iu1-ml-s1 --python 3.12
+uv add "numpy>=2.0,<3"
+uv add --dev "pytest>=8,<9"
+uv add --dev "ruff>=0.9,<1"
+uv add --dev "pre-commit>=4,<5"
+```
+
+После каждой команды uv согласует:
+
+```text
+pyproject.toml ⇄ uv.lock ⇄ .venv/
+```
+
+::: {.notes}
+**Тайминг:** 0:23–0:28.
+
+**Действие студентов:** выполнить команды последовательно. Первый запуск может скачать Python и
+пакеты; использовать это время, чтобы показать изменения `git status -sb`.
+
+**Контроль:** в корне есть `.python-version`, `pyproject.toml`, `uv.lock`, `.venv/`; последняя не
+должна отображаться как untracked.
+
+[Sources]
+- https://docs.astral.sh/uv/guides/projects/
+- https://docs.astral.sh/uv/concepts/projects/sync/
+:::
+
+## Настраиваем инструменты в одном файле
+
+Добавьте в `pyproject.toml`:
+
+```{.toml code-line-numbers="1-4|6-9|11-13"}
+[tool.uv]
+package = false
+required-version = ">=0.11,<0.12"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+```
+
+Конфигурация рядом с кодом → изменение видно в diff и проходит review.
+
+::: {.notes}
+**Тайминг:** 0:28–0:31.
+
+**Акцент:** `package = false` оставляет проект учебным приложением без сборки wheel. `pythonpath`
+нужен, чтобы pytest увидел код в `src/`. Позже, когда появится настоящий пакет, настройку пересмотрим.
+
+**Проверка:** `uv lock --check` должен завершиться с кодом 0.
+
+[Sources]
+- https://docs.astral.sh/uv/reference/settings/
+- https://docs.astral.sh/uv/concepts/projects/sync/
+:::
+
+## `--frozen` запрещает тихо менять эксперимент
+
+```{.bash code-line-numbers="1|2|3"}
+uv sync              # разработчик: может обновить lock при изменении pyproject
+uv sync --frozen     # воспроизведение: lock — источник истины
+uv lock --check      # проверка согласованности metadata ↔ lock
+```
+
+В CI и в команде `make setup` используем:
+
+```bash
+uv sync --frozen
+```
+
+Если lock-файла нет, команда должна **упасть**, а не подобрать другие версии.
+
+::: {.notes}
+**Тайминг:** 0:31–0:33.
+
+**Вопрос:** «Почему падение лучше автоматического исправления в CI?» Ожидаемый ответ: CI не должен
+создавать новую непроверенную среду; он обязан проверять зафиксированную.
+
+[Sources]
+- https://docs.astral.sh/uv/concepts/projects/sync/
+- https://docs.astral.sh/uv/reference/cli/
+:::
+
+## Добавляем минимальный код для сенсорного сигнала
+
+`src/ml_sau/smoke.py`:
+
+```{.python code-line-numbers="1-3|6-9|12-13"}
+import numpy as np
+
+
+def rms(signal: list[float]) -> float:
+    """Среднеквадратическое значение непустого сигнала."""
+    values = np.asarray(signal, dtype=float)
+    if values.size == 0:
+        raise ValueError("signal must not be empty")
+    return float(np.sqrt(np.mean(values**2)))
+
+
+if __name__ == "__main__":
+    print(f"RMS([3, -3]) = {rms([3, -3]):.1f}")
+```
+
+::: {.notes}
+**Тайминг:** 0:33–0:36.
+
+**Действие:** создать каталоги `src/ml_sau`, добавить пустой `src/ml_sau/__init__.py`, затем файл
+`smoke.py`. Код намеренно мал: сегодня проверяем инфраструктуру, а не математику сигналов.
+
+**Быстрая проверка:** `uv run python -m ml_sau.smoke` печатает `RMS([3, -3]) = 3.0`.
+:::
+
+## Тест фиксирует ожидаемое поведение
+
+`tests/test_smoke.py`:
+
+```{.python code-line-numbers="1-3|6-7|10-12"}
+import pytest
+from ml_sau.smoke import rms
+
+
+def test_rms_for_symmetric_signal() -> None:
+    assert rms([3.0, -3.0]) == pytest.approx(3.0)
+
+
+def test_rms_rejects_empty_signal() -> None:
+    with pytest.raises(ValueError, match="must not be empty"):
+        rms([])
+```
+
+Запуск:
+
+```bash
+uv run pytest -q
+```
+
+::: {.notes}
+**Тайминг:** 0:36–0:40.
+
+**Акцент:** один тест проверяет номинальный случай, второй — контракт ошибки. Тест не должен зависеть
+от порядка запуска или состояния ноутбука.
+
+**Контроль:** `2 passed`.
+:::
+
+## Чекпоинт 2 · Чистое воспроизведение
+
+```{.bash code-line-numbers="1-2|3|4"}
+uv sync --frozen
+uv lock --check
+uv run python -m ml_sau.smoke
+uv run pytest -q
+```
+
+Ожидаем:
+
+```text
+RMS([3, -3]) = 3.0
+2 passed
+```
+
+Если результат отличается — останавливаемся и читаем **первую** ошибку сверху вниз.
+
+::: {.notes}
+**Тайминг:** 0:40–0:42.
+
+**Формат:** студенты сверяют вывод с соседом. Если тест не видит `ml_sau`, проверить
+`[tool.pytest.ini_options]`, каталог `src` и файл `__init__.py`.
+:::
+
+# Часть 3 · Одна команда вместо устной инструкции {.divider background-color="#23373B"}
+
+## Makefile — публичный интерфейс репозитория
+
+```{.makefile code-line-numbers="1-3|5-7|9-18"}
+.DEFAULT_GOAL := check
+.PHONY: setup format lint test check
+
+setup:
+	uv sync --frozen
+	uv run pre-commit install
+
+format:
+	uv run ruff format .
+
+lint:
+	uv run ruff check .
+
+test:
+	uv run pytest -q
+
+check:
+	uv run ruff format --check .
+	uv run ruff check .
+	uv run pytest -q
+```
+
+::: {.notes}
+**Тайминг:** 0:42–0:46.
+
+**Важно:** строки recipe начинаются настоящим символом TAB. Показать отображение невидимых символов
+в редакторе. `.PHONY` сообщает, что цели — действия, а не создаваемые файлы.
+
+**Действие студентов:** создать Makefile и выполнить `make check`.
+
+[Sources]
+- https://www.gnu.org/software/make/manual/html_node/Rule-Introduction.html
+:::
+
+## `make` не заменяет инструменты — он фиксирует команды
+
+| Цель | Для кого | Что гарантирует |
+|---|---|---|
+| `make setup` | новый участник | среда + Git-hook |
+| `make format` | разработчик | механическое форматирование |
+| `make test` | разработчик | быстрое поведение |
+| `make check` | разработчик и CI | единый quality gate |
+
+README говорит: «выполните `make setup`».  
+CI говорит: «выполните `make check`».
+
+::: {.notes}
+**Тайминг:** 0:46–0:48.
+
+**Вопрос:** «Почему не записать три команды только в README?» Ожидаемый ответ: текст легко устаревает
+и не исполняется; Makefile становится проверяемым интерфейсом.
+
+[Sources]
+- https://www.gnu.org/software/make/manual/make.html
+:::
+
+## Ошибка должна воспроизводиться локально
+
+Временно сломайте ожидание:
+
+```diff
+- assert rms([3.0, -3.0]) == pytest.approx(3.0)
++ assert rms([3.0, -3.0]) == pytest.approx(4.0)
+```
+
+```bash
+make check
+```
+
+Увидели красный тест → верните `3.0` → снова `make check`.
+
+**CI не отладчик:** сначала воспроизводим падение локально.
+
+::: {.notes}
+**Тайминг:** 0:48–0:52.
+
+**Действие студентов:** намеренно получить failure и исправить. Это важнее, чем просто увидеть зелёный
+вывод: студент должен распознавать место ошибки, expected и actual.
+:::
+
+# Часть 4 · Проверяем до коммита {.divider background-color="#23373B"}
+
+## pre-commit запускает быстрые проверки на staged-файлах
+
+`.pre-commit-config.yaml`:
+
+```{.yaml code-line-numbers="1-3|4-9|10-15"}
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --check
+        language: system
+        types: [python]
+```
+
+Версии Ruff и Python берутся из **того же `uv.lock`**.
+
+::: {.notes}
+**Тайминг:** 0:52–0:55.
+
+**Акцент:** конфигурация использует local hooks, чтобы не создавать вторую независимую Python-среду
+для Ruff. На больших проектах набор hooks расширится, но принцип один: быстрые и детерминированные
+проверки до коммита.
+
+[Sources]
+- https://pre-commit.com/
+:::
+
+## Устанавливаем hook и проверяем весь репозиторий
+
+```{.bash code-line-numbers="1|2|3"}
+uv run pre-commit install
+uv run pre-commit run --all-files
+git status -sb
+```
+
+Дальше обычный `git commit` автоматически проверяет staged Python-файлы.
+
+Если formatter изменил файл:
+
+```bash
+git diff
+git add path/to/fixed.py
+git commit
+```
+
+::: {.notes}
+**Тайминг:** 0:55–0:59.
+
+**Действие студентов:** установить hook, запустить на всех файлах. Первый запуск может быть медленнее.
+
+**Акцент:** hook — локальная ранняя обратная связь, но не защита репозитория. Его можно отключить,
+поэтому независимая проверка остаётся в CI.
+
+[Sources]
+- https://pre-commit.com/
+:::
+
+## Красный hook — это конкретное действие
+
+```text
+ruff check..............................................Failed
+- hook id: ruff-check
+- exit code: 1
+
+F401 `numpy` imported but unused
+```
+
+Алгоритм:
+
+1. читаем **первую** диагностику;
+2. исправляем причину, не маскируем правило;
+3. повторяем hook;
+4. смотрим diff после автоисправления.
+
+`git commit --no-verify` — только осознанное аварийное исключение, не рабочий процесс.
+
+::: {.notes}
+**Тайминг:** 0:59–1:01.
+
+**Мини-демо:** добавить неиспользуемый импорт, получить F401, удалить импорт. Не тратить время на
+обзор всех правил Ruff.
+:::
+
+## Чекпоинт 3 · Локальные ворота зелёные
+
+```bash
+make setup
+uv run pre-commit run --all-files
+make check
+git status -sb
+```
+
+Ожидаем:
+
+```text
+ruff check........................................Passed
+ruff format.......................................Passed
+2 passed
+```
+
+::: {.notes}
+**Тайминг:** 1:01–1:03.
+
+**Контроль:** попросить показать соседу вывод и содержимое `git status -sb`. Не требовать clean
+working tree: новые файлы ещё не закоммичены, но студент должен уметь объяснить каждую строку.
+:::
+
+# Часть 5 · Ветка превращается в проверяемое изменение {.divider background-color="#23373B"}
+
+## GitHub flow: маленькая ветка → PR → review → merge
+
+```text
+main ──●──────────────────────────────●──
+        \                            /
+         ●── project skeleton ──●───
+          s1/reproducible-environment
+                    ↓
+              pull request + CI
+```
+
+Ветка изолирует работу. PR делает изменение **обсуждаемым**. CI делает его **проверяемым**.
+
+::: {.notes}
+**Тайминг:** 1:03–1:05.
+
+**Акцент:** GitHub flow — лёгкий branch-based процесс. В учебном проекте ветка короткоживущая и
+посвящена одному артефакту.
+
+[Sources]
+- https://docs.github.com/en/get-started/using-github/github-flow
+:::
+
+## Коммитим осознанный снимок
+
+```{.bash code-line-numbers="1|2|3-8|9|10"}
+git status -sb
+git diff
+git add .python-version pyproject.toml uv.lock
+git add Makefile .pre-commit-config.yaml
+git add src/ml_sau/__init__.py
+git add src/ml_sau/smoke.py
+git add tests/test_smoke.py
+git diff --cached
+git commit -m "Add reproducible Python quality gates"
+git status -sb
+```
+
+Не коммитим `.venv/`, кэши, IDE-настройки и секреты.
+
+::: {.notes}
+**Тайминг:** 1:05–1:09.
+
+**Действие студентов:** явно добавить файлы, просмотреть staged diff, затем создать коммит.
+
+**Контроль:** `git status -sb` показывает ветку без незакоммиченных файлов. Если `.venv/` попала в
+status, добавить её в `.gitignore` до коммита.
+
+[Sources]
+- https://git-scm.com/docs/git-status
+- https://git-scm.com/docs/git-add
+- https://git-scm.com/docs/git-commit
+:::
+
+## Публикуем ветку и открываем PR
+
+```{.bash code-line-numbers="1|2|3"}
+git push -u origin s1/reproducible-environment
+gh pr create --fill
+gh pr view --web
+```
+
+В описании PR должны быть:
+
+- что добавлено;
+- как проверить: `make setup && make check`;
+- ожидаемый результат: `2 passed`;
+- ограничения: это smoke-проект, не ML-baseline.
+
+::: {.notes}
+**Тайминг:** 1:09–1:13.
+
+**Действие:** открыть PR. Если `--fill` создал слишком краткое описание, отредактировать его в UI.
+PR пока может быть без checks — workflow добавим следующим коммитом в ту же ветку.
+
+[Sources]
+- https://docs.github.com/en/get-started/using-github/github-flow
+:::
+
+# Часть 6 · Независимый повтор в GitHub Actions {.divider background-color="#23373B"}
+
+## CI начинает с чистого runner
+
+`.github/workflows/smoke.yml`:
+
+```{.yaml code-line-numbers="1-3|5-9|11-14"}
+name: smoke
+on: [push, pull_request]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+```
+
+Runner не получает вашу `.venv`, глобальные пакеты и настройки IDE.
+
+::: {.notes}
+**Тайминг:** 1:13–1:15.
+
+**Действие студентов:** создать каталоги `.github/workflows`, добавить первую половину файла.
+Объяснить YAML сверху вниз: события → job → чистый runner → checkout → Python.
+
+[Sources]
+- https://docs.github.com/en/actions/reference/workflows-and-actions
+:::
+
+## CI повторяет контракт репозитория
+
+Продолжение `jobs.smoke.steps`:
+
+```{.yaml code-line-numbers="1-4|6-11"}
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          version: "0.11.32"
+          enable-cache: true
+
+      - name: Restore locked environment
+        run: uv sync --frozen
+
+      - name: Run the repository contract
+        run: make check
+```
+
+::: {.notes}
+**Тайминг:** 1:15–1:17.
+
+**Действие студентов:** дописать вторую половину того же файла. Показать две проектные команды:
+восстановление среды без изменения lock-файла и общий quality gate.
+
+**Акцент:** action uv закреплён на полном commit SHA; версия самого uv задана отдельно. Это снижает
+риск неожиданного изменения action и сохраняет согласованность с проектом.
+
+[Sources]
+- https://docs.github.com/en/actions/reference/workflows-and-actions
+- https://github.com/astral-sh/setup-uv
+:::
+
+## Локально и в CI — один контракт
+
+| Где | Подготовка | Проверка |
+|---|---|---|
+| новый ноутбук | `make setup` | `make check` |
+| обычная работа | среда уже есть | `make check` |
+| GitHub runner | `uv sync --frozen` | `make check` |
+
+CI не содержит «секретной правильной команды».  
+Если workflow падает, та же проверка должна запускаться локально.
+
+::: {.notes}
+**Тайминг:** 1:17–1:19.
+
+**Вопрос:** «Почему в CI не вызываем `pytest` напрямую?» Ожидаемый ответ: иначе команды локальной и
+удалённой проверки начнут расходиться; Makefile — общий интерфейс.
+:::
+
+## Отправляем workflow в тот же PR
+
+```{.bash code-line-numbers="1-2|3|4|5"}
+make check
+git add .github/workflows/smoke.yml
+git commit -m "Add smoke CI workflow"
+git push
+gh pr checks --watch
+```
+
+Каждый push обновляет тот же PR и запускает новый workflow.
+
+::: {.notes}
+**Тайминг:** 1:19–1:22.
+
+**Действие студентов:** commit + push. Команда `gh pr checks --watch` остаётся открытой до завершения
+job. Если GitHub просит разрешить Actions, преподаватель показывает настройку репозитория.
+
+[Sources]
+- https://docs.github.com/en/get-started/using-github/github-flow
+- https://docs.github.com/en/actions/get-started
+:::
+
+## Читаем CI сверху вниз
+
+При падении:
+
+1. открываем **первый красный step**;
+2. находим первую строку `Error`/`Failed`;
+3. воспроизводим команду локально;
+4. исправляем код или конфигурацию;
+5. новый commit → новый run.
+
+```bash
+gh run list --limit 3
+gh run view --log-failed
+```
+
+Не перезапускаем один и тот же красный run без изменения причины.
+
+::: {.notes}
+**Тайминг:** 1:22–1:24.
+
+**Мини-демо при наличии времени:** поменять `python-version` на недопустимую, показать раннее падение
+setup step и вернуть 3.12. Не делать это, если группа отстаёт.
+
+[Sources]
+- https://docs.github.com/en/rest/actions/workflow-runs
+:::
+
+## Финальный чекпоинт · Definition of done
+
+Откройте PR и проверьте:
+
+```text
+✓ изменены только ожидаемые файлы
+✓ в описании есть команда воспроизведения
+✓ smoke / smoke — зелёный
+✓ нет .venv, кэшей и секретов
+✓ сосед смог выполнить make setup && make check
+```
+
+Сдача S1 — **ссылка на PR**, а не скриншот терминала.
+
+::: {.notes}
+**Тайминг:** 1:24–1:26.
+
+**Парная проверка:** студенты меняются ссылками. Проверяющий смотрит Files changed, Actions/checks и
+README/описание PR. Запуск на второй машине — лучший сигнал воспроизводимости, если позволяет время.
+:::
+
+## Если не работает: локализуйте слой
+
+| Симптом | Слой | Первый шаг |
+|---|---|---|
+| `uv` не найден | инструменты | `uv --version`, проверить `PATH` |
+| lock рассогласован | зависимости | `uv lock --check`, затем осознанный `uv lock` |
+| import не найден | структура | проверить `src/` и `pythonpath` |
+| Makefile: `missing separator` | task runner | заменить пробелы в recipe на TAB |
+| hook красный | качество | запустить конкретный hook с `-v` |
+| локально зелёный, CI красный | окружение | открыть первый красный step |
+
+Сначала определяем **слой**, затем меняем систему.
+
+::: {.notes}
+**Тайминг:** 1:26–1:27.
+
+**Акцент:** не переустанавливать всё подряд. По сообщению ошибки определить границу: shell, uv,
+Python import, тест, hook или runner.
+:::
+
+# Финал {.divider background-color="#23373B"}
+
+## Репозиторий теперь является частью эксперимента
+
+- Git хранит **проверяемую историю** изменений
+- `pyproject.toml` + `uv.lock` фиксируют **намерение и точное окружение**
+- Makefile даёт **одинаковые команды** человеку и CI
+- pre-commit сокращает цикл обратной связи
+- GitHub Actions независимо подтверждает, что проект **поднимается с нуля**
+
+**Следующий шаг — S2:** положим в этот контракт реальные сенсорные данные, единицы, timestamps,
+синхронизацию и окна.
+
+::: {.notes}
+**Тайминг:** 1:27–1:28.
+
+**Закрытие:** вернуться к цепочке доверия со второго слайда. Попросить двух студентов назвать по
+одному звену и его отказ. Зафиксировать, что зелёный CI не доказывает корректность ML-модели — он
+доказывает выполнение заявленного контракта.
+:::
+
+## Выходной билет
+
+Ответьте одной фразой на каждый вопрос:
+
+1. Что гарантирует `uv.lock`, чего не гарантирует `pyproject.toml`?
+2. Почему `make check` вызывается и локально, и в CI?
+3. Зачем нужен PR, если вы работаете один?
+4. Что вы откроете первым при красном GitHub Actions?
+
+Ссылка на PR:
+
+```text
+https://github.com/<username>/iu1-ml-s1/pull/1
+```
+
+::: {.notes}
+**Тайминг:** 1:28–1:30.
+
+**Ожидаемые ответы:** точные разрешённые версии; единый исполняемый контракт; reviewable история и
+независимая проверка; первый красный step и первая осмысленная ошибка.
+:::
+
+## Источники {.smaller}
+
+- [uv: проекты, lock и sync](https://docs.astral.sh/uv/concepts/projects/sync/)
+- [Git: официальный справочник](https://git-scm.com/docs)
+- [GitHub flow](https://docs.github.com/en/get-started/using-github/github-flow)
+- [GitHub Actions](https://docs.github.com/en/actions/get-started)
+- [pre-commit](https://pre-commit.com/)
+- [GNU Make](https://www.gnu.org/software/make/manual/)
+
+::: {.notes}
+Команды и семантика инструментов сверены с официальной документацией 27 июля 2026 года.
+:::
