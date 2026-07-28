@@ -38,7 +38,8 @@ format:
         persist: true
         startover: true
         timelimit: 30
-        max-lines: 10
+        min-lines: 9
+        max-lines: 13
 jupyter: python3
 ---
 
@@ -112,7 +113,7 @@ plt.show()
 
 ```{pyodide}
 #| caption: "Измените параметр и нажмите Run Code"
-#| max-lines: 8
+#| max-lines: 10
 import numpy as np
 
 signal = np.array([0.2, 0.4, 1.2, 0.7, 0.3])

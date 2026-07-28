@@ -32,7 +32,8 @@ format:
         persist: true
         startover: true
         timelimit: 20
-        max-lines: 11
+        min-lines: 9
+        max-lines: 13
 ---
 
 ## Артефакт пары
@@ -372,7 +373,7 @@ uv sync --frozen
 
 ```{pyodide}
 #| caption: "smoke.py · можно изменить и запустить"
-#| max-lines: 11
+#| max-lines: 13
 import numpy as np
 
 

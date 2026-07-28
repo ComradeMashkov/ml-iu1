@@ -34,7 +34,8 @@ format:
         persist: true
         startover: true
         timelimit: 30
-        max-lines: 10
+        min-lines: 9
+        max-lines: 13
 jupyter: python3
 ---
 
@@ -817,7 +818,7 @@ ax.set_ylim(0, 1.0); ax.set_ylabel('accuracy (5-fold CV)'); ax.grid(axis='x', vi
 
 ```{pyodide}
 #| caption: "Эксперимент: утечка против честного Pipeline"
-#| max-lines: 10
+#| max-lines: 13
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import SelectKBest, f_classif
@@ -969,7 +970,7 @@ ax.set_ylim(0, 1.03); ax.legend(loc='center right'); plt.show()
 
 ```{pyodide}
 #| caption: "Порог превращает score в инженерное решение"
-#| max-lines: 8
+#| max-lines: 10
 #| fig-width: 7.2
 #| fig-height: 2.2
 #| fig-dpi: 90
