@@ -10,7 +10,7 @@ subtitle: "Лекция N · Машинное обучение · ИУ-1 (САУ
 author: "Машков И.И. · кафедра ИУ-1"
 institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
 format:
-  revealjs:
+  live-revealjs:
     theme: [default, ../assets/theme/slides.scss]
     width: 1280
     height: 720
@@ -27,6 +27,18 @@ format:
       - text: |
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+    pyodide:
+      packages:
+        - numpy
+        - matplotlib
+        - scikit-learn
+      cell-options:
+        autorun: false
+        completion: true
+        persist: true
+        startover: true
+        timelimit: 30
+        max-lines: 10
 jupyter: python3
 ---
 
@@ -95,14 +107,20 @@ ax.set_xlabel('ёмкость модели'); ax.set_ylabel('ошибка'); ax.
 plt.show()
 ```
 
-<!-- ===================== ПАТТЕРН: КОД (подсветка строк, не исполняется) ===================== -->
-## Код: Python / C++
+<!-- ===================== ПАТТЕРН: ИНТЕРАКТИВНЫЙ PYTHON ===================== -->
+## Код: запускается на слайде
 
-```{.python code-line-numbers="1|3-4"}
-import torch.nn as nn
-model = nn.Sequential(nn.Conv1d(6, 32, 5), nn.ReLU(),
-                      nn.AdaptiveAvgPool1d(1), nn.Flatten(),
-                      nn.Linear(32, n_classes))   # x: [B, 6, T] — окно ИМУ
+```{pyodide}
+#| caption: "Измените параметр и нажмите Run Code"
+#| max-lines: 8
+import numpy as np
+
+signal = np.array([0.2, 0.4, 1.2, 0.7, 0.3])
+threshold = 0.8
+alarm = signal >= threshold
+
+print(f"порог: {threshold:.1f}")
+print(f"тревоги: {np.flatnonzero(alarm).tolist()}")
 ```
 
 <!-- ===================== ПАТТЕРН: ТАБЛИЦА ===================== -->

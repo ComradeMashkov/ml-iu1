@@ -4,7 +4,7 @@ subtitle: "Семинар S2 · от асинхронного лога до пр
 author: "Машков И.И. · кафедра ИУ-1"
 institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
 format:
-  revealjs:
+  live-revealjs:
     theme: [default, ../assets/theme/slides.scss]
     width: 1280
     height: 720
@@ -23,6 +23,17 @@ format:
       - text: |
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+    pyodide:
+      packages:
+        - numpy
+        - scipy
+      cell-options:
+        autorun: false
+        completion: true
+        persist: true
+        startover: true
+        timelimit: 30
+        max-lines: 11
 jupyter: python3
 ---
 
@@ -277,7 +288,11 @@ plt.show()
 
 ## Преобразование должно быть явным кодом
 
-```{.python code-line-numbers="1-10"}
+```{pyodide}
+#| caption: "Единицы измерения · исполняемый контракт"
+#| max-lines: 10
+import numpy as np
+
 G0 = 9.80665
 
 def canonicalize(raw: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
@@ -288,12 +303,18 @@ def canonicalize(raw: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
         "speed_mps": raw["speed_mps"].astype(np.float64),
         "flight_id": raw["flight_id"],
     }
-```
 
-```{.python code-line-numbers="1-4"}
-def test_units_are_canonical():
-    out = canonicalize({"gyro_dps": np.array([180.0]), ...})
-    assert out["gyro_rad_s"][0] == pytest.approx(np.pi)
+raw = {
+    "timestamp_s": np.array([0.0]),
+    "accel_g": np.array([[1.0, 0.0, 0.0]]),
+    "gyro_dps": np.array([[0.0, 0.0, 180.0]]),
+    "speed_mps": np.array([12.0]),
+    "flight_id": np.array(["flight-007"]),
+}
+out = canonicalize(raw)
+assert np.isclose(out["gyro_rad_s"][0, 2], np.pi)
+print(f"1 g → {out['accel_mps2'][0, 0]:.5f} m/s²")
+print(f"180 deg/s → {out['gyro_rad_s'][0, 2]:.5f} rad/s")
 ```
 
 ::: {.notes}
@@ -415,8 +436,11 @@ plt.show()
 
 ## Audit возвращает числа, не только исключение
 
-```{.python code-line-numbers="1-15"}
+```{pyodide}
+#| caption: "Audit времени · измените timestamps"
+#| max-lines: 11
 from dataclasses import dataclass
+import numpy as np
 
 @dataclass(frozen=True)
 class TimeAudit:
@@ -439,6 +463,9 @@ def audit_time(t: np.ndarray, gap_factor: float = 5.0) -> TimeAudit:
         max_gap_s=float(positive.max()),
         jitter_p95_s=float(np.quantile(np.abs(positive - nominal), 0.95)),
     )
+
+t_demo = np.array([0.00, 0.01, 0.02, 0.03, 0.04, 0.04, 0.50])
+print(audit_time(t_demo))
 ```
 
 ::: {.notes}
@@ -695,7 +722,12 @@ plt.show()
 
 ## Один интерфейс, две разные операции
 
-```{.python code-line-numbers="1-15"}
+```{pyodide}
+#| caption: "Interpolation и anti-alias downsampling"
+#| max-lines: 11
+import numpy as np
+from scipy import signal
+
 def resample_channel(
     t: np.ndarray,
     x: np.ndarray,
@@ -710,8 +742,16 @@ def resample_channel(
 
     return np.where(valid, y, np.nan), valid
 
-# Для равномерного downsampling сначала применяем anti-alias FIR:
+t = np.array([0.00, 0.02, 0.04, 0.12, 0.14])
+x = np.sin(2 * np.pi * 2 * t)
+grid = np.arange(0.00, 0.141, 0.01)
+interpolated, valid = resample_channel(t, x, grid, max_gap_s=0.03)
+
+imu_100hz = np.sin(2 * np.pi * 6 * np.arange(0, 1, 0.01))
 imu_50hz = signal.resample_poly(imu_100hz, up=1, down=2, axis=0)
+
+print(f"grid points: {grid.size}; valid: {valid.sum()}")
+print(f"downsampling: {imu_100hz.size} → {imu_50hz.size} samples")
 ```
 
 `np.interp` выравнивает нерегулярные timestamps; `resample_poly` меняет частоту
@@ -869,7 +909,12 @@ plt.show()
 
 ## Функция оценки должна фиксировать знак и диапазон
 
-```{.python code-line-numbers="1-17"}
+```{pyodide}
+#| caption: "Cross-correlation · проверяем знак лага"
+#| max-lines: 11
+import numpy as np
+from scipy import signal
+
 def estimate_offset(
     reference: np.ndarray,
     delayed: np.ndarray,
@@ -885,10 +930,11 @@ def estimate_offset(
 
     return float(lags[allowed][np.argmax(corr[allowed])])
 
-def test_positive_lag_means_second_signal_is_delayed():
-    pulse = np.r_[np.zeros(20), 1.0, np.zeros(40)]
-    delayed = np.r_[np.zeros(3), pulse[:-3]]
-    assert estimate_offset(pulse, delayed, 0.01, 0.1) == 0.03
+pulse = np.r_[np.zeros(20), 1.0, np.zeros(40)]
+delayed = np.r_[np.zeros(3), pulse[:-3]]
+offset_s = estimate_offset(pulse, delayed, 0.01, 0.1)
+assert np.isclose(offset_s, 0.03)
+print(f"оценённый offset = {offset_s:+.3f} s")
 ```
 
 ::: {.notes}
@@ -1147,8 +1193,11 @@ train и test, модель увидит почти тот же манёвр п�
 
 ## Окна строим с индексами происхождения
 
-```{.python code-line-numbers="1-18"}
+```{pyodide}
+#| caption: "Окна сохраняют происхождение"
+#| max-lines: 11
 from dataclasses import dataclass
+import numpy as np
 
 @dataclass(frozen=True)
 class WindowBatch:
@@ -1166,8 +1215,12 @@ def make_windows(x, valid, flight_id, length=100, stride=25):
         flight_id=np.full(starts.size, flight_id),
     )
 
+features_50 = np.arange(240 * 3, dtype=float).reshape(240, 3)
+valid_50 = np.ones_like(features_50, dtype=bool)
 batch = make_windows(features_50, valid_50, flight_id="flight-007")
 assert batch.x.shape[1:] == (100, 3)
+print(f"x.shape = {batch.x.shape}")
+print(f"starts  = {batch.start_idx.tolist()}")
 ```
 
 ::: {.notes}

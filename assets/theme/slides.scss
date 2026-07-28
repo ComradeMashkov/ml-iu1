@@ -82,6 +82,22 @@ $code-block-font-size: 0.62em;
 .reveal .cell-output pre { margin: .3em 0 0; }
 .reveal .cell-output code { font-size: .8em; color: $ink; border: none; background: #F4F6F8; }
 
+// Quarto Live: компактный редактор, который помещается в сетку 1280×720
+.reveal section .card.exercise-editor {
+  --exercise-font-size: 1rem;
+  margin: .35rem 0;
+  border-color: $rule;
+}
+.reveal section .card.exercise-editor .card-header { padding: .3rem .65rem; }
+.reveal section .card.exercise-editor .btn.btn-exercise-editor { font-size: .78rem; }
+.reveal section .exercise-cell-output pre { width: 100%; margin: .2em 0; }
+.reveal section .cell-output-container-pyodide { font-size: .72em; }
+.reveal section.live-code .cell-output-display canvas {
+  width: auto !important;
+  max-width: 100%;
+  max-height: 185px;
+}
+
 // ---- Математика крупнее и в фокусе ----
 .reveal .MathJax, .reveal mjx-container { color: $ink; }
 .reveal .eq-lead mjx-container { font-size: 1.15em !important; }

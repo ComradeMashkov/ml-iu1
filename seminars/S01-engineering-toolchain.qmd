@@ -4,7 +4,7 @@ subtitle: "Семинар S1 · от пустого проекта до зелё
 author: "Машков И.И. · кафедра ИУ-1"
 institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
 format:
-  revealjs:
+  live-revealjs:
     theme: [default, ../assets/theme/slides.scss]
     width: 1280
     height: 720
@@ -23,6 +23,16 @@ format:
       - text: |
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+    pyodide:
+      packages:
+        - numpy
+      cell-options:
+        autorun: false
+        completion: true
+        persist: true
+        startover: true
+        timelimit: 20
+        max-lines: 11
 ---
 
 ## Артефакт пары
@@ -360,7 +370,9 @@ uv sync --frozen
 
 `src/ml_sau/smoke.py`:
 
-```{.python code-line-numbers="1-3|6-9|12-13"}
+```{pyodide}
+#| caption: "smoke.py · можно изменить и запустить"
+#| max-lines: 11
 import numpy as np
 
 
@@ -376,6 +388,8 @@ if __name__ == "__main__":
     print(f"RMS([3, -3]) = {rms([3, -3]):.1f}")
 ```
 
+Нажмите **Run Code**: этот же алгоритм исполняется в браузерной Python-среде.
+
 ::: {.notes}
 **Тайминг:** 0:33–0:36.
 
@@ -383,6 +397,8 @@ if __name__ == "__main__":
 `smoke.py`. Код намеренно мал: сегодня проверяем инфраструктуру, а не математику сигналов.
 
 **Быстрая проверка:** `uv run python -m ml_sau.smoke` печатает `RMS([3, -3]) = 3.0`.
+В презентации тот же код можно проверить кнопкой Run Code; это быстрый smoke-test, но не замена
+локальному запуску из зафиксированного окружения.
 :::
 
 ## Тест фиксирует ожидаемое поведение

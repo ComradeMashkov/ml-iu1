@@ -4,7 +4,7 @@ subtitle: "Лекция 0 · Машинное обучение · ИУ-1 (САУ
 author: "Машков И.И. · кафедра ИУ-1"
 institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
 format:
-  revealjs:
+  live-revealjs:
     theme: [default, ../assets/theme/slides.scss]
     width: 1280
     height: 720
@@ -23,6 +23,18 @@ format:
       - text: |
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+    pyodide:
+      packages:
+        - numpy
+        - matplotlib
+        - scikit-learn
+      cell-options:
+        autorun: false
+        completion: true
+        persist: true
+        startover: true
+        timelimit: 30
+        max-lines: 10
 jupyter: python3
 ---
 
@@ -803,8 +815,9 @@ ax.set_ylim(0, 1.0); ax.set_ylabel('accuracy (5-fold CV)'); ax.grid(axis='x', vi
 
 ## Та же утечка — кодом и результатом
 
-```{python}
-#| echo: true
+```{pyodide}
+#| caption: "Эксперимент: утечка против честного Pipeline"
+#| max-lines: 10
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import SelectKBest, f_classif
@@ -948,6 +961,49 @@ ax.set_ylim(0, 1.03); ax.legend(loc='center right'); plt.show()
 [Sources]
 - https://scikit-learn.org/stable/modules/classification_threshold.html
 [/Sources]
+:::
+
+## Мини-эксперимент · двигаем порог {.live-code}
+
+Измените `threshold`, нажмите **Run Code** и сравните число пропусков и ложных тревог.
+
+```{pyodide}
+#| caption: "Порог превращает score в инженерное решение"
+#| max-lines: 8
+#| fig-width: 7.2
+#| fig-height: 2.2
+#| fig-dpi: 90
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(31)
+normal = rng.beta(1.3, 5.5, 300)
+fault = rng.beta(4.2, 2.1, 40)
+score = np.r_[normal, fault]
+truth = np.r_[np.zeros(normal.size, dtype=int), np.ones(fault.size, dtype=int)]
+
+threshold = 0.35
+prediction = score >= threshold
+tp = np.sum(prediction & (truth == 1))
+fp = np.sum(prediction & (truth == 0))
+fn = np.sum(~prediction & (truth == 1))
+
+fig, ax = plt.subplots(figsize=(7.2, 2.2))
+ax.hist(normal, bins=22, alpha=.65, label="норма")
+ax.hist(fault, bins=14, alpha=.65, label="отказ")
+ax.axvline(threshold, color="#E4572E", lw=2.5, label=f"порог = {threshold:.2f}")
+ax.set(xlabel="score", ylabel="число примеров", xlim=(0, 1))
+ax.legend(ncols=3, fontsize=9)
+plt.tight_layout()
+plt.show()
+
+print(f"TP={tp}, FP={fp}, FN={fn}")
+```
+
+::: {.notes}
+Тайминг 1–2 минуты. Дать группе сначала предсказать направление изменения ошибок: при снижении
+порога FN обычно уменьшается, а FP растёт. На первом открытии Python-среда загружается в фоне;
+кнопка запуска станет активной после завершения загрузки.
 :::
 
 ## Цена ошибок превращает метрику в решение
