@@ -483,6 +483,32 @@ select {
   accent-color: var(--accent);
 }
 
+.comparison-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.comparison-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comparison-legend i {
+  width: 26px;
+  height: 0;
+  border-top: 3px solid var(--accent);
+}
+
+.comparison-legend .healthy-line {
+  border-top-color: #68717a;
+  border-top-style: dashed;
+}
+
 #telemetry-canvas,
 #split-canvas {
   display: block;
@@ -766,6 +792,57 @@ body.is-embed[data-view="flight"] #telemetry-canvas {
 
 body.is-embed:not([data-view="flight"]) #telemetry-canvas {
   height: 292px;
+}
+
+body.is-embed[data-view="window"] .quick-metrics,
+body.is-embed[data-view="fault"] .quick-metrics {
+  gap: 10px 24px;
+  margin-top: 9px;
+  font-size: 12px;
+}
+
+body.is-embed[data-view="window"] .quick-metrics b,
+body.is-embed[data-view="fault"] .quick-metrics b {
+  font-size: 16px;
+}
+
+body.is-embed[data-view="fault"] .signal-switches {
+  display: none;
+}
+
+body.is-embed[data-view="fault"] #telemetry-canvas {
+  height: 230px;
+}
+
+body.is-embed[data-view="split"] .mission-control,
+body.is-embed[data-view="split"] .telemetry-section {
+  display: none !important;
+}
+
+body.is-embed[data-view="split"] .experiment-controls {
+  grid-template-columns: 1fr;
+}
+
+body.is-embed[data-view="split"] .result-grid {
+  display: block;
+  margin-top: 8px;
+}
+
+body.is-embed[data-view="split"] .result-panel {
+  padding: 10px 12px 0;
+}
+
+body.is-embed[data-view="split"] .result-panel h2 {
+  font-size: 18px;
+}
+
+body.is-embed[data-view="split"] #split-canvas {
+  height: 365px;
+  margin-top: 6px;
+}
+
+body.is-embed[data-view="split"] #split-question {
+  font-size: 14px;
 }
 
 @media (max-width: 1050px) {

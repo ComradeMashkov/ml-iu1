@@ -18,6 +18,15 @@ const query = new URLSearchParams(window.location.search);
 const initialView = query.get("view") || "mission";
 const isEmbed = query.get("embed") === "1";
 const allowedViews = new Set(["flight", "mission", "decision", "window", "split", "fault"]);
+const HEALTHY_FAULTS = Object.freeze({
+  enabled: false,
+  noisePct: 0,
+  biasA: 0,
+  driftC: 0,
+  dropoutPct: 0,
+  delayS: 0,
+});
+const healthySeries = makeMissionSeries(HEALTHY_FAULTS);
 
 const state = {
   view: allowedViews.has(initialView) ? initialView : "mission",
@@ -56,6 +65,18 @@ function formatFinite(value, digits = 1, fallback = "нет данных") {
   return Number.isFinite(value) ? value.toFixed(digits) : fallback;
 }
 
+function telemetryTimeDomain() {
+  let spanS = MISSION_DURATION_S;
+  if (state.view === "window") spanS = Math.max(24, state.windowLengthS * 3);
+  if (state.view === "fault") spanS = 88;
+  if (spanS >= MISSION_DURATION_S) return [0, MISSION_DURATION_S];
+  const start = Math.max(
+    0,
+    Math.min(MISSION_DURATION_S - spanS, state.timeS - spanS / 2),
+  );
+  return [start, start + spanS];
+}
+
 function applyView(view) {
   state.view = allowedViews.has(view) ? view : "mission";
   document.body.dataset.view = state.view;
@@ -68,6 +89,12 @@ function applyView(view) {
   document.querySelectorAll("[data-view-target]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.viewTarget === state.view));
   });
+
+  const telemetryTitles = {
+    window: "Четыре окна вокруг одного манёвра",
+    fault: "Исправный сигнал против сигнала с отказом",
+  };
+  $("telemetry-title").textContent = telemetryTitles[state.view] || "Телеметрия полёта";
 
   drawTelemetry();
   drawSplit();
@@ -151,6 +178,14 @@ function updateMissionReadout() {
 
   $("quick-fault-score").textContent = formatFinite(signal.probability, 2);
   $("quick-fault-error").textContent = `${formatFinite(Math.abs(signal.trackingErrorDeg), 1)}°`;
+  const healthySignal = signalAt(state.timeS, HEALTHY_FAULTS);
+  $("quick-fault-baseline").textContent = formatFinite(healthySignal.probability, 2);
+  const scoreDelta = signal.probability - healthySignal.probability;
+  $("quick-fault-delta").textContent = Number.isFinite(scoreDelta)
+    ? Math.abs(scoreDelta) < 0.005
+      ? "0.00"
+      : `${scoreDelta > 0 ? "+" : ""}${scoreDelta.toFixed(2)}`
+    : "нет данных";
   $("telemetry-accessible").textContent = [
     `Время ${formatTime(state.timeS)}.`,
     `Этап ${phase.label}.`,
@@ -319,7 +354,8 @@ function bindControls() {
     const left = Math.min(72, rect.width * 0.12);
     const right = 18;
     const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left - left) / (rect.width - left - right)));
-    setMissionTime(ratio * MISSION_DURATION_S);
+    const [domainStart, domainEnd] = telemetryTimeDomain();
+    setMissionTime(domainStart + ratio * (domainEnd - domainStart));
     updateAll();
   });
   telemetryCanvas.addEventListener("keydown", (event) => {
@@ -666,10 +702,21 @@ function drawFallbackScene() {
   }
 }
 
-function drawPath(context, definition, xScale, yScale) {
+function drawPath(context, definition, xScale, yScale, series = state.series, options = {}) {
+  const {
+    color = definition.color,
+    lineWidth = 1.65,
+    dash = [],
+    drawSecondary = true,
+    timeDomain = [0, MISSION_DURATION_S],
+  } = options;
   context.beginPath();
   let drawing = false;
-  state.series.forEach((sample) => {
+  series.forEach((sample) => {
+    if (sample.timeS < timeDomain[0] || sample.timeS > timeDomain[1]) {
+      drawing = false;
+      return;
+    }
     const value = sample[definition.key];
     if (!Number.isFinite(value)) {
       drawing = false;
@@ -681,17 +728,25 @@ function drawPath(context, definition, xScale, yScale) {
     else context.lineTo(x, y);
     drawing = true;
   });
-  context.strokeStyle = definition.color;
-  context.lineWidth = 1.65;
+  context.strokeStyle = color;
+  context.lineWidth = lineWidth;
+  context.setLineDash(dash);
   context.stroke();
+  context.setLineDash([]);
 
-  if (!definition.secondaryKey) return;
+  if (!drawSecondary || !definition.secondaryKey) return;
   context.beginPath();
-  state.series.forEach((sample, index) => {
+  let drawingSecondary = false;
+  series.forEach((sample) => {
+    if (sample.timeS < timeDomain[0] || sample.timeS > timeDomain[1]) {
+      drawingSecondary = false;
+      return;
+    }
     const x = xScale(sample.timeS);
     const y = yScale(sample[definition.secondaryKey]);
-    if (index === 0) context.moveTo(x, y);
+    if (!drawingSecondary) context.moveTo(x, y);
     else context.lineTo(x, y);
+    drawingSecondary = true;
   });
   context.strokeStyle = definition.secondaryColor;
   context.lineWidth = 1.1;
@@ -724,20 +779,56 @@ function drawTelemetry() {
   const plotWidth = width - left - right;
   const plotHeight = height - top - bottom;
   const laneHeight = plotHeight / definitions.length;
-  const xScale = (timeS) => left + (timeS / MISSION_DURATION_S) * plotWidth;
+  const timeDomain = telemetryTimeDomain();
+  const [domainStart, domainEnd] = timeDomain;
+  const xScale = (timeS) => left
+    + ((timeS - domainStart) / (domainEnd - domainStart)) * plotWidth;
 
   MISSION_PHASES.forEach((phase, index) => {
-    const x0 = xScale(phase.start);
-    const x1 = xScale(phase.end);
+    const visibleStart = Math.max(phase.start, domainStart);
+    const visibleEnd = Math.min(phase.end, domainEnd);
+    if (visibleEnd <= visibleStart) return;
+    const x0 = xScale(visibleStart);
+    const x1 = xScale(visibleEnd);
     context.fillStyle = index % 2 === 0 ? "#f5f7f9" : "#eef3f8";
     context.fillRect(x0, top, x1 - x0, plotHeight);
-    if (width > 650) {
+    if (width > 650 && x1 - x0 > 60) {
       context.fillStyle = "#68717a";
       context.font = "10px Fira Sans";
       context.textAlign = "center";
       context.fillText(phase.label, (x0 + x1) / 2, 12);
     }
   });
+
+  if (state.view === "window" || state.view === "mission") {
+    const metrics = windowMetrics(state.windowLengthS, state.windowStrideS);
+    const currentStart = Math.floor(state.timeS / metrics.strideS) * metrics.strideS;
+    const colors = ["#8a6db1", "#247b75", "#b46a08", "#215caf"];
+    for (let index = 3; index >= 0; index -= 1) {
+      const start = currentStart - index * metrics.strideS;
+      const end = Math.min(MISSION_DURATION_S, start + metrics.lengthS);
+      if (end < domainStart || start > domainEnd || start < 0) continue;
+      const x0 = xScale(Math.max(domainStart, start));
+      const x1 = xScale(Math.min(domainEnd, end));
+      const color = colors[3 - index];
+      context.save();
+      context.globalAlpha = index === 0 ? 0.12 : 0.055;
+      context.fillStyle = color;
+      context.fillRect(x0, top, Math.max(1, x1 - x0), plotHeight);
+      context.globalAlpha = 1;
+      context.strokeStyle = color;
+      context.lineWidth = index === 0 ? 2.5 : 1.6;
+      context.setLineDash(index === 0 ? [] : [6, 4]);
+      context.strokeRect(x0, top, Math.max(1, x1 - x0), plotHeight);
+      if (state.view === "window" && x1 - x0 > 32) {
+        context.fillStyle = color;
+        context.font = "600 11px Fira Mono";
+        context.textAlign = "left";
+        context.fillText(index === 0 ? "W₀" : `W−${index}`, x0 + 5, top + 14);
+      }
+      context.restore();
+    }
+  }
 
   definitions.forEach((definition, laneIndex) => {
     const laneTop = top + laneHeight * laneIndex;
@@ -758,7 +849,25 @@ function drawTelemetry() {
     context.textAlign = "right";
     context.fillText(definition.label, left - 7, laneTop + 14);
 
-    drawPath(context, definition, xScale, yScale);
+    if (state.view === "fault") {
+      drawPath(context, definition, xScale, yScale, healthySeries, {
+        color: "#68717a",
+        lineWidth: 2.2,
+        dash: [7, 5],
+        drawSecondary: false,
+        timeDomain,
+      });
+      drawPath(context, definition, xScale, yScale, state.series, {
+        lineWidth: 2.35,
+        drawSecondary: false,
+        timeDomain,
+      });
+    } else {
+      drawPath(context, definition, xScale, yScale, state.series, {
+        lineWidth: state.view === "window" ? 2.1 : 1.65,
+        timeDomain,
+      });
+    }
 
     if (definition.id === "probability") {
       context.strokeStyle = "#b52b34";
@@ -772,22 +881,9 @@ function drawTelemetry() {
     }
   });
 
-  if (state.view === "window" || state.view === "mission") {
-    const metrics = windowMetrics(state.windowLengthS, state.windowStrideS);
-    const currentStart = Math.floor(state.timeS / metrics.strideS) * metrics.strideS;
-    for (let index = 3; index >= 0; index -= 1) {
-      const start = currentStart - index * metrics.strideS;
-      if (start < 0) continue;
-      const x0 = xScale(start);
-      const x1 = xScale(Math.min(MISSION_DURATION_S, start + metrics.lengthS));
-      context.fillStyle = index === 0
-        ? "rgba(33, 92, 175, 0.20)"
-        : "rgba(180, 106, 8, 0.10)";
-      context.fillRect(x0, top, Math.max(1, x1 - x0), 8 + index * 2);
-    }
-  }
-
-  for (let tick = 0; tick <= MISSION_DURATION_S; tick += 60) {
+  const tickStep = state.view === "window" ? 5 : state.view === "fault" ? 10 : 60;
+  const firstTick = Math.ceil(domainStart / tickStep) * tickStep;
+  for (let tick = firstTick; tick <= domainEnd + 1e-9; tick += tickStep) {
     const x = xScale(tick);
     context.fillStyle = "#68717a";
     context.font = "10px Fira Mono";
@@ -845,7 +941,7 @@ function drawSplit() {
 
   flights.forEach((flight, row) => {
     context.fillStyle = "#68717a";
-    context.font = "10px Fira Mono";
+    context.font = `${Math.max(10, Math.min(15, rowHeight * 0.34))}px Fira Mono`;
     context.textAlign = "right";
     context.textBaseline = "middle";
     context.fillText(flight, left - 6, top + rowHeight * (row + 0.5));
@@ -866,7 +962,7 @@ function drawSplit() {
     ["validation", "validation"],
     ["test", "test"],
   ];
-  context.font = "10px Fira Sans";
+  context.font = "12px Fira Sans";
   context.textAlign = "left";
   context.textBaseline = "alphabetic";
   let legendX = left;
@@ -1204,6 +1300,17 @@ function initialize() {
   setWebglReady(false);
   buildPhaseButtons();
   bindControls();
+  if (isEmbed) {
+    const initialTimes = {
+      flight: 92,
+      decision: 180,
+      window: 180,
+      fault: 210,
+    };
+    if (Number.isFinite(initialTimes[state.view])) {
+      setMissionTime(initialTimes[state.view]);
+    }
+  }
   readFaultControls();
   applyView(state.view);
   updateAll();
@@ -1226,10 +1333,6 @@ function initialize() {
     previousFrame = performance.now();
   });
 
-  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && state.view === "flight") {
-    setMissionTime(92);
-    updateMissionReadout();
-  }
   drawFallbackScene();
   requestAnimationFrame(animate);
 }

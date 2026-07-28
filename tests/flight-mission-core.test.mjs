@@ -37,6 +37,19 @@ test("fault injection increases the late-flight degradation score", () => {
   assert.ok(degraded.probability > healthy.probability);
 });
 
+test("disabling injection removes every configured fault, including noise", () => {
+  const disabledWithValues = signalAt(210, {
+    enabled: false,
+    noisePct: 60,
+    biasA: 6,
+    driftC: 24,
+    dropoutPct: 25,
+    delayS: 2.5,
+  });
+  const healthy = signalAt(210, { enabled: false });
+  assert.deepEqual(disabledWithValues, healthy);
+});
+
 test("series is deterministic and complete", () => {
   const first = makeMissionSeries();
   const second = makeMissionSeries();

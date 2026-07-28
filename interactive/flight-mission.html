@@ -207,7 +207,9 @@
             </label>
             <input id="delay-range" type="range" min="0" max="2.5" step="0.1" value="0.6">
             <div class="quick-metrics">
-              <span>score <b id="quick-fault-score">—</b></span>
+              <span>score с отказом <b id="quick-fault-score">—</b></span>
+              <span>исправно <b id="quick-fault-baseline">—</b></span>
+              <span>Δscore <b id="quick-fault-delta">—</b></span>
               <span>ошибка <b id="quick-fault-error">—</b></span>
             </div>
           </section>
@@ -226,6 +228,10 @@
             <label><input type="checkbox" data-signal="temperature" checked> температура</label>
             <label><input type="checkbox" data-signal="vibration" checked> вибрация</label>
             <label><input type="checkbox" data-signal="probability" checked> модель</label>
+          </div>
+          <div class="comparison-legend" data-views="fault">
+            <span><i class="healthy-line"></i> исправно</span>
+            <span><i class="fault-line"></i> с отказом</span>
           </div>
         </div>
         <canvas id="telemetry-canvas" tabindex="0" aria-label="Синхронные графики телеметрии по времени полёта"></canvas>
