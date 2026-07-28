@@ -19,6 +19,10 @@ edge-инференса под ограничение по точности, в�
 **scikit-learn → PyTorch → ONNX Runtime C++ → Docker → GitHub Actions**.
 Дополнительные архитектуры и MCU-деплой вынесены в бонусный трек.
 
+Один авиационный кейс проходит через весь семестр: от телеметрии электромеханического привода
+и честного baseline до edge-релиза и assurance. Его развитие показано на
+[интерактивной карте курса](course-map.qmd).
+
 ::: {.note}
 [Главная идея.]{.label} Бортовой ML — не гонка за accuracy, а аргументированный компромисс:
 качество ↔ latency ↔ память ↔ энергия ↔ устойчивость ↔ верифицируемость.
@@ -43,7 +47,7 @@ edge-инференса под ограничение по точности, в�
 |:--:|---|---|
 | 1 | [L0 · Инженерный ML: как мыслить](lectures/L00-engineering-ml.qmd) | [S1 · Репозиторий, Python-окружение, pre-commit, первый зелёный CI](seminars/S01-engineering-toolchain.qmd) |
 | 2 | — | [S2 · Сенсорные данные: ресемплинг, синхронизация, окна, проверка качества](seminars/S02-sensor-data-pipeline.qmd) |
-| 3 | L1 · Supervised ML и честная валидация | S3 · sklearn-baseline, group/time split, метрики без утечек |
+| 3 | [L1 · Supervised ML и честная валидация](lectures/L01-supervised-validation.qmd) | [S3 · sklearn-baseline, group/time split, метрики без утечек](seminars/S03-honest-baseline.qmd) |
 | 4 | — | S4 · Старт проекта: команда, project card, протокол оценки и бюджеты |
 | 5 | L2 · Нейросети и PyTorch без магии | S5 · Dataset/DataLoader, training loop, тесты формы и данных |
 | 6 | — | S6 · 1D-CNN для ИМУ, журнал экспериментов, сравнение с baseline |
@@ -66,5 +70,5 @@ edge-инференса под ограничение по точности, в�
 
 ## Навигация
 
-[Программа курса](syllabus.qmd) · [Лекции](lectures/index.qmd) · [Лаборатории](seminars/index.qmd) ·
+[Программа курса](syllabus.qmd) · [Карта курса](course-map.qmd) · [Лекции](lectures/index.qmd) · [Лаборатории](seminars/index.qmd) ·
 [Проект и рубрика](project/index.qmd)

@@ -9,7 +9,7 @@ subtitle: "9 модулей по 2 академических часа"
 | # | Тема | Практический выход |
 |:--:|---|---|
 | L0 | Инженерный ML: как мыслить | границы применимости, утечки, метрики, lifecycle |
-| L1 | Supervised ML и честная валидация | baseline, group/time split, калибровка |
+| [L1](L01-supervised-validation.qmd) | Supervised ML и честная валидация | baseline, group/time split, калибровка |
 | L2 | Нейросети и PyTorch без магии | training loop и диагностика обучения |
 | L3 | Последовательности и сенсоры | 1D-CNN, TCN/LSTM; attention обзорно |
 | L4 | Гибридная оценка состояния и динамики | residual-модель поверх физики |
@@ -20,6 +20,6 @@ subtitle: "9 модулей по 2 академических часа"
 
 : {tbl-colwidths="[8,51,41]"}
 
-Доступна первая лекция: [L0 · Инженерный ML: как мыслить](L00-engineering-ml.qmd).
-Остальные модули заполняются из служебного файла `lectures/_template.qmd` после фиксации их
-learning outcomes и лабораторного артефакта.
+Доступны [L0 · Инженерный ML: как мыслить](L00-engineering-ml.qmd) и связанная с S3
+[L1 · Supervised ML без утечек](L01-supervised-validation.qmd).
+Весь путь кейса показан на [карте курса](../course-map.qmd).

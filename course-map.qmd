@@ -1,0 +1,179 @@
+---
+title: "Карта курса"
+subtitle: "Один авиационный кейс · шесть уровней доказательств · осень 2026"
+toc: false
+---
+
+::: {.masthead}
+[Сквозной маршрут]{.course-id}
+
+# От телеметрии привода до защищённого edge-релиза
+
+[Лекции объясняют инженерное решение · лаборатории превращают его в проверяемый артефакт]{.meta}
+:::
+
+Весь курс проходит через одну эталонную задачу: по окну телеметрии электромеханического привода
+оценить риск деградации в заданном горизонте и обосновать решение о техническом обслуживании.
+Физическая постановка вдохновлена реальными испытаниями авиационных EMA; учебные данные
+синтетические и открыто генерируются внутри репозитория.
+
+<div class="case-route" aria-label="Развитие сквозного авиационного кейса">
+<div class="case-step">
+<span class="case-code">Наблюдаем</span>
+<strong>Сырые каналы</strong>
+<small>команда · положение · ток · температура · вибрация · нагрузка</small>
+</div>
+<div class="case-step">
+<span class="case-code">Доказываем</span>
+<strong>Честный baseline</strong>
+<small>provenance · group/time split · PR · threshold</small>
+</div>
+<div class="case-step">
+<span class="case-code">Обучаем</span>
+<strong>Модель ряда</strong>
+<small>PyTorch · 1D-CNN · TCN/LSTM · ablation</small>
+</div>
+<div class="case-step">
+<span class="case-code">Соединяем</span>
+<strong>Физику и данные</strong>
+<small>residual learning · anomaly · RUL · shift</small>
+</div>
+<div class="case-step">
+<span class="case-code">Переносим</span>
+<strong>На edge</strong>
+<small>INT8 · ONNX Runtime C++ · ARM64 · benchmark</small>
+</div>
+<div class="case-step">
+<span class="case-code">Защищаем</span>
+<strong>Инженерное обещание</strong>
+<small>ODD · monitoring · CI · model card · assurance</small>
+</div>
+</div>
+
+## Маршрут семестра
+
+<div class="course-map">
+<div class="course-stage">
+<div class="stage-index">00</div>
+<div class="stage-body">
+<h3>Инженерная оптика</h3>
+<p class="stage-question">Где ML полезен системе управления, а где физическая модель надёжнее?</p>
+<div class="stage-paths">
+<p><span class="path-label">Лекция</span><a href="lectures/L00-engineering-ml.html">L0 · Инженерный ML: как мыслить</a></p>
+<p><span class="path-label">Практика</span><a href="seminars/S01-engineering-toolchain.html">S1 · Инструменты и CI</a> → <a href="seminars/S02-sensor-data-pipeline.html">S2 · Сенсорный pipeline</a></p>
+</div>
+<p class="stage-evidence"><strong>Evidence:</strong> воспроизводимое окружение, проверенные единицы, время, синхронизация и provenance окон.</p>
+</div>
+</div>
+
+<div class="course-stage">
+<div class="stage-index">01</div>
+<div class="stage-body">
+<h3>Честное первое доказательство</h3>
+<p class="stage-question">Переносится ли сигнал деградации на будущий полёт и новый экземпляр привода?</p>
+<div class="stage-paths">
+<p><span class="path-label">Лекция</span><a href="lectures/L01-supervised-validation.html">L1 · Supervised ML без утечек</a></p>
+<p><span class="path-label">Практика</span><a href="seminars/S03-honest-baseline.html">S3 · sklearn baseline</a> → S4 · project card</p>
+</div>
+<p class="stage-evidence"><strong>Evidence:</strong> split manifest, Dummy/Logistic baseline, grouped CV, PR-кривая, калибровка и замороженный порог.</p>
+</div>
+</div>
+
+<div class="course-stage">
+<div class="stage-index">02</div>
+<div class="stage-body">
+<h3>Модель видит динамику сигнала</h3>
+<p class="stage-question">Даёт ли последовательная модель информацию сверх агрегатов окна?</p>
+<div class="stage-paths">
+<p><span class="path-label">Лекции</span>L2 · PyTorch без магии → L3 · последовательности и сенсоры</p>
+<p><span class="path-label">Практика</span>S5 · training loop → S6 · 1D-CNN → S7 · TCN/LSTM → S8 · checkpoint A</p>
+</div>
+<p class="stage-evidence"><strong>Evidence:</strong> тесты данных и формы, журнал экспериментов, ablation и парное сравнение с тем же S3 baseline.</p>
+</div>
+</div>
+
+<div class="course-stage">
+<div class="stage-index">03</div>
+<div class="stage-body">
+<h3>Знание физики становится ограничением</h3>
+<p class="stage-question">Как отделить нормальную реакцию на нагрузку от деградации механики?</p>
+<div class="stage-paths">
+<p><span class="path-label">Лекции</span>L4 · гибридная оценка → L5 · аномалии, отказы и RUL</p>
+<p><span class="path-label">Практика</span>S9 · residual model → S10 · shift → S11 · event/RUL metrics → S12 · model freeze</p>
+</div>
+<p class="stage-evidence"><strong>Evidence:</strong> физический baseline, worst-regime report, задержка детекции, RUL-оценка и deployment contract.</p>
+</div>
+</div>
+
+<div class="course-stage">
+<div class="stage-index">04</div>
+<div class="stage-body">
+<h3>Модель становится программным компонентом</h3>
+<p class="stage-question">Сохраняется ли качество при ограничении памяти, latency и целевой архитектуры?</p>
+<div class="stage-paths">
+<p><span class="path-label">Лекции</span>L6 · сжатие и edge → L7 · production ML</p>
+<p><span class="path-label">Практика</span>S13 · INT8/ONNX → S14 · C++/ARM64 → S15 · Docker/CI → S16 · release candidate</p>
+</div>
+<p class="stage-evidence"><strong>Evidence:</strong> численная эквивалентность Python/C++, accuracy–size curve, p50/p95 latency и воспроизводимый релиз.</p>
+</div>
+</div>
+
+<div class="course-stage">
+<div class="stage-index">05</div>
+<div class="stage-body">
+<h3>Обещание получает границы и владельца</h3>
+<p class="stage-question">Какие данные подтверждают эксплуатационное утверждение, а где система должна отказаться от ответа?</p>
+<div class="stage-paths">
+<p><span class="path-label">Лекция</span>L8 · безопасность и assurance ML</p>
+<p><span class="path-label">Практика</span>S17 · командное демо и индивидуальная защита</p>
+</div>
+<p class="stage-evidence"><strong>Evidence:</strong> ODD, monitoring contract, traceability, model card и защита решения на новых сценариях.</p>
+</div>
+</div>
+</div>
+
+## Как растёт сила утверждения
+
+<div class="evidence-ladder">
+<div class="evidence-row">
+<strong>S2</strong>
+<span>«Окна построены корректно»</span>
+<span>data contract + quality report</span>
+</div>
+<div class="evidence-row">
+<strong>S3</strong>
+<span>«Baseline работает на честном будущем»</span>
+<span>split manifest + grouped metrics</span>
+</div>
+<div class="evidence-row">
+<strong>S8</strong>
+<span>«Последовательная модель добавляет ценность»</span>
+<span>paired comparison + error analysis</span>
+</div>
+<div class="evidence-row">
+<strong>S12</strong>
+<span>«Модель заморожена и имеет интерфейс»</span>
+<span>model freeze + deployment contract</span>
+</div>
+<div class="evidence-row">
+<strong>S16</strong>
+<span>«Релиз переносим на целевую среду»</span>
+<span>ONNX/C++ equivalence + benchmark + CI</span>
+</div>
+<div class="evidence-row">
+<strong>S17</strong>
+<span>«Команда понимает границы решения»</span>
+<span>model card + individual defense</span>
+</div>
+</div>
+
+::: {.note}
+[Правило карты.]{.label} Новая архитектура не обнуляет накопленные доказательства. Если меняется
+feature contract, split или decision policy, соответствующие ступени нужно пройти заново.
+:::
+
+## Ближайшая связанная пара
+
+[Открыть L1 · Supervised ML без утечек](lectures/L01-supervised-validation.qmd) ·
+[Открыть S3 · Честный baseline](seminars/S03-honest-baseline.qmd) ·
+[Вернуться к расписанию](index.qmd#расписание)

@@ -22,6 +22,8 @@ website:
         href: index.qmd
       - text: "Программа"
         href: syllabus.qmd
+      - text: "Карта курса"
+        href: course-map.qmd
       - text: "Лекции"
         href: lectures/index.qmd
       - text: "Лаборатории"
