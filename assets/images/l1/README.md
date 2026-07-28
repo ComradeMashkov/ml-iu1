@@ -34,3 +34,5 @@ https://c3.ndc.nasa.gov/dashlink/static/media/publication/2010_PHM_EMA.pdf
 - `nasa-flea-coupling.jpg` — Figure 3.
 - `nasa-bug-actuator.jpg` — Figure 4.
 - `nasa-uh60-flight-profile.jpg` — Figures 13–14.
+- `nasa-uh60-motion-profile.jpg` — enlarged crop of Figure 13.
+- `nasa-uh60-load-profile.jpg` — enlarged crop of Figure 14.
