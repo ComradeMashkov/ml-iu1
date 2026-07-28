@@ -1,6 +1,11 @@
 project:
   type: website
   output-dir: _site
+  resources:
+    - interactive/flight-mission.html
+    - assets/flight-mission.css
+    - assets/flight-mission.mjs
+    - assets/flight-mission-core.mjs
   preview:
     port: 4242
     browser: true
@@ -24,6 +29,8 @@ website:
         href: syllabus.qmd
       - text: "Карта курса"
         href: course-map.qmd
+      - text: "Лётная лаборатория"
+        href: interactive/index.qmd
       - text: "Лекции"
         href: lectures/index.qmd
       - text: "Лаборатории"

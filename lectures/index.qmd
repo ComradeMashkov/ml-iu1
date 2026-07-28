@@ -22,4 +22,5 @@ subtitle: "9 модулей по 2 академических часа"
 
 Доступны [L0 · Инженерный ML: как мыслить](L00-engineering-ml.qmd) и связанная с S3
 [L1 · Supervised ML без утечек](L01-supervised-validation.qmd).
-Весь путь кейса показан на [карте курса](../course-map.qmd).
+Весь путь кейса показан на [карте курса](../course-map.qmd), а 3D-полёт, телеметрия и
+decision policy собраны в [лётной лаборатории](../interactive/index.qmd).

@@ -19,11 +19,16 @@
 │   ├── _template.qmd              # непубликуемый шаблон reveal.js
 │   └── L00-engineering-ml.qmd     # вводная лекция
 ├── seminars/index.qmd             # 17 лабораторных итераций
+├── interactive/
+│   ├── index.qmd                  # страница 3D-лётной лаборатории
+│   └── flight-mission.html        # автономный интерактивный симулятор
 ├── project/
 │   ├── index.qmd                  # протокол проекта и рубрика
 │   └── _project-card-template.md  # шаблон постановки проекта
 ├── assets/
 │   ├── figstyle.py                # единый matplotlib-стиль
+│   ├── flight-mission*.mjs        # полёт, сигналы и учебные эксперименты
+│   ├── flight-mission.css         # адаптивный интерфейс лаборатории
 │   ├── theme/custom.scss          # тема сайта
 │   ├── theme/slides.scss          # тема слайдов
 │   └── references.bib             # библиография

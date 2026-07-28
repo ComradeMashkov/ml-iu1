@@ -106,6 +106,17 @@ $code-block-font-size: 0.62em;
   max-height: 185px;
 }
 
+// Интерактивная лётная лаборатория: один крупный объект без внутренних полей слайда
+.reveal section.mission-lab-slide h2 { margin-bottom: .22em; }
+.reveal section.mission-lab-slide .mission-frame {
+  display: block;
+  width: 100%;
+  height: 575px;
+  margin: 0;
+  border: 1px solid $rule;
+  background: #fff;
+}
+
 // ---- Математика крупнее и в фокусе ----
 .reveal .MathJax, .reveal mjx-container { color: $ink; }
 .reveal .eq-lead mjx-container { font-size: 1.15em !important; }
