@@ -6,6 +6,8 @@ project:
     - assets/flight-mission.css
     - assets/flight-mission.mjs
     - assets/flight-mission-core.mjs
+    - assets/models/nasa-global-hawk.glb
+    - assets/models/README.md
   preview:
     port: 4242
     browser: true

@@ -887,8 +887,10 @@ let orbitControls;
 let aircraft;
 let flightCurve;
 let resizeObserver;
+let threeInitialized = false;
+let webglReady = false;
 
-function createAircraftModel() {
+function createFallbackAircraftModel() {
   const group = new THREE.Group();
   const blue = new THREE.MeshStandardMaterial({ color: 0x215caf, roughness: 0.56, metalness: 0.18 });
   const dark = new THREE.MeshStandardMaterial({ color: 0x20232a, roughness: 0.48, metalness: 0.25 });
@@ -928,6 +930,73 @@ function createAircraftModel() {
 
   group.scale.setScalar(0.9);
   return group;
+}
+
+function setWebglReady(ready) {
+  webglReady = Boolean(ready);
+  const backdrop = $("flight-backdrop");
+  if (backdrop) backdrop.hidden = webglReady;
+  root.classList.toggle("webgl-ready", webglReady);
+}
+
+async function loadGlobalHawkModel(GLTFLoader) {
+  const loader = new GLTFLoader();
+  const { DRACOLoader } = await import("three/addons/loaders/DRACOLoader.js");
+  const dracoLoader = new DRACOLoader();
+  dracoLoader.setDecoderPath("https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/libs/draco/");
+  loader.setDRACOLoader(dracoLoader);
+  const modelUrl = new URL("./models/nasa-global-hawk.glb", import.meta.url);
+  let gltf;
+  try {
+    gltf = await loader.loadAsync(modelUrl.href);
+  } finally {
+    dracoLoader.dispose();
+  }
+
+  const orientedModel = new THREE.Group();
+  orientedModel.name = "NASA Global Hawk";
+  orientedModel.add(gltf.scene);
+
+  // The NASA asset uses X for wingspan and +Z for the nose after its glTF
+  // axis conversion. The simulator expects the aircraft to point along +X.
+  orientedModel.rotation.y = Math.PI / 2;
+  orientedModel.updateMatrixWorld(true);
+
+  const initialBounds = new THREE.Box3().setFromObject(orientedModel);
+  const initialSize = initialBounds.getSize(new THREE.Vector3());
+  const targetWingspan = 16;
+  orientedModel.scale.setScalar(targetWingspan / Math.max(initialSize.x, initialSize.z));
+  orientedModel.updateMatrixWorld(true);
+
+  const normalizedBounds = new THREE.Box3().setFromObject(orientedModel);
+  const center = normalizedBounds.getCenter(new THREE.Vector3());
+  orientedModel.position.sub(center);
+
+  orientedModel.traverse((object) => {
+    if (!object.isMesh) return;
+    object.castShadow = false;
+    object.receiveShadow = false;
+    object.frustumCulled = true;
+    if (object.material) {
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      materials.forEach((material) => {
+        material.side = THREE.DoubleSide;
+        // The source GLB carries a full-transmission export setting intended
+        // for NASA's HDR viewer. Without an environment map it makes the white
+        // airframe look almost black, so keep the textures but use an opaque,
+        // matte aircraft finish in the course simulator.
+        if ("transmission" in material) material.transmission = 0;
+        if ("metalness" in material) material.metalness = Math.min(material.metalness, 0.08);
+        if ("roughness" in material) material.roughness = Math.max(material.roughness, 0.68);
+        material.transparent = false;
+        material.opacity = 1;
+        material.depthWrite = true;
+        material.needsUpdate = true;
+      });
+    }
+  });
+
+  return orientedModel;
 }
 
 function addEnvironment() {
@@ -989,7 +1058,7 @@ function addFlightPath() {
   MISSION_PHASES.forEach((phase) => {
     const point = flightCurve.getPointAt(phase.start / MISSION_DURATION_S);
     const marker = new THREE.Mesh(
-      new THREE.SphereGeometry(1.05, 12, 8),
+      new THREE.SphereGeometry(0.34, 12, 8),
       new THREE.MeshBasicMaterial({ color: phase.id === "maneuver" ? 0xb52b34 : 0xffffff }),
     );
     marker.position.copy(point);
@@ -1000,7 +1069,10 @@ function addFlightPath() {
 async function initializeThree() {
   try {
     THREE = await import("three");
-    const { OrbitControls } = await import("three/addons/controls/OrbitControls.js");
+    const [{ OrbitControls }, { GLTFLoader }] = await Promise.all([
+      import("three/addons/controls/OrbitControls.js"),
+      import("three/addons/loaders/GLTFLoader.js"),
+    ]);
     const canvas = $("flight-canvas");
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -1015,7 +1087,9 @@ async function initializeThree() {
 
     addEnvironment();
     addFlightPath();
-    aircraft = createAircraftModel();
+    aircraft = new THREE.Group();
+    aircraft.name = "Aircraft motion root";
+    aircraft.add(createFallbackAircraftModel());
     scene.add(aircraft);
 
     orbitControls = new OrbitControls(camera, canvas);
@@ -1031,7 +1105,18 @@ async function initializeThree() {
     resizeObserver.observe(canvas.parentElement);
     resizeThree();
     updateAircraft(true);
+
+    try {
+      const globalHawk = await loadGlobalHawkModel(GLTFLoader);
+      aircraft.clear();
+      aircraft.add(globalHawk);
+    } catch (error) {
+      console.warn("NASA Global Hawk model failed to load; using the procedural 3D aircraft.", error);
+    }
+
+    threeInitialized = true;
   } catch (error) {
+    setWebglReady(false);
     $("webgl-fallback").hidden = false;
     console.warn("Three.js initialization failed; 2D laboratory remains available.", error);
   }
@@ -1069,9 +1154,9 @@ function updateAircraft(forceCamera = false) {
   if (state.cameraMode === "chase") {
     desiredPosition.set(-20, 8, 13).applyQuaternion(aircraft.quaternion).add(position);
   } else if (state.cameraMode === "top") {
-    desiredPosition.copy(position).add(new THREE.Vector3(0, 105, 0.1));
+    desiredPosition.copy(position).add(new THREE.Vector3(0, 64, 0.1));
   } else if (state.cameraMode === "side") {
-    desiredPosition.copy(position).add(new THREE.Vector3(-3, 12, 48));
+    desiredPosition.copy(position).add(new THREE.Vector3(-3, 9, 32));
   }
 
   if (state.cameraMode !== "orbit") {
@@ -1100,7 +1185,12 @@ function animate(now) {
   updateAircraft();
   drawFallbackScene();
   if (orbitControls?.enabled) orbitControls.update(deltaS);
-  if (renderer && scene && camera) renderer.render(scene, camera);
+  if (renderer && scene && camera && threeInitialized) {
+    renderer.render(scene, camera);
+    if (!webglReady && renderer.info.render.calls > 0) {
+      setWebglReady(true);
+    }
+  }
 
   if (state.playing && now - lastUiUpdate > 65) {
     updateMissionReadout();
@@ -1111,12 +1201,19 @@ function animate(now) {
 }
 
 function initialize() {
+  setWebglReady(false);
   buildPhaseButtons();
   bindControls();
   readFaultControls();
   applyView(state.view);
   updateAll();
-  initializeThree();
+  if (!isEmbed || state.view === "flight") {
+    initializeThree();
+  } else {
+    // Presentation embeds for decision/window/split/fault are instrument
+    // panels, not repeated copies of the 3D simulator.
+    setWebglReady(true);
+  }
 
   const redraw = () => {
     drawFallbackScene();

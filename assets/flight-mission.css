@@ -167,6 +167,10 @@ a:focus-visible {
   z-index: 0;
 }
 
+#flight-backdrop[hidden] {
+  display: none;
+}
+
 #flight-canvas {
   z-index: 1;
   cursor: grab;
@@ -225,6 +229,25 @@ a:focus-visible {
   border-color: var(--accent);
   background: var(--accent);
   color: var(--white);
+}
+
+.model-credit {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 3;
+  padding: 4px 7px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #39434d;
+  font-size: 10px;
+  line-height: 1.2;
+  text-decoration: none;
+  backdrop-filter: blur(5px);
+}
+
+.model-credit:hover {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 .webgl-fallback {
@@ -689,6 +712,28 @@ body.is-embed:not([data-view="flight"]) .select-label {
   display: none;
 }
 
+body.is-embed:not([data-view="flight"]) .scene-wrap {
+  display: none;
+}
+
+body.is-embed:not([data-view="flight"]) .mission-grid {
+  grid-template-columns: 1fr;
+}
+
+body.is-embed:not([data-view="flight"]) .experiment-controls {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.72fr) minmax(0, 1.28fr);
+  min-height: 0;
+}
+
+body.is-embed:not([data-view="flight"]) .experiment-controls .control-section {
+  border-bottom: 0;
+}
+
+body.is-embed:not([data-view="flight"]) .experiment-controls .mission-control {
+  border-right: 1px solid var(--line);
+}
+
 body.is-embed .telemetry-section {
   margin-top: 7px;
   padding-top: 5px;
@@ -717,6 +762,10 @@ body.is-embed #telemetry-canvas {
 
 body.is-embed[data-view="flight"] #telemetry-canvas {
   height: 194px;
+}
+
+body.is-embed:not([data-view="flight"]) #telemetry-canvas {
+  height: 292px;
 }
 
 @media (max-width: 1050px) {
@@ -749,6 +798,15 @@ body.is-embed[data-view="flight"] #telemetry-canvas {
   .mission-grid,
   body.is-embed .mission-grid {
     grid-template-columns: 1fr;
+  }
+
+  body.is-embed:not([data-view="flight"]) .experiment-controls {
+    grid-template-columns: 1fr;
+  }
+
+  body.is-embed:not([data-view="flight"]) .experiment-controls .mission-control {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .scene-wrap,

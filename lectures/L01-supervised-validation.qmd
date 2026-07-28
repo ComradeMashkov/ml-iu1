@@ -223,6 +223,10 @@ validation_probability = baseline.predict_proba(
 
 Управление камерой: «за самолётом» показывает динамику, «орбита» разрешает вращение мышью,
 «сверху» делает видимой геометрию маршрута.
+
+[Sources]
+- https://science.nasa.gov/3d-resources/global-hawk/
+[/Sources]
 :::
 
 # Часть 1 · Сначала задача, потом алгоритм {.divider background-color="#23373B"}
