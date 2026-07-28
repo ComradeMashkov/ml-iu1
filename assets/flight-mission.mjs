@@ -384,6 +384,288 @@ function prepareCanvas(canvas) {
   return { context, width: rect.width, height: rect.height };
 }
 
+function interpolatedWaypoint(timeS) {
+  const time = Math.max(0, Math.min(MISSION_DURATION_S, timeS));
+  let rightIndex = FLIGHT_WAYPOINTS.findIndex((point) => point.t >= time);
+  if (rightIndex <= 0) return { ...FLIGHT_WAYPOINTS[0] };
+  if (rightIndex < 0) return { ...FLIGHT_WAYPOINTS.at(-1) };
+  const leftPoint = FLIGHT_WAYPOINTS[rightIndex - 1];
+  const rightPoint = FLIGHT_WAYPOINTS[rightIndex];
+  const ratio = (time - leftPoint.t) / (rightPoint.t - leftPoint.t);
+  return {
+    t: time,
+    x: leftPoint.x + (rightPoint.x - leftPoint.x) * ratio,
+    y: leftPoint.y + (rightPoint.y - leftPoint.y) * ratio,
+    z: leftPoint.z + (rightPoint.z - leftPoint.z) * ratio,
+  };
+}
+
+function drawFallbackAircraft(context, x, y, scale, bankDeg, headingRad = 0) {
+  context.save();
+  context.translate(x, y);
+  context.rotate(headingRad + bankDeg * Math.PI / 180);
+  context.scale(scale, scale);
+
+  context.fillStyle = "rgba(32, 35, 42, 0.20)";
+  context.beginPath();
+  context.ellipse(8, 9, 43, 9, 0, 0, Math.PI * 2);
+  context.fill();
+
+  const wingGradient = context.createLinearGradient(-6, -28, 7, 28);
+  wingGradient.addColorStop(0, "#17447f");
+  wingGradient.addColorStop(0.48, "#2d70c8");
+  wingGradient.addColorStop(1, "#17447f");
+  context.fillStyle = wingGradient;
+  context.beginPath();
+  context.moveTo(9, -5);
+  context.lineTo(-13, -34);
+  context.lineTo(-20, -33);
+  context.lineTo(-8, -4);
+  context.lineTo(-8, 4);
+  context.lineTo(-20, 33);
+  context.lineTo(-13, 34);
+  context.lineTo(9, 5);
+  context.closePath();
+  context.fill();
+
+  const bodyGradient = context.createLinearGradient(-29, 0, 31, 0);
+  bodyGradient.addColorStop(0, "#aeb9c4");
+  bodyGradient.addColorStop(0.48, "#f7fafc");
+  bodyGradient.addColorStop(1, "#215caf");
+  context.fillStyle = bodyGradient;
+  context.beginPath();
+  context.moveTo(34, 0);
+  context.bezierCurveTo(23, -7, -17, -7, -31, -3);
+  context.lineTo(-38, 0);
+  context.lineTo(-31, 3);
+  context.bezierCurveTo(-17, 7, 23, 7, 34, 0);
+  context.fill();
+
+  context.fillStyle = "#20232a";
+  context.beginPath();
+  context.ellipse(13, 0, 8, 4, 0, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = "#215caf";
+  context.beginPath();
+  context.moveTo(-27, -3);
+  context.lineTo(-37, -13);
+  context.lineTo(-40, -12);
+  context.lineTo(-34, -1);
+  context.lineTo(-34, 1);
+  context.lineTo(-40, 12);
+  context.lineTo(-37, 13);
+  context.lineTo(-27, 3);
+  context.closePath();
+  context.fill();
+
+  context.fillStyle = "#b52b34";
+  context.fillRect(-11, 25, 8, 5);
+  context.restore();
+}
+
+function drawFallbackTopView(context, width, height, currentPoint, kinematics) {
+  const padding = 45;
+  const xs = FLIGHT_WAYPOINTS.map((point) => point.x);
+  const zs = FLIGHT_WAYPOINTS.map((point) => point.z);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minZ = Math.min(...zs);
+  const maxZ = Math.max(...zs);
+  const mapX = (x) => padding + ((x - minX) / (maxX - minX)) * (width - 2 * padding);
+  const mapY = (z) => height - padding - ((z - minZ) / (maxZ - minZ)) * (height - 2 * padding);
+
+  context.fillStyle = "#879b7b";
+  context.fillRect(0, 0, width, height);
+  context.strokeStyle = "rgba(255, 255, 255, 0.22)";
+  context.lineWidth = 1;
+  for (let x = 0; x < width; x += 46) {
+    context.beginPath();
+    context.moveTo(x, 0);
+    context.lineTo(x, height);
+    context.stroke();
+  }
+  for (let y = 0; y < height; y += 46) {
+    context.beginPath();
+    context.moveTo(0, y);
+    context.lineTo(width, y);
+    context.stroke();
+  }
+
+  context.strokeStyle = "#ffffff";
+  context.lineWidth = 14;
+  context.beginPath();
+  context.moveTo(mapX(-160), mapY(-3));
+  context.lineTo(mapX(5), mapY(-3));
+  context.stroke();
+  context.strokeStyle = "#43484d";
+  context.lineWidth = 10;
+  context.stroke();
+
+  context.strokeStyle = "#215caf";
+  context.lineWidth = 3;
+  context.beginPath();
+  FLIGHT_WAYPOINTS.forEach((point, index) => {
+    const x = mapX(point.x);
+    const y = mapY(point.z);
+    if (index === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  });
+  context.stroke();
+
+  MISSION_PHASES.forEach((phase) => {
+    const point = interpolatedWaypoint(phase.start);
+    context.fillStyle = phase.id === kinematics.phase.id ? "#b52b34" : "#ffffff";
+    context.beginPath();
+    context.arc(mapX(point.x), mapY(point.z), phase.id === kinematics.phase.id ? 5 : 3, 0, Math.PI * 2);
+    context.fill();
+  });
+
+  const future = interpolatedWaypoint(Math.min(MISSION_DURATION_S, state.timeS + 1));
+  const heading = Math.atan2(mapY(future.z) - mapY(currentPoint.z), mapX(future.x) - mapX(currentPoint.x));
+  drawFallbackAircraft(
+    context,
+    mapX(currentPoint.x),
+    mapY(currentPoint.z),
+    Math.max(0.55, Math.min(0.85, width / 900)),
+    0,
+    heading,
+  );
+}
+
+function drawFallbackSideView(context, width, height, kinematics) {
+  const horizon = height * 0.72;
+  const sky = context.createLinearGradient(0, 0, 0, horizon);
+  sky.addColorStop(0, "#c9e1f4");
+  sky.addColorStop(1, "#f5fafc");
+  context.fillStyle = sky;
+  context.fillRect(0, 0, width, horizon);
+  context.fillStyle = "#879b7b";
+  context.fillRect(0, horizon, width, height - horizon);
+
+  context.strokeStyle = "rgba(33, 92, 175, 0.45)";
+  context.lineWidth = 3;
+  context.beginPath();
+  for (let sampleTime = 0; sampleTime <= MISSION_DURATION_S; sampleTime += 2) {
+    const sampleKinematics = missionKinematics(sampleTime);
+    const x = 30 + (sampleTime / MISSION_DURATION_S) * (width - 60);
+    const y = horizon - (sampleKinematics.altitudeM / 2200) * (horizon - 45);
+    if (sampleTime === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  }
+  context.stroke();
+
+  const x = 30 + (state.timeS / MISSION_DURATION_S) * (width - 60);
+  const y = horizon - (kinematics.altitudeM / 2200) * (horizon - 45);
+  drawFallbackAircraft(
+    context,
+    x,
+    y,
+    Math.max(0.62, Math.min(0.92, width / 820)),
+    kinematics.pitchDeg * 0.45,
+    0,
+  );
+}
+
+function drawFallbackChaseView(context, width, height, kinematics) {
+  const bankRad = -kinematics.bankDeg * Math.PI / 180 * 0.55;
+  context.save();
+  context.translate(width / 2, height * 0.52);
+  context.rotate(bankRad);
+  context.translate(-width / 2, -height * 0.52);
+
+  const horizon = height * (0.54 + Math.max(-0.08, Math.min(0.08, kinematics.pitchDeg / 120)));
+  const sky = context.createLinearGradient(0, 0, 0, horizon);
+  sky.addColorStop(0, "#b9d8ef");
+  sky.addColorStop(1, "#eff7fb");
+  context.fillStyle = sky;
+  context.fillRect(-width, -height, width * 3, horizon + height);
+
+  context.fillStyle = "#6f8073";
+  context.beginPath();
+  context.moveTo(-width, horizon + 45);
+  context.lineTo(width * 0.04, horizon - 18);
+  context.lineTo(width * 0.22, horizon + 8);
+  context.lineTo(width * 0.43, horizon - 38);
+  context.lineTo(width * 0.67, horizon + 6);
+  context.lineTo(width * 0.86, horizon - 25);
+  context.lineTo(width * 2, horizon + 44);
+  context.lineTo(width * 2, height * 2);
+  context.lineTo(-width, height * 2);
+  context.closePath();
+  context.fill();
+
+  const ground = context.createLinearGradient(0, horizon, 0, height);
+  ground.addColorStop(0, "#9aaa89");
+  ground.addColorStop(1, "#65745f");
+  context.fillStyle = ground;
+  context.fillRect(-width, horizon + 25, width * 3, height * 2);
+
+  const gridOffset = (state.timeS * 9) % 42;
+  context.strokeStyle = "rgba(255, 255, 255, 0.20)";
+  context.lineWidth = 1;
+  for (let index = -8; index <= 8; index += 1) {
+    context.beginPath();
+    context.moveTo(width / 2, horizon + 18);
+    context.lineTo(width / 2 + index * width * 0.18, height * 1.15);
+    context.stroke();
+  }
+  for (let y = horizon + 32 + gridOffset; y < height * 1.12; y += 42) {
+    context.beginPath();
+    context.moveTo(-width, y);
+    context.lineTo(width * 2, y);
+    context.stroke();
+  }
+
+  if (kinematics.altitudeM < 520 || kinematics.phase.id === "landing") {
+    context.fillStyle = "#43484d";
+    context.beginPath();
+    context.moveTo(width * 0.46, horizon + 22);
+    context.lineTo(width * 0.54, horizon + 22);
+    context.lineTo(width * 0.78, height * 1.06);
+    context.lineTo(width * 0.22, height * 1.06);
+    context.closePath();
+    context.fill();
+    context.strokeStyle = "#f6f3de";
+    context.lineWidth = 3;
+    context.setLineDash([12, 16]);
+    context.beginPath();
+    context.moveTo(width * 0.5, horizon + 28);
+    context.lineTo(width * 0.5, height);
+    context.stroke();
+    context.setLineDash([]);
+  }
+
+  context.restore();
+
+  const aircraftScale = Math.max(1.05, Math.min(1.55, width / 620));
+  drawFallbackAircraft(
+    context,
+    width * 0.53,
+    height * 0.48,
+    aircraftScale,
+    kinematics.bankDeg * 0.6,
+    0,
+  );
+}
+
+function drawFallbackScene() {
+  const canvas = $("flight-backdrop");
+  if (!canvas || canvas.clientWidth < 2 || canvas.clientHeight < 2) return;
+  const { context, width, height } = prepareCanvas(canvas);
+  context.clearRect(0, 0, width, height);
+  const kinematics = missionKinematics(state.timeS);
+  const currentPoint = interpolatedWaypoint(state.timeS);
+
+  if (state.cameraMode === "top") {
+    drawFallbackTopView(context, width, height, currentPoint, kinematics);
+  } else if (state.cameraMode === "side") {
+    drawFallbackSideView(context, width, height, kinematics);
+  } else {
+    drawFallbackChaseView(context, width, height, kinematics);
+  }
+}
+
 function drawPath(context, definition, xScale, yScale) {
   context.beginPath();
   let drawing = false;
@@ -724,6 +1006,7 @@ async function initializeThree() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.shadowMap.enabled = false;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.setClearColor(0xdbeaf7, 0);
 
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0xdbeaf7, 210, 520);
@@ -815,6 +1098,7 @@ function animate(now) {
   }
 
   updateAircraft();
+  drawFallbackScene();
   if (orbitControls?.enabled) orbitControls.update(deltaS);
   if (renderer && scene && camera) renderer.render(scene, camera);
 
@@ -835,6 +1119,7 @@ function initialize() {
   initializeThree();
 
   const redraw = () => {
+    drawFallbackScene();
     drawTelemetry();
     drawSplit();
     resizeThree();
@@ -846,7 +1131,9 @@ function initialize() {
 
   if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && state.view === "flight") {
     setMissionTime(92);
+    updateMissionReadout();
   }
+  drawFallbackScene();
   requestAnimationFrame(animate);
 }
 
