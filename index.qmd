@@ -67,4 +67,4 @@ edge-инференса под ограничение по точности, в�
 ## Навигация
 
 [Программа курса](syllabus.qmd) · [Лекции](lectures/index.qmd) · [Лаборатории](seminars/index.qmd) ·
-[Python online](playground.qmd) · [Проект и рубрика](project/index.qmd)
+[Проект и рубрика](project/index.qmd)
