@@ -1,14 +1,14 @@
 ---
-# ============================================================================
-#  ШАБЛОН ЛЕКЦИИ (ETH-стиль: формулы + графики, metropolis-вид).
-#  Скопируйте файл (напр. в L02-....qmd), заполните слоты. Файлы с «_» в начале
-#  имени Quarto не публикует. Предпросмотр: quarto preview lectures/_template.qmd
-#  Графикам нужен Python из зафиксированного uv-окружения (`uv sync --frozen`).
-# ============================================================================
+# Шаблон лекции. Перед публикацией:
+# - не более 32 содержательных слайдов;
+# - полный тайминг в заметках от 0:00 до 1:30;
+# - 2–3 наблюдаемых результата обучения;
+# - источники и маркировка синтетических чисел;
+# - успешный `uv sync --locked && make verify`.
 title: "Заголовок лекции"
-subtitle: "Лекция N · Машинное обучение · ИУ-1 (САУ ЛА)"
-author: "Машков И.И. · кафедра ИУ-1"
-institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
+subtitle: "Лекция N · короткое описание"
+author: "Машков И. И. · кафедра ИУ-1"
+institute: "МГТУ им. Н. Э. Баумана · осенний семестр 2026"
 format:
   live-revealjs:
     theme: [default, ../assets/theme/slides.scss]
@@ -17,7 +17,9 @@ format:
     margin: 0.04
     center: true
     slide-number: c/t
+    show-slide-number: all
     progress: true
+    history: true
     transition: none
     fig-format: svg
     fig-align: center
@@ -27,117 +29,101 @@ format:
       - text: |
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
-    pyodide:
-      packages:
-        - numpy
-        - matplotlib
-        - scikit-learn
-      cell-options:
-        autorun: false
-        completion: true
-        persist: true
-        startover: true
-        timelimit: 30
-        min-lines: 9
-        max-lines: 13
 jupyter: python3
 ---
 
 ```{python}
 #| echo: false
 #| output: false
-# единый стиль графиков курса (один раз на лекцию)
-import sys; sys.path.append("../assets")
-import numpy as np
+import sys
+
+sys.path.append("../assets")
+
 import matplotlib.pyplot as plt
-from figstyle import set_style, INK, ACCENT, ACCENT2, GREEN, AMBER, MUTED
+import numpy as np
+
+from figstyle import ACCENT, MUTED, set_style
+
 set_style()
 ```
 
-<!-- ===================== ПАТТЕРН: ПЛАН ЛЕКЦИИ ===================== -->
-## План лекции
+## Вопрос на входе
 
-- результат обучения 1 — что студент сможет сделать
-- результат обучения 2 — как проверит корректность
-- результат обучения 3 — какой артефакт продолжит на лаборатории
+Одна конкретная ситуация или число, которых недостаточно для инженерного решения.
 
 ::: {.notes}
-Заметки докладчика (клавиша «S»): тайминг, акценты, вопрос залу и ожидаемый ответ.
+0:00–0:04. Вопрос аудитории и ожидаемый ответ.
 :::
 
-<!-- ===================== ПАТТЕРН: РАЗДЕЛИТЕЛЬ ===================== -->
-# Часть 1 · Название {.divider background-color="#23373B"}
+## Результат лекции
 
-<!-- ============ ПАТТЕРН: ФОРМУЛА СЛЕВА + ГРАФИК СПРАВА (основной) ============ -->
-## Заголовок слайда
+После занятия студент может:
 
-:::: {.columns}
-::: {.column width="44%"}
-Короткая мысль и **ключевая формула**:
+1. выполнить действие, которое можно проверить;
+2. объяснить условие применимости;
+3. подготовить вход для следующего практикума.
 
-$$\hat{\theta} = \arg\min_{\theta}\ \frac1N\sum_i \mathcal{L}(f_\theta(x_i), y_i) + \lambda\lVert\theta\rVert_2^2$$
-
-- пункт 1
-- пункт 2
+::: {.notes}
+0:04–0:06. Назвать критерий проверки каждого результата.
 :::
-::: {.column width="56%"}
+
+# 1 · Первый вопрос {.divider background-color="#23373B"}
+
+## Один тезис и один пример
+
+Текст слайда отвечает на один вопрос. Формула сопровождается определением величин и условием
+применимости:
+
+$$
+\widehat R(\theta)=\frac{1}{N}\sum_{i=1}^{N}\mathcal L(f_\theta(x_i),y_i).
+$$
+
+::: {.notes}
+0:06–0:12. Объяснение, вопрос группе и переход.
+:::
+
+## График с проверяемым выводом
+
 ```{python}
 #| echo: false
+#| fig-height: 3.6
+#| fig-width: 8.2
+rng = np.random.default_rng(0)
 x = np.linspace(0, 10, 200)
-fig, ax = plt.subplots(figsize=(6.3, 4.6))
-ax.plot(x, np.sin(x), color=ACCENT, lw=3.0, label='сигнал')
-ax.plot(x, np.sin(x)+0.2*np.random.default_rng(0).standard_normal(x.size),
-        color=MUTED, lw=1.4, alpha=.8, label='+ шум')
-ax.set_xlabel('t'); ax.set_ylabel('y'); ax.legend(loc='upper right')
+fig, ax = plt.subplots()
+ax.plot(x, np.sin(x), color=ACCENT, label="сигнал")
+ax.plot(x, np.sin(x) + 0.2 * rng.standard_normal(x.size), color=MUTED, label="с шумом")
+ax.set(xlabel="время", ylabel="значение")
+ax.legend()
 plt.show()
 ```
-[Подпись к рисунку: что показано и какой вывод.]{.figcap}
+
+[Подпись формулирует вывод, а не повторяет оси. Числа синтетические.]{.figcap}
+
+::: {.notes}
+0:12–0:17. Что студент должен увидеть на графике.
 :::
-::::
 
-<!-- ===================== ПАТТЕРН: ГРАФИК НА ВЕСЬ СЛАЙД ===================== -->
-## Один крупный график
+## Задание на две минуты
 
-```{python}
-#| echo: false
-c = np.linspace(1, 15, 200)
-fig, ax = plt.subplots(figsize=(11.0, 5.0))
-ax.plot(c, 1.4/np.sqrt(c), color=ACCENT, lw=3.0, label='train')
-ax.plot(c, 1.4/np.sqrt(c)+0.0016*c**2+0.04, color=ACCENT2, lw=3.0, label='test')
-ax.set_xlabel('ёмкость модели'); ax.set_ylabel('ошибка'); ax.legend()
-plt.show()
-```
+Короткий вопрос, который требует применить предыдущий тезис. В заметках указаны ожидаемый
+ответ и распространённая ошибка.
 
-<!-- ===================== ПАТТЕРН: ИНТЕРАКТИВНЫЙ PYTHON ===================== -->
-## Код: запускается на слайде
+::: {.notes}
+0:17–0:21. Две минуты самостоятельно, затем два ответа.
+:::
 
-```{pyodide}
-#| caption: "Измените параметр и нажмите Run Code"
-#| max-lines: 10
-import numpy as np
+# Итог {.divider background-color="#23373B"}
 
-signal = np.array([0.2, 0.4, 1.2, 0.7, 0.3])
-threshold = 0.8
-alarm = signal >= threshold
+## Проверка результатов
 
-print(f"порог: {threshold:.1f}")
-print(f"тревоги: {np.flatnonzero(alarm).tolist()}")
-```
+- ответ на исходный вопрос;
+- граница применимости;
+- вход для следующего занятия.
 
-<!-- ===================== ПАТТЕРН: ТАБЛИЦА ===================== -->
-## Сравнение (когда табличный вид уместен)
-
-| Подход | Точность | Latency | Память |
-|---|:--:|:--:|:--:|
-| fp32 | высокая | высокая | высокая |
-| int8 | высокая | средняя | низкая |
-
-<!-- ===================== ПАТТЕРН: ВЫВОДЫ ===================== -->
-## Выводы
-
-- тезис одной строкой
-- когда применимо, когда нет
-- что попробовать на семинаре Sx
+::: {.notes}
+1:26–1:30. Итог и вопросы. Промежуточные разделы шаблона должны заполнить интервал 0:21–1:26.
+:::
 
 ## Источники {.smaller}
 

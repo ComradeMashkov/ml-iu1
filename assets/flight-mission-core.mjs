@@ -231,7 +231,7 @@ export function windowMetrics(lengthS = 2, strideS = 0.5) {
     overlap,
     count,
     sharedSeconds: Math.max(0, length - stride),
-    effectiveIndependent: Math.max(1, Math.round(count * (1 - overlap * 0.86))),
+    heuristicEffectiveCount: Math.max(1, Math.round(count * (1 - overlap * 0.86))),
   };
 }
 
@@ -240,20 +240,20 @@ export function splitMetrics(mode = "random", overlap = 0.75) {
   const scenarios = {
     random: {
       label: "Случайные окна",
-      leakage: clamp(0.42 + 0.58 * safeOverlap, 0, 0.99),
-      apparentF1: 0.83 + 0.13 * safeOverlap,
+      neighbourOverlapIndex: clamp(0.42 + 0.58 * safeOverlap, 0, 0.99),
+      illustrativeF1: 0.83 + 0.13 * safeOverlap,
       question: "Узнаём соседнее окно того же полёта?",
     },
     group: {
       label: "Новый полёт",
-      leakage: 0,
-      apparentF1: 0.78,
+      neighbourOverlapIndex: 0,
+      illustrativeF1: 0.78,
       question: "Обобщаемся на новый flight_id?",
     },
     time: {
       label: "Будущее",
-      leakage: 0,
-      apparentF1: 0.72,
+      neighbourOverlapIndex: 0,
+      illustrativeF1: 0.72,
       question: "Работаем после временного сдвига?",
     },
   };

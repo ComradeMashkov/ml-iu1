@@ -8,6 +8,19 @@ project:
     - assets/flight-mission-core.mjs
     - assets/models/nasa-global-hawk.glb
     - assets/models/README.md
+    - starter/.gitignore
+    - starter/.github/workflows/check.yml
+    - starter/Makefile
+    - starter/README.md
+    - starter/configs/baseline.json
+    - starter/pyproject.toml
+    - starter/src/ml_sau/__init__.py
+    - starter/src/ml_sau/baseline.py
+    - starter/src/ml_sau/course_case.py
+    - starter/src/ml_sau/sensor.py
+    - starter/src/ml_sau/sensor_source.py
+    - starter/tests/test_sources.py
+    - starter/uv.lock
   preview:
     port: 4242
     browser: true

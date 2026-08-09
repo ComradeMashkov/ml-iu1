@@ -33,15 +33,18 @@ jobs:
           version: "0.11.32"
 
       - name: Install locked Python environment
-        run: uv sync --frozen --no-dev
+        run: uv sync --locked
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
 
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render site
-        env:
-          QUARTO_PYTHON: .venv/bin/python
-        run: quarto render
+      - name: Verify sources and render site
+        run: make verify
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

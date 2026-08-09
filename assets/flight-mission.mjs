@@ -242,25 +242,25 @@ function updateWindowing() {
   $("window-count").textContent = `${metrics.count} окон`;
   $("window-overlap").textContent = `${overlapPct}%`;
   $("window-shared").textContent = `${metrics.sharedSeconds.toFixed(2).replace(/0$/, "")} с`;
-  $("window-effective").textContent = String(metrics.effectiveIndependent);
+  $("window-effective").textContent = String(metrics.heuristicEffectiveCount);
   $("quick-window-count").textContent = String(metrics.count);
-  $("quick-window-effective").textContent = String(metrics.effectiveIndependent);
+  $("quick-window-effective").textContent = String(metrics.heuristicEffectiveCount);
 }
 
 function updateSplit() {
   state.splitMode = document.querySelector('input[name="split-mode"]:checked')?.value || "random";
   const overlap = windowMetrics(state.windowLengthS, state.windowStrideS).overlap;
   const metrics = splitMetrics(state.splitMode, overlap);
-  const leakagePct = Math.round(metrics.leakage * 100);
+  const overlapIndexPct = Math.round(metrics.neighbourOverlapIndex * 100);
 
-  $("split-leakage-output").textContent = metrics.leakage > 0
-    ? `утечка ${leakagePct}%`
-    : "группы не пересекаются";
-  $("split-leakage-output").className = `state-label${metrics.leakage > 0 ? " warning" : ""}`;
+  $("split-overlap-index-output").textContent = metrics.neighbourOverlapIndex > 0
+    ? `условный индекс ${overlapIndexPct}%`
+    : "flight_id не смешаны";
+  $("split-overlap-index-output").className = `state-label${metrics.neighbourOverlapIndex > 0 ? " warning" : ""}`;
   $("split-title").textContent = metrics.label;
-  $("split-f1").textContent = `учебный F1 ${metrics.apparentF1.toFixed(2)}`;
+  $("split-f1").textContent = `иллюстративный F1 ${metrics.illustrativeF1.toFixed(2)}`;
   $("split-question").textContent = metrics.question;
-  $("quick-split-f1").textContent = metrics.apparentF1.toFixed(2);
+  $("quick-split-f1").textContent = metrics.illustrativeF1.toFixed(2);
   $("quick-split-question").textContent = metrics.question;
 }
 

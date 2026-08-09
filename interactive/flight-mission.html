@@ -122,9 +122,9 @@
               </label>
             </div>
             <div class="quick-metrics">
-              <span>cost <b id="quick-policy-cost">—</b></span>
-              <span>recall <b id="quick-policy-recall">—</b></span>
-              <span>precision <b id="quick-policy-precision">—</b></span>
+              <span>иллюстр. cost <b id="quick-policy-cost">—</b></span>
+              <span>иллюстр. recall <b id="quick-policy-recall">—</b></span>
+              <span>иллюстр. precision <b id="quick-policy-precision">—</b></span>
             </div>
           </section>
 
@@ -147,14 +147,14 @@
             <input id="window-stride-range" type="range" min="0.25" max="2" step="0.25" value="0.5">
             <div class="quick-metrics">
               <span>окон <b id="quick-window-count">—</b></span>
-              <span>условно независимых <b id="quick-window-effective">—</b></span>
+              <span>эвристическая оценка <b id="quick-window-effective">—</b></span>
             </div>
           </section>
 
           <section class="control-section" data-views="mission split">
             <div class="control-heading">
-              <h2>Единица split</h2>
-              <span id="split-leakage-output" class="state-label warning">утечка 86%</span>
+              <h2>Сценарий разбиения</h2>
+              <span id="split-overlap-index-output" class="state-label warning">условный индекс 86%</span>
             </div>
             <fieldset class="segmented-control">
               <legend>Что считаем независимым?</legend>
@@ -163,7 +163,7 @@
               <label><input type="radio" name="split-mode" value="time"> Будущее</label>
             </fieldset>
             <div class="quick-metrics">
-              <span>учебный F1 <b id="quick-split-f1">—</b></span>
+              <span>иллюстративный F1 <b id="quick-split-f1">—</b></span>
               <span id="quick-split-question">—</span>
             </div>
           </section>
@@ -207,8 +207,8 @@
             </label>
             <input id="delay-range" type="range" min="0" max="2.5" step="0.1" value="0.6">
             <div class="quick-metrics">
-              <span>score с отказом <b id="quick-fault-score">—</b></span>
-              <span>исправно <b id="quick-fault-baseline">—</b></span>
+              <span>условный score с отказом <b id="quick-fault-score">—</b></span>
+              <span>условный score без отказа <b id="quick-fault-baseline">—</b></span>
               <span>Δscore <b id="quick-fault-delta">—</b></span>
               <span>ошибка <b id="quick-fault-error">—</b></span>
             </div>
@@ -249,7 +249,7 @@
             <div class="metric-lines">
               <p><span>Recall</span><strong id="policy-recall">0.00</strong></p>
               <p><span>Precision</span><strong id="policy-precision">0.00</strong></p>
-              <p class="policy-explanation">Validation фиксирована; двигается только decision policy.</p>
+              <p class="policy-explanation">Синтетическая validation; показатели иллюстративные.</p>
             </div>
           </div>
         </article>
@@ -262,14 +262,14 @@
           <div class="metric-lines horizontal">
             <p><span>Общих данных</span><strong id="window-overlap">75%</strong></p>
             <p><span>Общее время</span><strong id="window-shared">1.5 с</strong></p>
-            <p><span>Условно независимых</span><strong id="window-effective">0</strong></p>
+            <p><span>Эвристическая оценка</span><strong id="window-effective">0</strong></p>
           </div>
         </article>
 
         <article class="result-panel" data-views="mission split">
           <div class="section-heading compact">
             <h2 id="split-title">Случайные окна</h2>
-            <span id="split-f1">учебный F1 0.00</span>
+            <span id="split-f1">иллюстративный F1 0.00</span>
           </div>
           <canvas id="split-canvas" aria-label="Распределение окон нескольких полётов между train, validation и test"></canvas>
           <p id="split-question">Узнаём соседнее окно того же полёта?</p>
@@ -277,7 +277,7 @@
       </section>
 
       <footer class="lab-footer">
-        <span>Синтетический воспроизводимый полёт · 3D-масштаб схематический</span>
+        <span>Синтетический полёт · числа иллюстративные · для 3D нужен интернет</span>
         <span>Машков И.И. · кафедра ИУ-1 · осень 2026</span>
       </footer>
     </main>

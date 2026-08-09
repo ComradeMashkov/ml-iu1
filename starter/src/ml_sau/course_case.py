@@ -1,14 +1,8 @@
-"""Deterministic synthetic telemetry for the course-wide actuator health case.
+"""Synthetic actuator-health table used on L1 and S3.
 
-The physical story is inspired by NASA flight-test work on electromechanical
-actuators, but every row generated here is synthetic. The generator is small
-enough to inspect in class and deliberately contains:
-
-* repeated, overlapping windows from the same flight;
-* actuator-to-actuator manufacturing variation;
-* a changing mix of flight regimes;
-* one flight-specific nuisance feature that exposes row-level leakage;
-* a binary maintenance label defined once per flight and repeated for its windows.
+Rows are overlapping windows. The maintenance target is defined once per flight
+and repeated for all of its windows. This generator matches the one used to
+build the lecture figures.
 """
 
 from dataclasses import dataclass
@@ -31,7 +25,7 @@ PHYSICAL_FEATURES = FEATURE_NAMES[:-1]
 
 @dataclass(frozen=True)
 class ActuatorCase:
-    """Window-level feature matrix plus provenance required for honest splits."""
+    """Window features and group identifiers needed for evaluation."""
 
     X: NDArray[np.float64]
     y: NDArray[np.int64]
@@ -54,14 +48,7 @@ def generate_course_case(
     windows_per_flight: int = 24,
     seed: int = 1126,
 ) -> ActuatorCase:
-    """Generate a compact, reproducible actuator monitoring dataset.
-
-    The target is a simulated after-flight maintenance flag. Rows represent
-    overlapping 20-second windows sampled every 10 seconds. Every window from
-    one flight has the same target because the decision is made after landing.
-    Labels and nuisance offsets are correlated inside a flight, which makes a
-    random row split over-optimistic for flexible models.
-    """
+    """Generate a reproducible actuator monitoring dataset."""
 
     rng = np.random.default_rng(seed)
     rows: list[list[float]] = []
@@ -96,16 +83,19 @@ def generate_course_case(
             )
             flight_signature = rng.uniform(-2.5, 2.5)
             flight_effect = rng.normal(0.0, 0.65)
-            event_logit = -4.2 + 3.8 * wear + 1.0 * load_level + flight_effect
+            event_logit = -4.2 + 3.8 * wear + load_level + flight_effect
             flight_degraded = int(rng.random() < _sigmoid(event_logit))
 
             for window_idx in range(windows_per_flight):
                 phase = window_idx / max(1, windows_per_flight - 1)
-                local_load = load_level + 0.18 * np.sin(2 * np.pi * phase) + rng.normal(0.0, 0.07)
+                local_load = load_level + 0.18 * np.sin(2 * np.pi * phase)
+                local_load += rng.normal(0.0, 0.07)
                 local_wear = wear + 0.05 * phase
 
-                tracking = 0.20 + 0.75 * local_wear + 0.18 * local_load + rng.normal(0.0, 0.13)
-                current = 6.2 + 4.5 * local_load + 4.0 * local_wear + rng.normal(0.0, 0.75)
+                tracking = 0.20 + 0.75 * local_wear + 0.18 * local_load
+                tracking += rng.normal(0.0, 0.13)
+                current = 6.2 + 4.5 * local_load + 4.0 * local_wear
+                current += rng.normal(0.0, 0.75)
                 temperature = (
                     34.0
                     + cooling_bias
@@ -114,9 +104,11 @@ def generate_course_case(
                     + 2.5 * phase
                     + rng.normal(0.0, 2.0)
                 )
-                vibration = 0.018 + 0.026 * local_load + 0.052 * local_wear + rng.normal(0.0, 0.010)
+                vibration = 0.018 + 0.026 * local_load + 0.052 * local_wear
+                vibration += rng.normal(0.0, 0.010)
                 load_rms = 2.5 + 7.0 * local_load + rng.normal(0.0, 0.7)
-                voltage = 270.0 - 1.8 * local_load - 1.4 * local_wear + rng.normal(0.0, 0.9)
+                voltage = 270.0 - 1.8 * local_load - 1.4 * local_wear
+                voltage += rng.normal(0.0, 0.9)
 
                 rows.append(
                     [
@@ -150,57 +142,14 @@ def generate_course_case(
 
 def course_holdout_masks(
     case: ActuatorCase,
-) -> tuple[
-    NDArray[np.bool_],
-    NDArray[np.bool_],
-    NDArray[np.bool_],
-]:
-    """Return train, validation, and untouched-test masks for the course case.
-
-    * train: flights 0--4 from actuators EMA-00 ... EMA-17;
-    * validation: flights 5--6 from those same actuators;
-    * test: every flight from unseen actuators EMA-18 ... EMA-23.
-    """
+) -> tuple[NDArray[np.bool_], NDArray[np.bool_], NDArray[np.bool_]]:
+    """Split known actuators by time and reserve six unseen actuators for test."""
 
     actuator_number = np.asarray(
-        [int(item.split("-")[1]) for item in case.actuator_id],
-        dtype=np.int64,
+        [int(value.split("-")[1]) for value in case.actuator_id], dtype=np.int64
     )
     known = actuator_number < 18
     train = known & (case.flight_order <= 4)
     validation = known & (case.flight_order >= 5)
     test = ~known
     return train, validation, test
-
-
-def aggregate_flight_predictions(
-    probability: NDArray[np.float64],
-    target: NDArray[np.int64],
-    flight_id: NDArray[np.str_],
-) -> tuple[NDArray[np.str_], NDArray[np.int64], NDArray[np.float64]]:
-    """Aggregate window probabilities for an after-flight decision.
-
-    The first course policy uses the maximum window probability. A flight must
-    have exactly one target value; otherwise the window-level label contract is
-    inconsistent. Metrics and threshold selection are applied to this returned
-    flight-level table, not to the correlated source windows.
-    """
-
-    if not (len(probability) == len(target) == len(flight_id)):
-        raise ValueError("probability, target, and flight_id must have equal length")
-    if not np.isfinite(probability).all():
-        raise ValueError("probability must contain only finite values")
-
-    flights = np.unique(flight_id)
-    flight_target = np.empty(flights.size, dtype=np.int64)
-    flight_probability = np.empty(flights.size, dtype=np.float64)
-
-    for index, flight in enumerate(flights):
-        mask = flight_id == flight
-        labels = np.unique(target[mask])
-        if labels.size != 1:
-            raise ValueError(f"flight {flight} has inconsistent targets")
-        flight_target[index] = labels[0]
-        flight_probability[index] = probability[mask].max()
-
-    return flights, flight_target, flight_probability

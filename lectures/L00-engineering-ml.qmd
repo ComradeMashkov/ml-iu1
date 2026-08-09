@@ -1,8 +1,8 @@
 ---
-title: "Инженерный ML: как мыслить"
+title: "Инженерная постановка ML-задачи"
 subtitle: "Лекция 0 · Машинное обучение · ИУ-1 (САУ ЛА)"
-author: "Машков И.И. · кафедра ИУ-1"
-institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
+author: "Машков И. И. · кафедра ИУ-1"
+institute: "МГТУ им. Н. Э. Баумана · осенний семестр 2026"
 format:
   live-revealjs:
     theme: [default, ../assets/theme/slides.scss]
@@ -23,1552 +23,537 @@ format:
       - text: |
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
-    pyodide:
-      packages:
-        - numpy
-        - matplotlib
-        - scikit-learn
-      cell-options:
-        autorun: false
-        completion: true
-        persist: true
-        startover: true
-        timelimit: 30
-        min-lines: 9
-        max-lines: 13
 jupyter: python3
 ---
 
 ```{python}
 #| echo: false
 #| output: false
-import sys; sys.path.append("../assets")
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
-from matplotlib.colors import ListedColormap
-from figstyle import set_style, INK, ACCENT, ACCENT2, GREEN, AMBER, MUTED
-set_style()
+import sys
 
-def kalman_1d(meas, dt=1.0, q=0.01, r=0.64):
-    x = np.array([meas[0], 0.0]); P = np.eye(2)
-    F = np.array([[1, dt], [0, 1]]); H = np.array([[1.0, 0]])
-    Q = np.eye(2) * q; R = np.array([[r]]); out = []
-    for z in meas:
-        x = F @ x; P = F @ P @ F.T + Q
-        S = H @ P @ H.T + R; K = P @ H.T @ np.linalg.inv(S)
-        x = x + (K @ (z - H @ x)).ravel(); P = (np.eye(2) - K @ H) @ P
-        out.append(x[0])
-    return np.array(out)
+sys.path.append("../assets")
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from figstyle import ACCENT, ACCENT2, AMBER, GREEN, INK, MUTED, set_style
+
+set_style()
 ```
 
 ## Вопрос на входе
 
-:::: {.columns}
-::: {.column width="56%"}
-Команда показывает модель детекции отказа:
+Команда сообщает:
 
-> **Accuracy = 97%** на тесте.
+> Модель обнаружения деградации дала 97% верных ответов.
 
-Можно ли после этой цифры ставить модель на борт?
+Каких сведений недостаточно, чтобы принять решение об испытаниях на борту?
 
-::: {.fragment}
-**Пока нельзя даже сказать, хорошая ли это модель.**
-:::
-:::
-::: {.column width="44%"}
-| Чего не хватает | Пример вопроса |
+| Нужно уточнить | Пример вопроса |
 |---|---|
-| постановки | что считается отказом? |
-| протокола | какой именно test? |
-| цены ошибки | что дороже: FN или FP? |
-| бюджета | проходит ли p95 latency? |
-| домена | на каких бортах проверено? |
-:::
-::::
+| задача | что считается деградацией и когда принимается решение? |
+| данные | какие борта и режимы вошли в оценку? |
+| ошибки | сколько событий пропущено? |
+| вычисления | измерены ли задержка и память на целевой платформе? |
 
 ::: {.notes}
-Тайминг 0:00–0:03. Не раскрывать ответ полностью. Попросить поднять руку: «кто готов принять модель только по accuracy?». Зафиксировать 2–3 аргумента группы. Обещание лекции: через 90 минут вернёмся к этому слайду и проведём инженерное ревью.
+0:00–0:03. Сначала собрать ответы группы. Не обсуждать формулы и архитектуры.
 :::
 
-## Результат пары
+## Результат лекции
 
-К концу лекции вы сможете за **пять минут** провести первичный разбор ML-идеи:
+После занятия студент может за пять минут разобрать предложение применить ML:
 
-1. сформулировать $x$, $y$, действие и цену ошибки;
-2. выбрать честную единицу разбиения данных;
-3. назвать baseline и метрику;
-4. очертить эксплуатационный домен;
-5. проверить модель против latency / RAM / energy.
-
-::: {.fragment}
-Главная мысль: **модель — это функция внутри системы принятия решений**, а не самостоятельный продукт.
-:::
+1. назвать доступный вход, целевую величину и последующее действие;
+2. предложить простой способ сравнения;
+3. указать будущие данные, на которых нужно проверять перенос;
+4. перечислить границы применения;
+5. сформулировать измеримые ограничения по качеству и ресурсам.
 
 ::: {.notes}
-Тайминг 0:03–0:05. Это контракт со студентами. Быстро прочитать пять глаголов и подчеркнуть: сегодня не учим архитектуры нейросетей, сегодня учимся правильно поставить инженерную задачу.
+0:03–0:05. Это результаты вводной лекции. Подробный протокол разбиения и метрик
+будет в L1.
 :::
 
-## План лекции
+## План
 
-- **Часть 1.** Что такое обучение, типы ML, где модель **бьёт фильтр Калмана**, а где проигрывает
-- **Часть 2.** Data-centric взгляд: жизненный цикл, обобщение и три ловушки (утечка · метрика · сдвиг)
-- **Часть 3.** Инженерия ML: компромисс точность↔latency, ML-система целиком, воспроизводимость и CI/CD
-- В конце — карта курса и входной срез навыков
+- постановка задачи и роль базового метода;
+- данные и границы применимости;
+- вычислительные ограничения и воспроизводимость;
+- итоговый проект курса.
 
 ::: {.notes}
-Вводная лекция (2 ак. ч.). Без вывода градиентного спуска — задаём систему координат, словарь и тон курса.
-Тайминг: вход — 5 мин, часть 1 — 22 мин, часть 2 — 32 мин, часть 3 — 22 мин, выводы и вопросы — 9 мин.
+0:05. Короткий переход к первой части.
 :::
 
-# Часть 1 · Что такое ML и где он нужен {.divider background-color="#23373B"}
+# 1 · Постановка задачи {.divider background-color="#23373B"}
 
-::: {.notes}
-Тайминг 0:07. Переход: начнём не с нейросети, а с объекта, который знаком студентам по теории управления — отображения «вход → выход».
-:::
+## От эксплуатационного вопроса к модели
 
-## ML-задача — это не название модели
-
-:::: {.columns}
-::: {.column width="52%"}
-Полная постановка supervised-задачи:
-
-$$\boxed{\mathcal{T}=(X,\;Y,\;\mathcal{D},\;\mathcal{L},\;\mathcal{A})}$$
-
-- $X$ — что доступно **в момент решения**
-- $Y$ — целевая величина или событие
-- $\mathcal{D}$ — где система работает
-- $\mathcal{L}$ — цена ошибок
-- $\mathcal{A}$ — действие после прогноза
-:::
-::: {.column width="48%"}
-**Плохая постановка**
-
-«Обучим нейросеть искать аномалии».
-
-**Проверяемая постановка**
-
-«По 2 секундам ИМУ предсказать отказ привода за 300 мс до события при recall ≥ 0.95 и ≤ 1 ложной тревоги в час».
-:::
-::::
-
-::: {.notes}
-Тайминг 0:07–0:09. Спросить: «какое действие следует из слова аномалия?». Если действия нет, нельзя определить цену ошибки и метрику. Формула — не общепринятый стандарт, а удобный инженерный контракт этой лекции.
-:::
-
-## Из телеметрии в обучающий пример
-
-```{python}
-#| echo: false
-rng = np.random.default_rng(12)
-tt = np.linspace(0, 8, 320)
-vib = 0.22*np.sin(2*np.pi*2.2*tt) + 0.05*rng.normal(size=tt.size)
-vib += np.where(tt > 5.7, 0.22*np.sin(2*np.pi*7.5*tt), 0)
-fig, ax = plt.subplots(figsize=(10.2, 3.7))
-ax.plot(tt, vib, color=INK, lw=1.3)
-ax.axvspan(4.4, 5.4, color=ACCENT, alpha=.16)
-ax.axvline(5.7, color=ACCENT2, ls='--', lw=2)
-ax.annotate('окно $x_i$: 1 c', (4.9, .31), ha='center', color=ACCENT, fontsize=13)
-ax.annotate('событие', (5.7, -.43), xytext=(6.25, -.58),
-            arrowprops=dict(arrowstyle='->', color=ACCENT2), color=ACCENT2, fontsize=13)
-ax.text(4.9, -.64, '$y_i=1$: отказ в следующие 0.3 с', ha='center', fontsize=13, color=INK)
-ax.set_xlabel('время, с'); ax.set_ylabel('вибрация'); ax.set_ylim(-.72, .72); plt.show()
-```
-
-Одна длинная запись превращается в пары $(x_i,y_i)$ только после выбора **окна**, **горизонта прогноза** и правила разметки.
-
-::: {.notes}
-Тайминг 0:09–0:11. Показать пальцем три разных времени: окно наблюдения, момент принятия решения, горизонт события. Вопрос: «можно ли использовать сигнал после 5.4 с в признаке?». Ответ: нет, если решение принимается в 5.4 с.
-:::
-
-## Что такое «обучение»
-
-:::: {.columns}
-::: {.column width="44%"}
-Не программируем правила вручную, а **подбираем** функцию $f_\theta$ по примерам:
-
-$$\hat\theta = \arg\min_\theta \frac1N\sum_{i=1}^N \mathcal{L}\big(f_\theta(x_i), y_i\big)$$
-
-- $x$ — вход (сигнал ИМУ, телеметрия)
-- $y$ — что предсказываем
-- $\mathcal{L}$ — цена ошибки
-:::
-::: {.column width="56%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(4)
-xt = np.linspace(0, 6, 40); truef = np.sin(xt) + 0.15*xt
-yt = truef + rng.normal(0, 0.25, xt.size)
-coef = np.polyfit(xt, yt, 5); xs = np.linspace(0, 6, 200)
-fig, ax = plt.subplots(figsize=(6.3, 4.6))
-ax.scatter(xt, yt, s=30, color=MUTED, alpha=.8, label='данные $(x, y)$')
-ax.plot(xs, np.polyval(coef, xs), color=ACCENT, lw=3, label=r'выученная $f_\theta$')
-ax.set_xlabel('x'); ax.set_ylabel('y'); ax.legend(loc='upper left'); plt.show()
-```
-[Учим отображение из данных, минимизируя ошибку на примерах.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:11–0:13. Проговорить отличие параметров $\theta$ от ручных правил. Не углубляться в оптимизаторы. Важный вопрос аудитории: «маленькая ошибка на этих 40 точках означает ли маленькую ошибку завтра?». Ответ ведёт к части 2.
-:::
-
-## Обучение и инференс — разные режимы
-
-| | **Обучение · offline** | **Инференс · onboard/online** |
-|---|---|---|
-| Вход | данные + метки | один новый $x$ |
-| Вычисление | оптимизация $\theta$ | один проход $f_\theta(x)$ |
-| Ресурсы | GPU, часы, гигабайты | CPU/NPU, миллисекунды |
-| Результат | артефакт модели | прогноз + действие |
-| Риск | переобучение | задержка, OOD, сбой входа |
-
-$$\text{train: }(X,Y)\rightarrow\theta
-\qquad\qquad
-\text{infer: }(x,\theta)\rightarrow\hat y$$
-
-::: {.notes}
-Тайминг 0:13–0:15. Добиться, чтобы студенты перестали смешивать время обучения с временем работы модели. Уточнить: на борту может быть online learning, но в этом курсе основной сценарий — фиксированный проверенный артефакт и отдельный цикл переобучения.
-:::
-
-## Функция потерь задаёт поведение
-
-:::: {.columns}
-::: {.column width="43%"}
-Одна и та же архитектура решает **разные** задачи в зависимости от $\mathcal{L}$:
-
-- MSE сильно штрафует крупные ошибки;
-- MAE устойчивее к выбросам;
-- cross-entropy учит вероятности классов;
-- custom loss может учитывать физику.
-
-$$\theta^\star=\arg\min_\theta \widehat R(\theta)$$
-:::
-::: {.column width="57%"}
-```{python}
-#| echo: false
-e = np.linspace(-3, 3, 300)
-fig, ax = plt.subplots(figsize=(6.3, 4.4))
-ax.plot(e, e**2, color=ACCENT, lw=3, label='MSE: $e^2$')
-ax.plot(e, np.abs(e), color=ACCENT2, lw=3, label='MAE: $|e|$')
-ax.plot(e, np.where(np.abs(e) <= 1, .5*e**2, np.abs(e)-.5),
-        color=GREEN, lw=3, label='Huber')
-ax.set_xlabel('ошибка $e=\\hat y-y$'); ax.set_ylabel('штраф')
-ax.set_ylim(0, 5); ax.legend(loc='upper center'); plt.show()
-```
-:::
-::::
-
-::: {.notes}
-Тайминг 0:15–0:17. Мини-вопрос: «какая потеря сильнее отреагирует на один ошибочный датчик?». Ответ: MSE. Обратить внимание, что функция потерь при обучении и инженерная метрика при приёмке могут различаться.
-:::
-
-## Типы машинного обучения
-
-| Тип | Что есть в данных | Пример в задачах ЛА·КА |
-|---|---|---|
-| **Supervised** | входы + метки | классификация режима полёта по ИМУ |
-| **Unsupervised** | только входы | кластеризация/аномалии в телеметрии |
-| **Self-supervised** | метки из самих данных | предобучение на непомеченных сигналах |
-| **Reinforcement** | награда от среды | управление по обратной связи |
-
-Этот курс — в основном **supervised** и **unsupervised** (детекция аномалий). RL в обязательную
-траекторию не входит.
-
-::: {.notes}
-Тайминг 0:17–0:19. Не превращать слайд в обзор всей дисциплины. Для каждого типа попросить один пример от группы. Self-supervised объяснить как способ получить учебный сигнал без ручной разметки.
-:::
-
-## Сначала baseline, потом «умная» модель
-
-:::: {.columns}
-::: {.column width="47%"}
-Baseline отвечает на вопрос:
-
-> Улучшили ли мы систему или только усложнили её?
-
-Хорошие первые кандидаты:
-
-1. константа / last value;
-2. физическая модель;
-3. линейная или логистическая модель;
-4. простое правило эксперта.
-:::
-::: {.column width="53%"}
-```{python}
-#| echo: false
-names = ['всегда норма', 'порог RMS', 'logistic', 'маленькая NN']
-score = [.00, .61, .78, .82]
-cost = [1, 2, 4, 16]
-fig, ax = plt.subplots(figsize=(6.2, 4.4))
-for n, x, y in zip(names, cost, score):
-    ax.scatter(x, y, s=95, color=ACCENT if n != 'маленькая NN' else ACCENT2)
-    ax.annotate(n, (x, y), xytext=(x+.25, y+.02), fontsize=11, color=INK)
-ax.plot(cost, score, color=MUTED, ls=':', lw=1.5)
-ax.set_xscale('log', base=2); ax.set_xlabel('условная сложность')
-ax.set_ylabel('recall отказа'); ax.set_ylim(-.08, .92); plt.show()
-```
-:::
-::::
-
-::: {.notes}
-Тайминг 0:19–0:21. Подчеркнуть: baseline — не «слабая модель ради галочки», а нижняя граница полезности и средство диагностики. Если NN выигрывает две сотых у логистической регрессии ценой 4× latency, решение ещё не принято.
-:::
-
-## Вы это уже умеете: фильтр Калмана
-
-:::: {.columns}
-::: {.column width="42%"}
-Оценка состояния по **известной модели** динамики и шуму:
-
-$$\hat{x}_k = F\hat{x}_{k-1} + K_k\big(z_k - H F\hat{x}_{k-1}\big)$$
-
-- модель $F,H$ задана физикой
-- гарантии при гауссовом шуме
-- **оптимален**, когда модель верна
-:::
-::: {.column width="58%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(0); T = 80; t = np.arange(T)
-true = np.sin(t*0.12)*6 + t*0.06
-meas = true + rng.normal(0, 0.8, T); est = kalman_1d(meas)
-fig, ax = plt.subplots(figsize=(6.3, 4.6))
-ax.scatter(t, meas, s=18, color=MUTED, alpha=.75, label='измерения')
-ax.plot(t, true, color=INK, lw=1.8, label='истинное состояние')
-ax.plot(t, est, color=ACCENT, lw=3.0, label='оценка KF')
-ax.set_xlabel('время, шаги'); ax.set_ylabel('положение')
-ax.legend(loc='upper left'); plt.show()
-```
-[KF сглаживает шум, когда модель динамики известна.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:21–0:23. Связать с предыдущими курсами. Калман здесь — сильный baseline, а не противник ML. Спросить, откуда берутся $F,H,Q,R$ и что произойдёт при неверной модели динамики.
-:::
-
-## Когда модель неизвестна или меняется
-
-:::: {.columns}
-::: {.column width="42%"}
-Появляется **немоделированная** составляющая (порыв, нелинейность, дрейф) — классический оценщик её
-не учитывает.
-
-Обучаемая **остаточная** модель восстанавливает систематическую поправку по дополнительным сигналам:
-
-$$\hat{x} = \underbrace{\text{KF}(z)}_{\text{физика}} + \underbrace{g_\theta(z)}_{\text{выучено}}$$
-:::
-::: {.column width="58%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(1); T = 120; t = np.arange(T); split = 72
-aux = np.sin(t*0.09) + 0.25*np.sin(t*0.23)       # доступный дополнительный сенсор
-nominal = 0.04*t + 2.8*np.sin(t*0.06)
-bias = 1.1*np.tanh(1.4*aux) + 0.25*aux**2         # неизвестная модели поправка
-true = nominal + bias
-meas = nominal + rng.normal(0, 0.35, T)
-est = kalman_1d(meas, r=0.12, q=0.03)
-phi = np.c_[np.ones(T), aux, aux**2, aux**3]
-theta, *_ = np.linalg.lstsq(phi[:split], (true-est)[:split], rcond=None)
-hybrid = est + phi @ theta
-fig, ax = plt.subplots(figsize=(6.3, 4.6))
-ax.axvspan(split, T-1, color=AMBER, alpha=.10, label='отложенный test')
-ax.plot(t, true, color=INK, lw=1.8, label='истинное состояние')
-ax.plot(t, est, color=ACCENT2, lw=2.0, ls='--', label='только оценщик')
-ax.plot(t, hybrid, color=ACCENT, lw=2.7, label='оценщик + learned residual')
-rmse_base = np.sqrt(np.mean((true[split:]-est[split:])**2))
-rmse_hybrid = np.sqrt(np.mean((true[split:]-hybrid[split:])**2))
-ax.text(split+2, ax.get_ylim()[0]+0.25,
-        f'test RMSE: {rmse_base:.2f} → {rmse_hybrid:.2f}', fontsize=10.5, color=INK)
-ax.set_xlabel('время, шаги'); ax.set_ylabel('положение')
-ax.legend(loc='upper left'); plt.show()
-```
-[Поправка обучена только слева от границы и оценена на отложенном участке. Тема L4.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:23–0:25. На графике сначала показать базовый оценщик, затем гибрид. Обратить внимание на границу train/test: поправка не имеет права видеть правую часть. Это мост к разговору об утечке.
-:::
-
-## Калман vs обучаемая модель
-
-| Критерий | Классический оценщик (KF/EKF) | Обучаемая модель (NN) |
-|---|:--:|:--:|
-| Нужна модель динамики | да | нет — учится из данных |
-| Нужны размеченные данные | нет | как правило, да |
-| Сильная нелинейность / сырые сенсоры | трудно | сильная сторона |
-| Гарантии, верифицируемость | высокие | низкие (тема L8) |
-| Экстраполяция за пределы данных | по модели | **опасно** |
-| Где побеждает | чистая физика + шум | сырые сенсоры без модели |
-
-Лучшие бортовые решения **гибридны**: физика + выученная поправка.
-
-::: {.notes}
-Тайминг 0:25–0:27. Не читать таблицу целиком. Дать 30 секунд в парах: выбрать подход для оценки положения по GNSS+IMU и для распознавания обледенения по сырому спектру вибраций. Затем попросить два ответа.
-:::
-
-## Мини-кейс · Что вы оставите физике?
-
-Для системы оценки угла атаки доступны:
-
-- аэродинамическая модель, корректная в номинальном режиме;
-- ИМУ и датчик давления;
-- редкие полётные данные на больших углах;
-- требование объяснить отказ системы.
-
-| Вариант | Решение |
-|---|---|
-| A | заменить всё одной большой NN |
-| B | оставить физическую модель без изменений |
-| **C** | физическая оценка + learned residual + ограничитель домена |
-
-::: {.fragment}
-**Инженерный выбор — C:** данные дополняют физику там, где есть наблюдения; ограничитель не разрешает молча экстраполировать.
-:::
-
-::: {.notes}
-Тайминг 0:27–0:29. Дать 20 секунд на голосование A/B/C до появления ответа. Спросить защитника варианта A, как он докажет поведение на больших углах, которых мало в данных.
-:::
-
-## ML — не магия: экстраполяция
-
-:::: {.columns}
-::: {.column width="40%"}
-Надёжность модели нужно обосновывать внутри заранее заданного **эксплуатационного домена**. За его
-пределами поведение, как правило, не проверено и может не соответствовать физике.
-
-Для САУ это критично: режимы, которых не было в данных, — **зона риска**.
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(5)
-xt = np.linspace(0, 5, 30); truef = lambda x: 0.5*x + np.sin(x)
-yt = truef(xt) + rng.normal(0, 0.2, xt.size)
-coef = np.polyfit(xt, yt, 6)
-xin = np.linspace(0, 5, 100); xout = np.linspace(5, 8, 80)
-fig, ax = plt.subplots(figsize=(6.6, 4.7))
-ax.axvspan(0, 5, color=ACCENT, alpha=.06)
-ax.plot(np.r_[xin, xout], truef(np.r_[xin, xout]), color=INK, lw=1.6, label='истинная зависимость')
-ax.scatter(xt, yt, s=26, color=MUTED, alpha=.8, label='обучающие данные')
-ax.plot(xin, np.polyval(coef, xin), color=ACCENT, lw=3, label='модель (в диапазоне)')
-ax.plot(xout, np.polyval(coef, xout), color=ACCENT2, lw=3, ls='--', label='экстраполяция')
-ax.set_ylim(-2, 9); ax.set_xlabel('x'); ax.set_ylabel('y')
-ax.legend(loc='upper left', fontsize=11); plt.show()
-```
-[Голубая зона — где были данные. Дальше модель «срывается».]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:29–0:31. График демонстрационный: он не утверждает, что любая ML-модель расходится именно так. Тезис — качество вне поддержки данных не следует из качества внутри неё. Термин эксплуатационного домена раскроем позже.
-:::
-
-## Контрольная точка 1
-
-**Сформулируйте за 45 секунд** одну ML-задачу из своей области:
+Полезная постановка содержит пять элементов:
 
 $$
-\underbrace{x}_{\text{что доступно сейчас}}
-\;\longrightarrow\;
-\underbrace{\hat y}_{\text{что предсказываем}}
-\;\longrightarrow\;
-\underbrace{a}_{\text{что делаем}}
+(x,\ y,\ t_{\text{решения}},\ a,\ C)
 $$
 
-И добавьте:
+- $x$ — данные, доступные к моменту решения;
+- $y$ — величина или событие, которое оценивается;
+- $a$ — действие после прогноза;
+- $C$ — последствия ошибок и ограничения системы.
 
-- baseline;
-- одну дорогую ошибку;
-- режим, где модель применять нельзя.
-
-::: {.notes}
-Тайминг 0:31–0:33. Попросить 1–2 студентов зачитать формулировку. Исправлять прежде всего причинность по времени: все компоненты $x$ должны существовать до действия.
-:::
-
-# Часть 2 · Думаем про данные {.divider background-color="#23373B"}
+«Найти аномалии нейросетью» — тема исследования. Для эксперимента нужно
+определить событие, момент решения и критерий проверки.
 
 ::: {.notes}
-Тайминг 0:33. Переход: постановка готова, но теперь надо доказать, что результат переносится на новые полёты, а не запоминает старые.
+0:05–0:09. Попросить назвать действие после слова «аномалия».
 :::
 
-## Жизненный цикл ML-системы
+## Пример постановки
 
-```{python}
-#| echo: false
-stages = ['данные', 'признаки', 'обучение', 'оценка', 'деплой', 'мониторинг']
-fig, ax = plt.subplots(figsize=(11.0, 2.9)); ax.set_xlim(0, len(stages)); ax.set_ylim(-0.7, 1.05); ax.axis('off')
-for i, s in enumerate(stages):
-    x, w = i + 0.08, 0.84
-    ax.add_patch(FancyBboxPatch((x, 0.45), w, 0.4, boxstyle="round,pad=0.012,rounding_size=0.05",
-                 lw=1.4, edgecolor=ACCENT, facecolor='white'))
-    ax.text(x + w/2, 0.65, s, ha='center', va='center', fontsize=13, color=INK)
-    if i < len(stages)-1:
-        ax.annotate('', xy=(i+1.08, 0.65), xytext=(i+0.92, 0.65), arrowprops=dict(arrowstyle='-|>', color=MUTED, lw=1.8))
-ax.add_patch(FancyArrowPatch((len(stages)-0.5, 0.45), (0.5, 0.45), connectionstyle="arc3,rad=-0.34",
-             arrowstyle='-|>', color=ACCENT2, lw=1.8, mutation_scale=18))
-ax.text(len(stages)/2, -0.58, r'дрейф данных $\rightarrow$ возвращаемся к началу', ha='center', color=ACCENT2, fontsize=12)
-plt.show()
-```
+После посадки инженер решает, нужен ли приводу дополнительный осмотр.
 
-ML — это **не «обучить модель один раз»**, а цикл. Большая часть работы инженера — слева (данные) и справа (деплой и мониторинг), а не в самой модели.
-
-::: {.notes}
-Тайминг 0:33–0:35. Пройти по циклу на примере отказа привода. Мониторинг обнаружил новый режим — это не просто «починить модель», а вернуться к сбору и разметке данных.
-:::
-
-## Датасет — это способ выборки мира
-
-:::: {.columns}
-::: {.column width="45%"}
-Мир содержит распределение режимов $\mathcal{D}$, а таблица — лишь конечная выборка:
-
-$$S=\{(x_i,y_i)\}_{i=1}^{N}\sim \mathcal{D}_{\text{сбор}}$$
-
-Если процедура сбора не покрывает эксплуатацию, больше строк **не исправят** смещение.
-:::
-::: {.column width="55%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(22)
-n = 800
-temp = rng.normal(15, 18, n)
-speed = 220 + 2.4*temp + rng.normal(0, 38, n)
-keep = (temp > -5) & (temp < 35) & (speed < 330)
-fig, ax = plt.subplots(figsize=(6.2, 4.4))
-ax.scatter(temp, speed, s=13, color='#D7DBDF', alpha=.7, label='эксплуатация')
-ax.scatter(temp[keep], speed[keep], s=17, color=ACCENT, alpha=.65, label='собранный датасет')
-ax.set_xlabel('температура, °C'); ax.set_ylabel('скорость, м/с')
-ax.legend(loc='upper left'); plt.show()
-```
-[Большой датасет может быть плотным — и всё равно не покрывать края домена.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:35–0:37. Спросить: «каких полётов нет в синей выборке?». Ответ: холодных, жарких и быстрых. Объяснить sampling bias без статистического формализма.
-:::
-
-## Две ошибки: измеряемая и настоящая
-
-:::: {.columns}
-::: {.column width="48%"}
-На данных считаем **эмпирический риск**:
-
-$$\widehat R_S(\theta)=\frac1N\sum_{i=1}^{N}\mathcal{L}(f_\theta(x_i),y_i)$$
-
-В эксплуатации нас интересует:
-
-$$R_{\mathcal D}(\theta)=
-\mathbb E_{(x,y)\sim\mathcal D}\mathcal{L}(f_\theta(x),y)$$
-:::
-::: {.column width="52%"}
-Нельзя наблюдать $R_{\mathcal D}$ напрямую.
-
-Поэтому качество доказательства зависит от того, насколько test:
-
-- независим от обучения;
-- похож на будущую эксплуатацию;
-- достаточно велик для редких событий;
-- не использован для выбора модели.
-:::
-::::
-
-::: {.notes}
-Тайминг 0:37–0:39. Это главный статистический переход лекции. Нужна не безупречная оценка формул, а понимание разрыва между метрикой на файле и ожидаемой ценой в мире.
-:::
-
-## Train · validation · test: три разные роли
-
-```{python}
-#| label: train-validation-test-roles
-#| echo: false
-parts = [('TRAIN', 0, 0.62, ACCENT),
-         ('VALIDATION', .62, .82, AMBER),
-         ('TEST', .82, 1.0, ACCENT2)]
-fig, ax = plt.subplots(figsize=(10.8, 2.65))
-for name, lo, hi, col in parts:
-    ax.barh([0], [hi-lo], left=[lo], color=col, height=.52)
-    short = {'TRAIN': 'подбор $\\theta$', 'VALIDATION': 'модель + $\\tau$', 'TEST': 'финал'}[name]
-    ax.text((lo+hi)/2, .035, f'{name}\n{short}', ha='center', va='center',
-            color='white', fontsize=12.5, fontweight='bold', linespacing=1.45)
-ax.annotate('test вскрываем после фиксации решения', xy=(.91, .24), xytext=(.62, .62),
-            arrowprops=dict(arrowstyle='->', color=ACCENT2), color=ACCENT2, fontsize=12)
-ax.set_xlim(0, 1); ax.set_ylim(-.40, .82); ax.axis('off'); plt.show()
-```
-
-Если вы десять раз смотрели на test и меняли модель, test стал частью **validation**.
-
-::: {.notes}
-Тайминг 0:39–0:41. Аналогия: тренировочные задачи, пробный экзамен, закрытый билет. Подчеркнуть: пропорции 62/20/18 на рисунке иллюстративны; важнее независимость и единица разбиения.
-:::
-
-## Обобщение: bias–variance
-
-:::: {.columns}
-::: {.column width="40%"}
-Цель — ошибка на **новых** данных, а не на обучении [@goodfellow2016deep]:
-
-$$\mathbb{E}_{(x,y)\sim\mathcal{D}}\big[\mathcal{L}(f_\theta(x),y)\big]$$
-
-- мало ёмкости → **недообучение** (bias)
-- много ёмкости → **переобучение** (variance)
-- задача инженера — найти баланс и **честно** проверить
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-c = np.linspace(1, 15, 200)
-train = 1.4/np.sqrt(c); test = train + 0.0016*c**2 + 0.04
-i = int(np.argmin(test))
-fig, ax = plt.subplots(figsize=(6.6, 4.7))
-ax.plot(c, train, color=ACCENT, lw=3.0, label='ошибка на train')
-ax.plot(c, test, color=ACCENT2, lw=3.0, label='ошибка на test')
-ax.axvline(c[i], color=MUTED, ls=':', lw=1.6); ax.scatter([c[i]], [test[i]], color=ACCENT2, zorder=5, s=55)
-ax.annotate('оптимум', (c[i], test[i]), xytext=(c[i]+1.0, test[i]+0.16), color=INK, fontsize=13)
-ax.text(1.4, 0.10, 'недообучение', color=MUTED, fontsize=12)
-ax.text(10.6, 0.10, 'переобучение', color=MUTED, fontsize=12)
-ax.set_xlabel('ёмкость модели'); ax.set_ylabel('ошибка'); ax.legend(loc='upper center'); plt.show()
-```
-:::
-::::
-
-::: {.notes}
-Тайминг 0:41–0:43. Сначала попросить описать левую и правую части графика словами. Затем назвать bias и variance. Не создавать впечатление, что существует одна скалярная «ёмкость» для всех моделей — график концептуальный.
-:::
-
-## Больше данных или сложнее модель?
-
-:::: {.columns}
-::: {.column width="40%"}
-В этом типичном сценарии гибкая модель **проигрывает** на малых данных и **выигрывает** на больших.
-Это диагностическая гипотеза, а не универсальный закон.
-
-Прежде чем усложнять архитектуру, спросите: **хватает ли данных**? Часто дешевле собрать данные, чем менять модель.
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-n = np.logspace(2, 4.3, 60)
-simple = 0.86 - 0.30*np.exp(-(n-100)/300)
-flex = 0.95 - 0.55*np.exp(-(n-100)/1500)
-fig, ax = plt.subplots(figsize=(6.6, 4.7))
-ax.semilogx(n, simple, color=ACCENT, lw=3, label='простая модель')
-ax.semilogx(n, flex, color=ACCENT2, lw=3, label='гибкая модель')
-ax.set_xlabel('размер обучающей выборки'); ax.set_ylabel('accuracy')
-ax.set_ylim(0.35, 1.0); ax.legend(loc='lower right'); plt.show()
-```
-[На малых данных простая модель лучше; гибкой нужно «накормить».]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:43–0:45. Вопрос: «если обе кривые вышли на плато низко, что собирать?». Возможные ответы: новые режимы, более качественные метки, новые информативные сенсоры — не обязательно просто больше одинаковых строк.
-:::
-
-## Как разбивать сенсорные данные
-
-:::: {.columns}
-::: {.column width="40%"}
-Сначала разделяем **независимые объекты**: людей, борта, полёты, двигатели (`GroupKFold`/leave-one-group-out).
-
-Для одной развивающейся во времени системы сохраняем порядок (`TimeSeriesSplit`) и оставляем gap не
-меньше длины перекрывающегося окна.
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-N, F = 24, 4; rng = np.random.default_rng(7)
-assign = rng.integers(0, F, N)
-A = np.ones((F, N))
-for k in range(F): A[k, assign == k] = 2
-B = np.zeros((F, N))
-for k in range(F):
-    tr = (k+1)*4; B[k, :tr] = 1; B[k, tr:tr+4] = 2
-cmap = ListedColormap(['#EFF2F5', '#CBDcF2', ACCENT2])
-fig, axes = plt.subplots(2, 1, figsize=(6.7, 4.6))
-for ax, M, ttl in [(axes[0], A, 'случайный k-fold — «видит будущее»'),
-                   (axes[1], B, 'TimeSeriesSplit — только прошлое')]:
-    ax.imshow(M, aspect='auto', cmap=cmap, vmin=0, vmax=2)
-    ax.set_yticks(range(F), [f'fold {i+1}' for i in range(F)], fontsize=9)
-    ax.set_xticks([]); ax.set_title(ttl, fontsize=11.5, loc='left'); ax.grid(False)
-axes[1].set_xlabel(r'время $\rightarrow$'); plt.show()
-```
-[Показан временной случай. Для разных полётов сначала нужен group split.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:45–0:47. Официальный TimeSeriesSplit сохраняет временной порядок и поддерживает параметр gap. Но для нескольких полётов сначала определяем независимую группу, а уже затем временную структуру внутри неё.
-
-[Sources]
-- https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html
-[/Sources]
-:::
-
-## Единица независимости — не строка
-
-:::: {.columns}
-::: {.column width="43%"}
-Если соседние окна одного полёта попали в train и test, модель узнаёт:
-
-- конкретный борт;
-- фон сенсора;
-- пилота / маршрут;
-- фазу одной и той же записи.
-
-**Split по строкам измеряет запоминание записи.**
-:::
-::: {.column width="57%"}
-```{python}
-#| echo: false
-flights = np.repeat(np.arange(6), 12)
-rng = np.random.default_rng(8)
-row_test = rng.random(flights.size) < .25
-group_test = flights >= 4
-M = np.vstack([np.where(row_test, 2, 1), np.where(group_test, 2, 1)])
-cmap2 = ListedColormap([ACCENT, ACCENT2])
-fig, ax = plt.subplots(figsize=(6.5, 3.9))
-ax.imshow(M, aspect='auto', cmap=cmap2, vmin=1, vmax=2)
-for b in range(1, 6): ax.axvline(b*12-.5, color='white', lw=2)
-ax.set_yticks([0, 1], ['split строк', 'split полётов'])
-ax.set_xticks([5+12*i for i in range(6)], [f'рейс {i+1}' for i in range(6)])
-ax.grid(False); plt.show()
-```
-[Синий — train, красный — test. Во второй строке полёты не смешиваются.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:47–0:49. Попросить назвать правильную группу для их примера: пациент, двигатель, полёт, изделие, день. Критерий: сможет ли один объект оставить узнаваемый «отпечаток».
-:::
-
-## Перекрывающиеся окна создают близнецов
-
-```{python}
-#| echo: false
-fig, ax = plt.subplots(figsize=(10.6, 3.3))
-ax.plot([0, 12], [0, 0], color=INK, lw=1.5)
-windows = [(1.0, 4.0, ACCENT, 'train $x_i$'),
-           (2.0, 5.0, ACCENT, 'train $x_{i+1}$'),
-           (3.0, 6.0, ACCENT2, 'test $x_{i+2}$')]
-for j, (lo, hi, c, name) in enumerate(windows):
-    y = .75-j*.48
-    ax.add_patch(plt.Rectangle((lo, y), hi-lo, .30, facecolor=c, alpha=.78))
-    ax.text(hi+.18, y+.15, name, va='center', color=INK, fontsize=12)
-ax.annotate('2/3 точек test уже встречались в train', xy=(3.7, -.12), xytext=(6.1, -.45),
-            arrowprops=dict(arrowstyle='->', color=ACCENT2), color=ACCENT2, fontsize=13)
-ax.set_xlim(0, 11); ax.set_ylim(-.7, 1.25); ax.set_xlabel('время')
-ax.set_yticks([]); plt.show()
-```
-
-Нужны границы по записи и **gap ≥ длины общего контекста**, а не случайный split готовых окон.
-
-::: {.notes}
-Тайминг 0:49–0:51. Это типичная утечка в ИМУ/ЭЭГ/аудио. Уточнить: gap не магическая константа; он должен исключить общий сырой контекст и учитывать горизонт цели.
-:::
-
-## Ловушка 1 · Утечка данных
-
-:::: {.columns}
-::: {.column width="44%"}
-Признаки/нормировку посчитали **по всем** данным до сплита → статистики «подсмотрели» тест.
-
-Метрика завышена, на борту модель деградирует.
-
-Правильно: всё преобразование **только на train** внутри `Pipeline`.
-:::
-::: {.column width="56%"}
-```{python}
-#| echo: false
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_val_score
-from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.pipeline import make_pipeline
-rng = np.random.default_rng(0); n, p, k = 60, 2000, 20
-X = rng.standard_normal((n, p)); y = rng.integers(0, 2, n)
-corr = np.abs([np.corrcoef(X[:, j], y)[0, 1] for j in range(p)])
-top = np.argsort(corr)[-k:]
-leak = cross_val_score(LogisticRegression(max_iter=500), X[:, top], y, cv=5).mean()
-honest = cross_val_score(make_pipeline(SelectKBest(f_classif, k=k),
-                         LogisticRegression(max_iter=500)), X, y, cv=5).mean()
-fig, ax = plt.subplots(figsize=(6.1, 4.6))
-b = ax.bar(['отбор на всех\nданных (утечка)', 'отбор внутри\nкаждого фолда'],
-           [leak, honest], color=[ACCENT2, ACCENT], width=.62)
-for r, v in zip(b, [leak, honest]):
-    ax.text(r.get_x()+r.get_width()/2, v+0.012, f'{v:.2f}', ha='center', fontsize=16, color=INK)
-ax.axhline(0.5, color=MUTED, ls=':', lw=1.4); ax.text(1.35, 0.515, 'случайно', color=MUTED, fontsize=11)
-ax.set_ylim(0, 1.0); ax.set_ylabel('accuracy (5-fold CV)'); ax.grid(axis='x', visible=False); plt.show()
-```
-[Данные — **чистый шум**. Слева модель «угадывает» лишь из-за утечки.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:51–0:53. Перед показом столбцов спросить, какой accuracy ожидается на случайных данных. Пояснить механизм: из 2000 случайных признаков по всей таблице отобрали те, которые случайно совпали с метками test.
-
-[Sources]
-- https://scikit-learn.org/stable/common_pitfalls.html
-[/Sources]
-:::
-
-## Та же утечка — кодом и результатом
-
-```{pyodide}
-#| caption: "Эксперимент: утечка против честного Pipeline"
-#| max-lines: 13
-import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.model_selection import cross_val_score
-from sklearn.pipeline import make_pipeline
-
-rng = np.random.default_rng(0)
-X = rng.standard_normal((60, 2000))          # 60 примеров, 2000 случайных признаков
-y = rng.integers(0, 2, 60)                    # метки — тоже шум
-
-# НЕВЕРНО: отбор 20 признаков по всем данным, затем кросс-валидация
-corr = np.abs([np.corrcoef(X[:, j], y)[0, 1] for j in range(2000)])
-sel = np.argsort(corr)[-20:]
-leak = cross_val_score(LogisticRegression(max_iter=500), X[:, sel], y, cv=5).mean()
-
-# ВЕРНО: отбор признаков внутри каждого фолда (часть Pipeline)
-pipe = make_pipeline(SelectKBest(f_classif, k=20), LogisticRegression(max_iter=500))
-honest = cross_val_score(pipe, X, y, cv=5).mean()
-
-print(f"с утечкой:  accuracy = {leak:.2f}")
-print(f"честно:     accuracy = {honest:.2f}   (случайно = 0.50)")
-```
-
-::: {.notes}
-Тайминг 0:53–0:55. Читать только две выделяемые идеи: неверный отбор до CV и правильный Pipeline внутри CV. Правило: любой шаг с fit — scaler, imputer, PCA, feature selection — обучается только на train.
-
-[Sources]
-- https://scikit-learn.org/stable/common_pitfalls.html
-[/Sources]
-:::
-
-## Матрица ошибок — четыре исхода
-
-:::: {.columns}
-::: {.column width="48%"}
-```{python}
-#| echo: false
-cm = np.array([[920, 70], [3, 7]])
-fig, ax = plt.subplots(figsize=(5.2, 4.1))
-ax.imshow(cm, cmap='Blues')
-for (i,j), v in np.ndenumerate(cm):
-    ax.text(j, i, str(v), ha='center', va='center',
-            fontsize=23, color='white' if v > 450 else INK)
-ax.set_xticks([0,1], ['норма', 'отказ'])
-ax.set_yticks([0,1], ['норма', 'отказ'])
-ax.set_xlabel('прогноз'); ax.set_ylabel('истина')
-ax.grid(False); plt.show()
-```
-:::
-::: {.column width="52%"}
-Для класса «отказ»:
-
-$$\text{precision}=\frac{TP}{TP+FP}=\frac7{77}=0.09$$
-
-$$\text{recall}=\frac{TP}{TP+FN}=\frac7{10}=0.70$$
-
-Accuracy при этом:
-
-$$\frac{920+7}{1000}=\mathbf{92.7\%}$$
-:::
-::::
-
-::: {.notes}
-Тайминг 0:55–0:57. Сначала закрыть правую колонку и попросить посчитать recall. Подчеркнуть: названия positive/negative — соглашение, а не оценка «хорошо/плохо».
-:::
-
-## Ловушка 2 · Не та метрика
-
-:::: {.columns}
-::: {.column width="42%"}
-Отказ двигателя — 0.5% примеров. Модель «всегда норма» даёт **accuracy 99.5%** и бесполезна.
-
-- при дисбалансе — **recall / precision / PR-AUC**
-- цена ошибок **асимметрична**: пропуск отказа ≫ ложная тревога
-- метрику выбирают **из инженерной постановки**
-:::
-::: {.column width="58%"}
-```{python}
-#| echo: false
-metrics = ['accuracy', 'recall\n(отказ)', 'precision\n(отказ)']
-naive = [0.995, 0.00, 0.00]; good = [0.93, 0.82, 0.41]
-x = np.arange(len(metrics)); w = 0.38
-fig, ax = plt.subplots(figsize=(6.6, 4.7))
-b1 = ax.bar(x-w/2, naive, w, color=MUTED, label='«всегда норма»')
-b2 = ax.bar(x+w/2, good, w, color=ACCENT, label='сбалансированная модель')
-for bars in (b1, b2):
-    for r in bars:
-        ax.text(r.get_x()+r.get_width()/2, r.get_height()+0.02, f'{r.get_height():.2f}', ha='center', fontsize=12, color=INK)
-ax.set_xticks(x, metrics); ax.set_ylim(0, 1.12); ax.set_ylabel('значение метрики')
-ax.legend(loc='upper right'); ax.grid(axis='x', visible=False); plt.show()
-```
-[Accuracy высока у обеих — но «всегда норма» не ловит ни одного отказа.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 0:57–0:59. Сравнить с матрицей на предыдущем слайде. PR-AUC полезна при сильном дисбалансе, но финальная система всё равно требует выбрать рабочий порог и цену действий.
-
-[Sources]
-- https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html
-[/Sources]
-:::
-
-## Порог — часть системы, а не модели
-
-:::: {.columns}
-::: {.column width="40%"}
-Классификатор выдаёт score или вероятность. Решение появляется после порога:
-
-$$\hat y=\mathbb 1[p(y=1\mid x)\ge\tau]$$
-
-Ниже $\tau$:
-
-- recall обычно растёт;
-- ложных тревог становится больше.
-
-Порог выбирают на **validation**, не на test.
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-from sklearn.metrics import precision_recall_curve
-rng = np.random.default_rng(31)
-y_thr = np.r_[np.zeros(950, dtype=int), np.ones(50, dtype=int)]
-s_thr = np.r_[rng.beta(1.3, 5.5, 950), rng.beta(4.2, 2.1, 50)]
-p_thr, r_thr, tau_thr = precision_recall_curve(y_thr, s_thr)
-fig, ax = plt.subplots(figsize=(6.6, 4.5))
-ax.plot(tau_thr, p_thr[:-1], color=ACCENT, lw=3, label='precision')
-ax.plot(tau_thr, r_thr[:-1], color=ACCENT2, lw=3, label='recall')
-ax.axvline(.35, color=INK, ls=':', lw=1.6)
-ax.text(.37, .08, r'рабочий $\tau$', fontsize=12, color=INK)
-ax.set_xlabel('порог $\\tau$'); ax.set_ylabel('метрика')
-ax.set_ylim(0, 1.03); ax.legend(loc='center right'); plt.show()
-```
-:::
-::::
-
-::: {.notes}
-Тайминг 0:59–1:01. Один и тот же набор вероятностей даёт разные бинарные решения. Поэтому сравнение моделей только в точке 0.5 может быть бессмысленным. Точный характер кривых зависит от данных.
-
-[Sources]
-- https://scikit-learn.org/stable/modules/classification_threshold.html
-[/Sources]
-:::
-
-## Мини-эксперимент · двигаем порог {.live-code}
-
-Измените `threshold`, нажмите **Run Code** и сравните число пропусков и ложных тревог.
-
-```{pyodide}
-#| caption: "Порог превращает score в инженерное решение"
-#| max-lines: 10
-#| fig-width: 7.2
-#| fig-height: 2.2
-#| fig-dpi: 90
-import numpy as np
-import matplotlib.pyplot as plt
-
-rng = np.random.default_rng(31)
-normal = rng.beta(1.3, 5.5, 300)
-fault = rng.beta(4.2, 2.1, 40)
-score = np.r_[normal, fault]
-truth = np.r_[np.zeros(normal.size, dtype=int), np.ones(fault.size, dtype=int)]
-
-threshold = 0.35
-prediction = score >= threshold
-tp = np.sum(prediction & (truth == 1))
-fp = np.sum(prediction & (truth == 0))
-fn = np.sum(~prediction & (truth == 1))
-
-fig, ax = plt.subplots(figsize=(7.2, 2.2))
-ax.hist(normal, bins=22, alpha=.65, label="норма")
-ax.hist(fault, bins=14, alpha=.65, label="отказ")
-ax.axvline(threshold, color="#E4572E", lw=2.5, label=f"порог = {threshold:.2f}")
-ax.set(xlabel="score", ylabel="число примеров", xlim=(0, 1))
-ax.legend(ncols=3, fontsize=9)
-plt.tight_layout()
-plt.show()
-
-print(f"TP={tp}, FP={fp}, FN={fn}")
-```
-
-::: {.notes}
-Тайминг 1–2 минуты. Дать группе сначала предсказать направление изменения ошибок: при снижении
-порога FN обычно уменьшается, а FP растёт. На первом открытии Python-среда загружается в фоне;
-кнопка запуска станет активной после завершения загрузки.
-:::
-
-## Цена ошибок превращает метрику в решение
-
-Пусть ложная тревога стоит 1 единицу, а пропущенный отказ — 50:
-
-$$C(\tau)=1\cdot FP(\tau)+50\cdot FN(\tau)$$
-
-```{python}
-#| echo: false
-taus = np.linspace(0.02, .98, 120)
-costs = []
-for th in taus:
-    pred = s_thr >= th
-    fp = np.sum((pred == 1) & (y_thr == 0))
-    fn = np.sum((pred == 0) & (y_thr == 1))
-    costs.append(fp + 50*fn)
-best = int(np.argmin(costs))
-fig, ax = plt.subplots(figsize=(9.4, 3.7))
-ax.plot(taus, costs, color=ACCENT, lw=3)
-ax.scatter([taus[best]], [costs[best]], color=ACCENT2, s=75, zorder=4)
-ax.annotate(f'$\\tau={taus[best]:.2f}$', (taus[best], costs[best]),
-            xytext=(taus[best]+.10, costs[best]+300),
-            arrowprops=dict(arrowstyle='->', color=ACCENT2), color=ACCENT2, fontsize=13)
-ax.set_xlabel('порог $\\tau$'); ax.set_ylabel('стоимость на 1000 решений'); plt.show()
-```
-
-**Коэффициенты обязаны прийти из инженерного риска**, а не из удобства библиотеки.
-
-::: {.notes}
-Тайминг 1:01–1:03. Спросить, что произойдёт с оптимальным порогом, если цена FN вырастет. Ответ: порог обычно снизится, система будет чаще тревожить. Числа синтетические и нужны для иллюстрации.
-:::
-
-## Вероятность должна означать вероятность
-
-:::: {.columns}
-::: {.column width="42%"}
-Если модель сообщает $p=0.8$, то среди похожих случаев примерно **80%** должны быть положительными.
-
-Это свойство называется **калибровкой**.
-
-Калибровка важна, когда:
-
-- порог зависит от риска;
-- объединяем модель с другими источниками;
-- показываем уверенность оператору.
-:::
-::: {.column width="58%"}
-```{python}
-#| echo: false
-pbin = np.linspace(.05, .95, 10)
-over = np.clip(pbin**1.8 + .03*np.sin(8*pbin), 0, 1)
-cal = np.clip(pbin + .025*np.sin(10*pbin), 0, 1)
-fig, ax = plt.subplots(figsize=(6.2, 4.4))
-ax.plot([0,1], [0,1], color=MUTED, ls='--', lw=1.5, label='идеально')
-ax.plot(pbin, over, 'o-', color=ACCENT2, lw=2.5, label='до калибровки')
-ax.plot(pbin, cal, 'o-', color=ACCENT, lw=2.5, label='после')
-ax.set_xlabel('заявленная вероятность'); ax.set_ylabel('наблюдаемая доля')
-ax.legend(loc='upper left'); plt.show()
-```
-:::
-::::
-
-::: {.notes}
-Тайминг 1:03–1:05. Не путать accuracy и calibration: модель может хорошо ранжировать, но быть чрезмерно уверенной. Калибровку также оценивают на независимых данных.
-
-[Sources]
-- https://scikit-learn.org/stable/modules/calibration.html
-[/Sources]
-:::
-
-## Ловушка 3 · Сдвиг распределения
-
-:::: {.columns}
-::: {.column width="40%"}
-Модель учит датчик/режим, а не физику. На новом борту/сезоне распределение **сдвигается** — порог, выученный на train, перестаёт работать [@huyen2022designing].
-
-Проверяйте на **независимых** условиях, а не на случайном сплите.
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-xs = np.linspace(-4, 8, 400)
-g = lambda m, s: np.exp(-0.5*((xs-m)/s)**2)/(s*np.sqrt(2*np.pi))
-tr, dep, thr = g(0, 1.0), g(3.2, 1.2), 1.5
-fig, ax = plt.subplots(figsize=(6.6, 4.7))
-ax.fill_between(xs, tr, color=ACCENT, alpha=.30, label='train')
-ax.fill_between(xs, dep, color=ACCENT2, alpha=.22, label='deploy (сдвиг)')
-ax.fill_between(xs, dep, where=(xs < thr), color=ACCENT2, alpha=.5)
-ax.axvline(thr, color=INK, ls='--', lw=1.8)
-ax.text(thr+0.12, ax.get_ylim()[1]*0.93, 'порог с train', fontsize=12, color=INK)
-ax.set_xlabel('признак'); ax.set_yticks([]); ax.legend(loc='upper right'); plt.show()
-```
-[Тёмная область — ошибки на сдвинутых данных.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 1:05–1:07. Попросить назвать сдвиги для аэрокосмоса: новый борт, температура, старение датчика, прошивка, сезон, профиль миссии. Разделить covariate shift и смену самой связи с целью только на уровне интуиции.
-:::
-
-## Эксплуатационный домен — договор о границах
-
-```{python}
-#| echo: false
-temp2 = np.linspace(-50, 50, 240)
-mach2 = np.linspace(0, 1.2, 220)
-TT, MM = np.meshgrid(temp2, mach2)
-safe = ((TT/38)**2 + ((MM-.45)/.48)**2 <= 1) & (MM < .92)
-fig, ax = plt.subplots(figsize=(9.2, 3.9))
-ax.contourf(TT, MM, safe.astype(int), levels=[-.5,.5,1.5],
-            colors=['#EFF2F5', '#C8D9F0'])
-ax.contour(TT, MM, safe.astype(int), levels=[.5], colors=[ACCENT], linewidths=2.5)
-ax.text(-4, .44, 'проверенный ODD', ha='center', va='center',
-        color=ACCENT, fontsize=15, fontweight='bold')
-ax.scatter([-38, 43, 28], [.8, .65, 1.05], marker='x', s=80, color=ACCENT2, lw=2.5)
-ax.text(31, 1.08, 'reject / fallback', color=ACCENT2, fontsize=12)
-ax.set_xlabel('температура, °C'); ax.set_ylabel('Mach'); plt.show()
-```
-
-Вне ODD система должна **обнаружить границу и перейти к fallback**, а не молча выдать число.
-
-::: {.notes}
-Тайминг 1:07–1:09. ODD показан двумя осями только для визуализации; реальный домен многомерный. Обсудить, чем может быть fallback: физическая модель, безопасный режим, запрос оператору, отказ от прогноза.
-
-[Sources]
-- https://www.easa.europa.eu/sites/default/files/dfu/MLEAP-D2-Interim-Public-Report-Executive_Summary_Expanded-Issue_1.1.pdf
-[/Sources]
-:::
-
-## Контрольная точка 2
-
-Модель показывает **99% accuracy** на окнах из 20 полётов.
-
-В ревью выясняется:
-
-1. окна перемешаны случайно;
-2. scaler обучен до split;
-3. отказов только 0.4%;
-4. порог подобран по test;
-5. все полёты одного борта летом.
-
-**Задание:** назовите пять отдельных причин не доверять цифре.
-
-::: {.notes}
-Тайминг 1:09–1:11. Быстрый фронтальный опрос: один студент — одна причина. Ожидаемые ответы: зависимые окна, leakage preprocessing, бесполезность accuracy при дисбалансе, contamination test, отсутствие внешнего покрытия борта/сезона.
-:::
-
-# Часть 3 · Инженерия ML {.divider background-color="#23373B"}
-
-::: {.notes}
-Тайминг 1:11. Переход: допустим, метрика теперь честная. Остался вопрос — можно ли превратить модель в работающую систему.
-:::
-
-## Сначала бюджет, потом архитектура
-
-| Ограничение | Приёмочный критерий | Как измерять |
-|---|---|---|
-| качество | recall ≥ 0.95 при ≤ 1 FP/ч | внешний test |
-| время | p95 latency ≤ 10 мс | целевое железо |
-| память | peak RAM ≤ 64 МБ | runtime profiler |
-| энергия | ≤ 20 мДж / inference | стенд |
-| надёжность | fallback при OOD | fault injection |
-
-**Без численного бюджета нет задачи оптимизации** — есть бесконечный конкурс моделей.
-
-::: {.notes}
-Тайминг 1:11–1:13. Уточнить, что числа иллюстративные. Приёмочный критерий должен содержать статистику, нагрузку и платформу. «Быстро» и «мало памяти» не являются проверяемыми требованиями.
-:::
-
-## Центральный компромисс: точность ↔ latency
-
-:::: {.columns}
-::: {.column width="40%"}
-На борту нельзя «просто взять модель побольше». Есть **бюджет** latency, памяти, энергии.
-
-Инженерная задача — выбрать точку на фронте Парето **слева от бюджета**. Этим займёмся в L6 (квантизация, прунинг).
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-pts = {'fp32': (42, 0.94), 'int8': (12, 0.932), 'pruned int8': (7, 0.92),
-       'distilled': (5, 0.905), 'tiny': (2.5, 0.86)}
-xs = [v[0] for v in pts.values()]; ys = [v[1] for v in pts.values()]
-order = np.argsort(xs)
-fig, ax = plt.subplots(figsize=(6.6, 4.7))
-ax.plot(np.array(xs)[order], np.array(ys)[order], color=MUTED, lw=1.4, ls='--', zorder=1)
-for name, (lx, ay) in pts.items():
-    ax.scatter(lx, ay, s=90, color=ACCENT, zorder=3)
-    ax.annotate(name, (lx, ay), xytext=(lx+1.3, ay-0.004), fontsize=11, color=INK)
-ax.axvline(10, color=ACCENT2, ls=':', lw=2)
-ax.text(10.4, 0.846, 'бюджет', color=ACCENT2, fontsize=12, rotation=90, va='bottom')
-ax.set_xlabel('latency, мс (меньше — лучше)'); ax.set_ylabel('accuracy'); ax.set_ylim(0.84, 0.95); plt.show()
-```
-[Каждая точка — модель. Выбираем лучшую слева от бюджета.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 1:13–1:15. Дать 20 секунд выбрать модель на графике. Если бюджет 10 мс, fp32 и int8 справа неприемлемы; среди допустимых точек выбираем по качеству и другим ограничениям. «Лучшая accuracy» не равна «лучшая система».
-:::
-
-## Средняя задержка скрывает хвост
-
-:::: {.columns}
-::: {.column width="42%"}
-Для контура реального времени важен не только mean:
-
-$$p_{95}(T)\le T_{\text{budget}}$$
-
-Причины хвоста:
-
-- конкуренция за CPU;
-- аллокации и cache miss;
-- разные формы входа;
-- warm-up / thermal throttling.
-:::
-::: {.column width="58%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(44)
-lat = np.r_[rng.lognormal(np.log(4.7), .18, 960),
-            rng.lognormal(np.log(12), .24, 40)]
-mean_lat, p95_lat, p99_lat = np.mean(lat), np.percentile(lat, 95), np.percentile(lat, 99)
-fig, ax = plt.subplots(figsize=(6.4, 4.4))
-ax.hist(lat, bins=42, color=ACCENT, alpha=.78)
-for val, lab, col in [(mean_lat, 'mean', GREEN), (p95_lat, 'p95', AMBER), (p99_lat, 'p99', ACCENT2)]:
-    ax.axvline(val, color=col, lw=2.2, label=f'{lab}={val:.1f} мс')
-ax.axvline(10, color=INK, ls='--', lw=1.5, label='бюджет 10 мс')
-ax.set_xlabel('latency, мс'); ax.set_ylabel('число запусков')
-ax.legend(loc='upper right', fontsize=10.5); plt.show()
-```
-:::
-::::
-
-::: {.notes}
-Тайминг 1:15–1:17. Попросить сравнить mean и p95 с бюджетом. Средняя может пройти, а хвост — нарушить дедлайн. Бенчмарк должен включать warm-up, устойчивую нагрузку и целевую платформу.
-:::
-
-## Память: веса — только начало
-
-:::: {.columns}
-::: {.column width="48%"}
-Грубая нижняя оценка:
-
-$$M_{\text{weights}}=N_{\text{params}}\cdot b/8$$
-
-Модель на 8 млн параметров:
-
-- FP32: **32 МБ**
-- FP16: **16 МБ**
-- INT8: **8 МБ**
-:::
-::: {.column width="52%"}
-Peak RAM также содержит:
-
-- активации;
-- входные буферы;
-- workspace runtime;
-- копии при конвертации;
-- сам исполняющий runtime.
-
-**Измеряем peak, а не только размер `.onnx`.**
-:::
-::::
-
-::: {.notes}
-Тайминг 1:17–1:19. Быстро посчитать 8 млн × 4 байта вместе с группой. Объяснить, почему квантизация весов не гарантирует 4× снижение peak RAM: активации и runtime могут остаться шире.
-:::
-
-## ML-система — это не только ML
-
-```{python}
-#| echo: false
-fig, ax = plt.subplots(figsize=(11.0, 3.5)); ax.set_xlim(0, 12); ax.set_ylim(0, 4.6); ax.axis('off')
-boxes = [('сбор данных', 0.2, 3.3), ('разметка', 0.2, 1.9), ('признаки', 2.5, 3.3),
-         ('инфраструктура', 2.5, 0.5), ('конфигурация', 4.8, 0.5), ('анализ', 7.1, 3.5),
-         ('мониторинг', 9.4, 3.3), ('serving / API', 9.4, 1.6), ('ресурсы', 7.1, 0.5)]
-for name, x, y in boxes:
-    ax.add_patch(plt.Rectangle((x, y), 2.1, 1.0, facecolor='#EEF2F6', edgecolor='#CFD6DD', lw=1.2))
-    ax.text(x+1.05, y+0.5, name, ha='center', va='center', fontsize=11, color=INK)
-ax.add_patch(plt.Rectangle((5.15, 2.15), 1.7, 0.95, facecolor=ACCENT, edgecolor=ACCENT))
-ax.text(6.0, 2.62, 'ML-код', ha='center', va='center', fontsize=12.5, color='white', fontweight='bold')
-plt.show()
-```
-
-Обучение модели — **крошечная** часть [@sculley2015hidden]. Остальное (данные, инфраструктура, деплой, мониторинг) — и есть инженерия курса.
-
-::: {.notes}
-Тайминг 1:19–1:21. Спросить, какой блок чаще ломается без изменения ML-кода: схема данных, версия сенсора, serving, мониторинг. Слайд адаптирует идею hidden technical debt; схема авторская.
-
-[Sources]
-- https://proceedings.neurips.cc/paper_files/paper/2015/file/86df7dcfd896fcaf2674f757a2463eba-Paper.pdf
-[/Sources]
-:::
-
-## После деплоя метка приходит поздно
-
-:::: {.columns}
-::: {.column width="44%"}
-Мониторим три слоя:
-
-1. **вход:** пропуски, диапазоны, drift;
-2. **система:** latency, RAM, ошибки runtime;
-3. **качество:** ошибки после появления меток.
-
-Ранние сигналы входа не доказывают деградацию качества, но запускают проверку.
-:::
-::: {.column width="56%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(55)
-day = np.arange(60)
-drift = .15 + .012*np.maximum(day-28, 0) + rng.normal(0,.025,day.size)
-quality = .94 - .006*np.maximum(day-38, 0) + rng.normal(0,.009,day.size)
-fig, ax1 = plt.subplots(figsize=(6.5, 4.3))
-ax1.plot(day, drift, color=ACCENT2, lw=2.7, label='drift score')
-ax1.set_xlabel('день после деплоя'); ax1.set_ylabel('drift score', color=ACCENT2)
-ax2 = ax1.twinx()
-ax2.plot(day, quality, color=ACCENT, lw=2.7, label='recall (метка с задержкой)')
-ax2.set_ylabel('recall', color=ACCENT); ax2.set_ylim(.78, .98)
-ax1.axvline(32, color=INK, ls=':', lw=1.4)
-ax1.text(33, ax1.get_ylim()[1]*.91, 'триггер проверки', fontsize=11, color=INK)
-plt.show()
-```
-:::
-::::
-
-::: {.notes}
-Тайминг 1:21–1:23. Пояснить разницу telemetry monitoring и ground truth monitoring. В реальности recall может стать известен через дни или после технического осмотра, поэтому нужны прокси-сигналы и регламент реакции.
-:::
-
-## Воспроизводимость — это инженерия
-
-:::: {.columns}
-::: {.column width="40%"}
-Есть две разные задачи:
-
-- **повторить запуск:** lock-файл, хеш данных, конфигурация и seed;
-- **оценить устойчивость:** несколько seed в одной зафиксированной среде.
-
-Один фиксированный seed обеспечивает трассируемость, но не доказывает устойчивость результата.
-:::
-::: {.column width="60%"}
-```{python}
-#| echo: false
-rng = np.random.default_rng(3)
-uncontrolled = 0.845 + rng.normal(0, 0.028, 20)
-controlled = 0.861 + rng.normal(0, 0.008, 10)
-fig, ax = plt.subplots(figsize=(6.6, 4.7))
-ax.scatter(np.zeros(uncontrolled.size)+rng.normal(0, 0.035, uncontrolled.size),
-           uncontrolled, color=ACCENT2, alpha=.70, s=42)
-ax.scatter(np.ones(controlled.size)+rng.normal(0, 0.035, controlled.size),
-           controlled, color=ACCENT, alpha=.85, s=48)
-ax.errorbar([0, 1], [uncontrolled.mean(), controlled.mean()],
-            yerr=[uncontrolled.std(), controlled.std()],
-            color=INK, fmt='none', capsize=6, lw=1.5)
-ax.set_xticks([0, 1], ['версии «плавают»', 'фиксированная среда,\n10 seed'])
-ax.set_xlim(-0.5, 1.5); ax.set_ylim(0.76, 0.93); ax.set_ylabel('accuracy между запусками')
-plt.show()
-```
-[Среду фиксируем для воспроизводимости; несколько seed — для оценки разброса.]{.figcap}
-:::
-::::
-
-::: {.notes}
-Тайминг 1:23–1:25. Развести два вопроса: «получу ли я тот же запуск?» и «устойчив ли вывод к случайности?». Lock-файл и seed помогают первому; повторные seed и доверительные интервалы — второму.
-:::
-
-## Эксперимент имеет цифровой паспорт
-
-**Идентификатор запуска:** `run_id = hash(code, data, config, environment)`
-
-```{.yaml}
-run_id: imu-fault-2026-09-14-7f3c2a
-git_commit: 7f3c2a1
-data_version: flights-v04
-split: group_by_aircraft
-config: configs/tinycnn-int8.yaml
-environment: uv.lock@sha256:...
-seed: [11, 17, 23, 41, 59]
-```
-
-Метрика без такого паспорта — **число без происхождения**.
-
-::: {.notes}
-Тайминг 1:25–1:27. Попросить выбрать минимальные поля, чтобы коллега повторил эксперимент через месяц. Хеш здесь концептуальный: важно сохранить идентичность всех влияющих артефактов, а не буквально склеивать строки.
-:::
-
-## Один push — вся цепочка проверок
-
-```{python}
-#| echo: false
-stages = [("lint + test", "ruff · pytest"), ("train", "Docker"),
-          ("quantize", "INT8 · ONNX"), ("bench", "QEMU · arm64"), ("артефакт", "модель + отчёт")]
-stripe = [ACCENT, ACCENT, AMBER, AMBER, GREEN]
-fig, ax = plt.subplots(figsize=(11.4, 2.9)); ax.set_xlim(0, len(stages)); ax.set_ylim(0, 1.3); ax.axis('off')
-for i, ((title, tool), col) in enumerate(zip(stages, stripe)):
-    x, w = i + 0.06, 0.88
-    ax.add_patch(FancyBboxPatch((x, 0.28), w, 0.52, boxstyle="round,pad=0.012,rounding_size=0.05",
-                 lw=1.3, edgecolor="#CFD6DD", facecolor="white"))
-    ax.add_patch(plt.Rectangle((x, 0.74), w, 0.06, color=col))
-    ax.text(x + w/2, 0.58, title, ha="center", va="center", fontsize=13.5, color=INK, fontweight="medium")
-    ax.text(x + w/2, 0.40, tool, ha="center", va="center", fontsize=10.5, color=MUTED)
-    if i < len(stages)-1:
-        ax.annotate("", xy=(i+1.06, 0.54), xytext=(i+0.94, 0.54), arrowprops=dict(arrowstyle="-|>", color=MUTED, lw=1.8))
-ax.plot([0.06, len(stages)-0.06], [1.02, 1.02], color=ACCENT, lw=1.3)
-ax.text(len(stages)/2, 1.13, "GitHub Actions — на каждый push / PR", ha="center", fontsize=12.5, color=ACCENT, fontweight="medium")
-plt.show()
-```
-
-```{.yaml}
-jobs:
-  ci:                                        # .github/workflows/ci.yml — на push и PR
-    steps:
-      - run: ruff check . && pytest -q       # стиль + тесты
-      - run: docker build -t model .         # воспроизводимая сборка
-      - run: python quantize.py --int8       # сжатие в ONNX
-      - run: ./bench --target arm64-qemu     # бюджет latency / RAM
-```
-
-::: {.notes}
-Тайминг 1:27–1:29. Объяснить, что CI не гарантирует хорошую модель, а гарантирует повторяемый набор автоматических ворот. Финальный benchmark всё равно нужен на реальном железе, QEMU — ранняя проверка.
-:::
-
-## Лестница доказательств
-
-| Уровень | Что уже доказано | Чего ещё нет |
-|---|---|---|
-| 1 · notebook | идея запускается | повторяемости |
-| 2 · test | код не сломан | внешнего качества |
-| 3 · held-out | метрика честна | системных бюджетов |
-| 4 · target bench | latency/RAM проходят | поведения в полёте |
-| 5 · shadow/pilot | работает в контексте | полного допуска |
-
-Каждый следующий уровень отвечает на **новый класс рисков**. Ни один высокий accuracy не перепрыгивает лестницу.
-
-::: {.notes}
-Тайминг 1:29–1:31. Попросить определить, на каком уровне находится типичная курсовая работа после Jupyter. Итоговый проект курса должен дойти как минимум до target bench и воспроизводимого отчёта.
-:::
-
-## Контрольная точка 3
-
-Выберите модель для борта с бюджетом **10 мс / 64 МБ**:
-
-| Модель | Recall | p95 | Peak RAM |
-|---|---:|---:|---:|
-| A · FP32 | **0.97** | 18 мс | 92 МБ |
-| B · INT8 | 0.95 | 8 мс | 41 МБ |
-| C · tiny | 0.91 | **3 мс** | **18 МБ** |
-
-::: {.fragment}
-Если требование recall ≥ 0.95, допустима только **B**. A точнее, но не является кандидатом на эту систему.
-:::
-
-::: {.notes}
-Тайминг 1:31–1:33. Показать таблицу без ответа, попросить голосование. Если кто-то выбирает A, спросить, какое требование разрешает нарушить дедлайн и память. Если C — нарушен критерий качества.
-:::
-
-# Финал {.divider background-color="#23373B"}
-
-::: {.notes}
-Тайминг 1:33. Возвращаемся к исходным 97%.
-:::
-
-## Возвращаемся к «accuracy = 97%»
-
-Теперь ревью занимает пять вопросов:
-
-| Вопрос | Минимальный приемлемый ответ |
+| Элемент | Учебный пример |
 |---|---|
-| Что решаем? | $x$, $y$, действие, горизонт |
-| Как проверяли? | split по полётам + закрытый test |
-| Что считаем? | recall/FP в рабочей точке |
-| Где работает? | проверенный ODD + fallback |
-| Влезает ли? | p95/RAM на целевом устройстве |
+| вход | агрегаты тока, температуры, вибрации и ошибки слежения по окнам полёта |
+| цель | отметка о необходимости осмотра после полёта |
+| действие | назначить диагностику или оставить штатный регламент |
+| дорогая ошибка | пропустить привод, требующий проверки |
+| единица решения | один полёт |
 
-::: {.fragment}
-**97% — не решение.** Решение — воспроизводимый пакет доказательств по всем пяти строкам.
-:::
+Это учебная классификация риска, а не прогноз отказа в контуре управления.
 
 ::: {.notes}
-Тайминг 1:33–1:35. Попросить группу перечислить вопросы до появления таблицы. Сравнить с аргументами, записанными на первом слайде. Это закрывает сквозной сюжет.
+0:09–0:13. Последняя строка отделяет учебную задачу от safety-critical control.
 :::
 
-## Project card · первая страница проекта
+## Окно и горизонт определяют доступную информацию
 
-```{.yaml}
-decision: "предупредить об отказе привода"
-input: "2 с IMU + ток двигателя, доступны online"
-target: "отказ в следующие 300 мс"
-baseline: "порог RMS"
-validation: "group split по бортам, внешний сезон"
-metric: "recall >= .95 при FP/hour <= 1"
-odd: "T=[-20, 45] °C; режимы cruise/landing"
-budgets: "p95 <= 10 ms; peak RAM <= 64 MB"
-fallback: "физический монитор + ручная проверка"
+```text
+наблюдение              решение                    возможное событие
+───────────────[ окно ]────│────────────[ горизонт ]──────────────▶ t
+                           ↑
+                    данные справа запрещены
 ```
 
-Эта карточка ценнее десятой архитектуры, если первые девять обучались на неверной задаче.
+Один и тот же сигнал создаёт разные задачи в зависимости от длины окна, момента
+решения и горизонта метки. Все признаки должны существовать до вертикальной
+границы.
 
 ::: {.notes}
-Тайминг 1:35–1:37. Это шаблон, который студенты смогут буквально перенести в README проекта. Пройти по полям и показать связь с тремя частями лекции.
+0:13–0:16. Короткий вопрос: можно ли использовать максимум температуры после
+посадки для решения, которое принималось в полёте?
 :::
 
-## Что вы соберёте за курс
+## Обучение и применение модели
+
+| | Обучение | Применение |
+|---|---|---|
+| вход | примеры и метки | новый пример |
+| операция | подбор параметров | вычисление прогноза |
+| результат | файл модели | оценка риска и действие |
+| основной риск | переобучение | задержка, сдвиг данных, отказ входа |
+
+$$
+\text{обучение: }(X,Y)\rightarrow\theta,
+\qquad
+\text{применение: }(x,\theta)\rightarrow\hat y
+$$
+
+::: {.notes}
+0:16–0:19. На борту в основном используется зафиксированная версия модели;
+переобучение проходит отдельный цикл проверки.
+:::
+
+## Функция потерь и приёмочная метрика
+
+Параметры модели подбираются по функции потерь:
+
+$$
+\hat\theta=\arg\min_\theta\frac1N
+\sum_{i=1}^{N}\mathcal L(f_\theta(x_i),y_i).
+$$
+
+Функция потерь удобна для оптимизации. Приёмочная метрика отвечает на вопрос
+эксплуатации и может быть другой.
+
+- перекрёстная энтропия обучает вероятностную оценку, но не гарантирует калибровку;
+- MSE сильнее MAE реагирует на крупные ошибки;
+- стоимость ошибок в реальной системе не следует автоматически из функции потерь.
+
+::: {.notes}
+0:19–0:22. Детали выбора метрики и калибровки — L1.
+:::
+
+## Сравнение начинается с простого метода
+
+Базовый метод отвечает на вопрос: даёт ли новая модель практический прирост?
+
+1. константа или последнее значение;
+2. регламентное правило;
+3. физическая модель;
+4. линейная или логистическая регрессия.
+
+Сравнение корректно, если данные, единица анализа и метрика для моделей
+совпадают.
+
+::: {.notes}
+0:22–0:25. Попросить предложить базовый метод для прогнозирования температуры и
+для классификации режима полёта.
+:::
+
+## Фильтр Калмана и обучаемая модель решают разные задачи
+
+| Вопрос | Физический оценщик | Обучаемая модель |
+|---|---|---|
+| источник структуры | уравнения состояния и измерения | данные, архитектура и признаки |
+| условия результата | корректная модель и статистика шумов | покрытие обучающими данными |
+| сильная сторона | интерпретируемая динамика и известные ограничения | сложная связь сырых сигналов с целью |
+| основной риск | ошибка физической модели | перенос за пределы данных |
+
+Для линейной системы с корректно заданными шумами фильтр Калмана имеет строгие
+оптимальные свойства. Это не означает, что любой KF безопасен при неверной
+модели, и не означает, что нейросеть обходится без предположений.
+
+::: {.notes}
+0:25–0:29. Не устраивать соревнование «KF против NN». В L4 появится модель
+остатка физического оценщика.
+:::
+
+## Мини-задача
+
+Для оценки угла атаки есть физическая модель номинального режима, ИМУ, датчик
+давления и мало данных на больших углах.
+
+За две минуты предложите:
+
+- что оставить физическому оценщику;
+- что можно поручить обучаемой поправке;
+- как обнаруживать выход за проверенный диапазон;
+- какой базовый метод использовать в сравнении.
+
+::: {.notes}
+0:29–0:34. Обсуждение в парах и два ответа. Допустимы разные решения при явно
+сформулированных ограничениях.
+:::
+
+# 2 · Данные и перенос результата {.divider background-color="#23373B"}
+
+## Таблица — результат процедуры сбора
+
+Эксплуатация задаёт распределение режимов $\mathcal D_{\text{work}}$, а датасет
+получен процедурой $\mathcal D_{\text{collect}}$.
+
+Если в данных нет холода, нового экземпляра оборудования или редкого режима,
+увеличение числа похожих строк не устраняет этот пробел.
 
 ```{python}
 #| echo: false
-mods = [('A', 'фундамент'), ('B', 'глубокое\nобучение'), ('C', 'аэрокосмос'),
-        ('D', 'Edge AI\n+ MLOps'), ('E', 'сертификация')]
-cols = [ACCENT, ACCENT, GREEN, AMBER, ACCENT2]
-fig, ax = plt.subplots(figsize=(11.2, 2.5)); ax.set_xlim(0, len(mods)); ax.set_ylim(0, 1.2); ax.axis('off')
-for i, ((m, t), c) in enumerate(zip(mods, cols)):
-    x, w = i + 0.07, 0.86
-    ax.add_patch(FancyBboxPatch((x, 0.3), w, 0.52, boxstyle="round,pad=0.012,rounding_size=0.05", lw=1.4, edgecolor=c, facecolor='white'))
-    ax.add_patch(plt.Rectangle((x, 0.76), w, 0.07, color=c))
-    ax.text(x + w/2, 0.60, f'Модуль {m}', ha='center', fontsize=12.5, color=INK, fontweight='medium')
-    ax.text(x + w/2, 0.43, t, ha='center', fontsize=10.5, color=MUTED)
-    if i < len(mods)-1:
-        ax.annotate('', xy=(i+1.07, 0.55), xytext=(i+0.93, 0.55), arrowprops=dict(arrowstyle='-|>', color=MUTED, lw=1.7))
+rng = np.random.default_rng(1126)
+nominal = rng.normal([0.45, 0.45], [0.14, 0.12], size=(260, 2))
+edge = rng.uniform([0.0, 0.0], [1.0, 1.0], size=(90, 2))
+
+fig, ax = plt.subplots(figsize=(8.8, 4.7))
+ax.scatter(edge[:, 0], edge[:, 1], s=18, color=MUTED, alpha=0.45, label="эксплуатационный диапазон")
+ax.scatter(nominal[:, 0], nominal[:, 1], s=22, color=ACCENT, alpha=0.7, label="собранные данные")
+ax.set(xlabel="температурный режим", ylabel="нагрузка", xlim=(0, 1), ylim=(0, 1))
+ax.legend()
 plt.show()
 ```
 
-Итог — **сквозной групповой проект**: project card → честный baseline → модель → ONNX/INT8 →
-C++-инференс под бюджет → Docker/CI → командное демо и индивидуальная защита.
-
 ::: {.notes}
-Тайминг 1:37–1:39. Быстро показать маршрут модулей. Не пересказывать syllabus. Подчеркнуть: артефакты каждого этапа войдут в итоговый проект, поэтому работа не выбрасывается после зачёта темы.
+0:34–0:38. Спросить, в каких областях графика оценка модели будет слабее
+обоснована.
 :::
 
-## Exit ticket · три строки
+## Ошибка на файле и ошибка в работе системы
 
-Перед уходом запишите:
+На доступной выборке вычисляется эмпирический риск:
 
-1. **Один риск данных**, который раньше недооценивали.
-2. **Один бюджет системы**, кроме accuracy.
-3. **Один вопрос**, который зададите автору любого ML-демо.
+$$
+\widehat R(\theta)=\frac1N\sum_i \mathcal L(f_\theta(x_i),y_i).
+$$
 
-::: {.fragment}
-Если осталось 30 секунд: обменяйтесь третьим вопросом с соседом.
-:::
+Нас интересует ожидаемая ошибка в будущих условиях. Поэтому проверочная выборка
+должна:
 
-::: {.notes}
-Тайминг 1:39–1:42. Собрать ответы устно или в форме курса. Это диагностический входной срез, не оценивание. Несколько типичных вопросов перенести в начало S1.
-:::
-
-## Выводы
-
-- ML — не замена Калману, а инструмент для задач **без точной модели**; лучшее решение часто гибридное
-- Точность ограничена **данными**: утечка, метрика, сдвиг — три главные ловушки; модель не экстраполирует
-- Собственно модель — малая часть; **инженерия** (данные, бюджет latency/памяти, воспроизводимость, CI/CD) и есть курс [@sculley2015hidden]
-
-**Дальше:** семинар **S1** — Git/GitHub, окружение, структура репозитория. Принесите ноутбук.
+- быть независимой от настройки модели;
+- представлять заявленный сценарий применения;
+- содержать достаточное число независимых объектов и событий;
+- сохранять исходную единицу анализа.
 
 ::: {.notes}
-Тайминг 1:42–1:45. Три вывода — по одному на каждую часть. Оставшиеся минуты — вопросы. Если времени мало, этот слайд служит финальным резюме.
+0:38–0:42. Здесь не вводятся конкретные схемы разбиения — они являются темой L1.
+:::
+
+## Строка редко является независимым объектом
+
+В сенсорных задачах общую подпись могут иметь:
+
+- соседние окна одного полёта;
+- записи одного человека;
+- циклы одного двигателя;
+- измерения одного стенда или датчика.
+
+Случайное перемешивание строк часто отвечает на слишком простой вопрос:
+узнаёт ли модель уже знакомый объект?
+
+::: {.notes}
+0:42–0:45. Попросить назвать единицу независимости для двух студенческих задач.
+Подробная реализация — L1 и S3.
+:::
+
+## Область применения задаётся проверяемыми условиями
+
+В описание области применения входят:
+
+- тип оборудования и версия датчика;
+- режимы, температура и нагрузка;
+- частоты, единицы и допустимые пропуски;
+- момент и частота принятия решения;
+- действие при нарушении требований к входу.
+
+Последний пункт может означать переход к физическому алгоритму, запрос оператору
+или отказ от прогноза.
+
+::: {.notes}
+0:45–0:49. Избегать обещания, что границу OOD всегда можно надёжно обнаружить:
+это отдельная проверяемая функция системы.
+:::
+
+## Сдвиг данных
+
+Причины изменения распределения в задачах ЛА:
+
+- другой экземпляр борта или привода;
+- температура и сезон;
+- старение датчика;
+- новая прошивка или фильтрация;
+- другой профиль миссии.
+
+Проверка по случайным строкам одного режима не оценивает эти изменения.
+
+::: {.notes}
+0:49–0:52. Собрать ещё два примера от группы.
+:::
+
+## Контрольная точка
+
+Модель дала 99% верных ответов на окнах из 20 полётов. Известно, что:
+
+- окна случайно перемешаны;
+- нормировка рассчитана до разбиения;
+- положительных событий 0,4%;
+- все полёты одного борта проходили летом.
+
+Назовите четыре разных ограничения этой оценки. Не предлагайте новую
+архитектуру, пока не исправлен протокол.
+
+::: {.notes}
+0:52–0:56. Фронтальный разбор. Подбор порога по тестовой выборке намеренно перенесён в L1.
+:::
+
+# 3 · Модель как программный компонент {.divider background-color="#23373B"}
+
+## Требования задаются до выбора архитектуры
+
+| Свойство | Пример критерия | Где проверяется |
+|---|---|---|
+| качество | recall ≥ 0,95 при заданном числе ложных тревог | независимые полёты |
+| время | p95 ≤ 10 мс | целевое устройство |
+| память | пиковая RSS ≤ 64 МБ | процесс инференса |
+| устойчивость входа | определённая реакция на разрыв и NaN | инъекция дефектов |
+
+Числа здесь иллюстративные. В проекте они выводятся из сценария и стенда.
+
+::: {.notes}
+0:56. Переход к системным ограничениям.
+:::
+
+## Выбор модели при нескольких ограничениях
+
+```{python}
+#| echo: false
+latency = np.array([2.8, 4.9, 7.4, 11.8, 18.0])
+recall = np.array([0.90, 0.935, 0.956, 0.968, 0.973])
+labels = ["tiny", "int8-small", "int8", "fp16", "fp32"]
+
+fig, ax = plt.subplots(figsize=(8.8, 4.7))
+ax.scatter(latency, recall, s=95, color=ACCENT)
+for x, y, label in zip(latency, recall, labels, strict=True):
+    ax.annotate(label, (x, y), xytext=(5, 7), textcoords="offset points")
+ax.axvline(10, color=ACCENT2, linestyle="--", label="ограничение 10 мс")
+ax.axhline(0.95, color=GREEN, linestyle=":", label="recall 0,95")
+ax.set(xlabel="p95 задержки, мс", ylabel="recall", ylim=(0.88, 0.985))
+ax.legend()
+plt.show()
+```
+
+Допустимы только точки, проходящие все обязательные ограничения. Среди них
+выбирается вариант по заранее объявленному правилу.
+
+::: {.notes}
+0:56–1:00. Сначала попросить выбрать точку, затем показать ограничения.
+:::
+
+## Средняя задержка недостаточна
+
+Для периодического контура важны хвост распределения и условия измерения:
+
+$$p_{95}(T)\le T_{\text{budget}}.$$
+
+В протокол входят:
+
+- целевой процессор и режим питания;
+- число потоков и размер пакета;
+- прогрев;
+- число повторов;
+- p50, p95 и максимум при необходимости.
+
+::: {.notes}
+1:00–1:03. Подчеркнуть: время QEMU не заменяет время физического ARM64.
+:::
+
+## Размер модели и рабочая память
+
+Для $N$ параметров разрядности $b$ нижняя оценка памяти весов:
+
+$$M_{\text{weights}}=N\cdot b/8.$$
+
+Пиковая память дополнительно содержит активации, входные буферы, workspace и
+саму среду выполнения. Поэтому размер `.onnx` и пиковая RSS — разные измерения.
+
+::: {.notes}
+1:03–1:06. Вместе посчитать вес 8 млн параметров FP32 и INT8.
+:::
+
+## После внедрения наблюдаются три слоя
+
+1. **Вход:** диапазоны, пропуски, частоты и дрейф статистик.
+2. **Программа:** задержка, память и ошибки среды выполнения.
+3. **Качество:** ошибки после появления проверенных меток.
+
+Изменение входной статистики служит поводом для проверки, но само по себе не
+доказывает ухудшение качества модели.
+
+::: {.notes}
+1:06–1:10. Обсудить ситуацию, когда метка появляется только после технического
+осмотра.
+:::
+
+## Воспроизводимость и устойчивость — разные вопросы
+
+Для повторения конкретного запуска нужны:
+
+- версия кода и данных;
+- lock-файл;
+- конфигурация;
+- начальное состояние генератора случайных чисел.
+
+Для оценки устойчивости нужны несколько контролируемых запусков или
+повторная выборка независимых объектов. Одно фиксированное начальное состояние решает только
+первую задачу.
+
+::: {.notes}
+1:10. Переход к воспроизводимости.
+:::
+
+## Автоматическая проверка
+
+```text
+изменение кода
+    ↓
+статический анализ и модульные тесты
+    ↓
+проверка данных и формы модели
+    ↓
+экспорт и тестовые векторы
+    ↓
+сборка и измерение производительности на целевой платформе
+```
+
+CI повторяет известные проверки. Он не подтверждает корректность постановки и не
+заменяет независимую оценку качества.
+
+::: {.notes}
+1:10–1:13. Это переход к S1.
+:::
+
+## Первая страница проекта
+
+До обучения модели команда фиксирует:
+
+- эксплуатационное решение и единицу анализа;
+- источник данных и ограничения лицензии;
+- обучающая, валидационная и тестовая выборки, границы окон;
+- базовый метод и основную метрику;
+- ограничения целевой платформы;
+- команду воспроизведения.
+
+Шаблон находится в [`project/_project-card-template.md`](../project/_project-card-template.md).
+
+::: {.notes}
+1:13–1:16. Показать, какие проверки должны завершать эксперимент.
+:::
+
+# Итог {.divider background-color="#23373B"}
+
+## Возвращаемся к 97%
+
+Перед решением нужны ответы:
+
+1. Какое действие поддерживает модель?
+2. На какой независимой единице получена метрика?
+3. Что означают ошибки в рабочей точке?
+4. Какие режимы представлены в данных?
+5. Проходит ли реализация ограничения целевой платформы?
+
+Без этих сведений 97% верных ответов остаются неполным описанием эксперимента.
+
+::: {.notes}
+1:16–1:19. Сравнить ответы с началом лекции.
+:::
+
+## Что будет сделано в первом модуле
+
+| Занятие | Результат |
+|---|---|
+| S1 | репозиторий и одна команда проверки |
+| S2 | отчёт качества многосенсорного лога |
+| L1 | протокол разбиения и метрик |
+| S3 | базовая модель и валидационный отчёт |
+
+::: {.notes}
+1:19–1:23. Разобрать структуру карточки проекта на одном примере.
+:::
+
+## Выходное задание
+
+Запишите для одной задачи из своей области:
+
+- данные, доступные к моменту решения;
+- единицу независимого объекта;
+- простой базовый метод;
+- одно ограничение, кроме средней доли верных ответов.
+
+::: {.notes}
+1:23–1:26. Полторы минуты самостоятельно, затем короткий обмен в парах.
+:::
+
+## Основные выводы
+
+- Постановка начинается с решения, времени и последствий ошибок.
+- Базовый метод нужен до усложнения модели.
+- Проверочная выборка должна представлять заявленное будущее.
+- Качество рассматривается вместе с задержкой, памятью и поведением входа.
+- Повторяемость запуска и устойчивость результата проверяются отдельно.
+
+**Далее:** S1 — репозиторий, окружение и автоматическая проверка.
+
+::: {.notes}
+1:26–1:30 включает вопросы и выходное задание.
 :::
 
 ## Источники {.smaller}
 
 ::: {#refs}
-:::
-
-::: {.notes}
-Основные источники для углубления. Ссылки на актуальную документацию scikit-learn и авиационные материалы EASA также приведены в заметках соответствующих слайдов.
 :::

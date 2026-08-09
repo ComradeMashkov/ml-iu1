@@ -69,10 +69,18 @@ test("shorter stride increases overlap and window count", () => {
   assert.ok(dense.count > sparse.count);
 });
 
-test("group and time split remove simulated neighbour leakage", () => {
-  assert.ok(splitMetrics("random", 0.75).leakage > 0.5);
-  assert.equal(splitMetrics("group", 0.75).leakage, 0);
-  assert.equal(splitMetrics("time", 0.75).leakage, 0);
+test("group and time scenarios do not mix neighbouring flight windows", () => {
+  assert.ok(splitMetrics("random", 0.75).neighbourOverlapIndex > 0.5);
+  assert.equal(splitMetrics("group", 0.75).neighbourOverlapIndex, 0);
+  assert.equal(splitMetrics("time", 0.75).neighbourOverlapIndex, 0);
+});
+
+test("illustrative fields are explicitly named in the computation API", () => {
+  const window = windowMetrics(4, 0.5);
+  const split = splitMetrics("random", 0.75);
+
+  assert.ok(Number.isInteger(window.heuristicEffectiveCount));
+  assert.ok(split.illustrativeF1 > 0);
 });
 
 test("every required DOM id exists exactly once", async () => {

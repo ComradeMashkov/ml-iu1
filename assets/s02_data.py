@@ -52,11 +52,7 @@ def yaw_rate_dps(t_s: NDArray[np.float64]) -> NDArray[np.float64]:
 def speed_mps(t_s: NDArray[np.float64]) -> NDArray[np.float64]:
     """Reference airframe speed used for the low-rate GNSS channel."""
 
-    return (
-        42.0
-        + 2.4 * np.sin(2 * np.pi * 0.035 * t_s)
-        + 0.8 * np.sin(2 * np.pi * 0.11 * t_s + 0.3)
-    )
+    return 42.0 + 2.4 * np.sin(2 * np.pi * 0.035 * t_s) + 0.8 * np.sin(2 * np.pi * 0.11 * t_s + 0.3)
 
 
 def generate_sensor_log(

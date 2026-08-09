@@ -1,0 +1,7 @@
+{
+  "aggregation": "max",
+  "feature_set": "physical-v1",
+  "min_recall": 0.8,
+  "seed": 42,
+  "split_version": "course-holdout-v1"
+}
