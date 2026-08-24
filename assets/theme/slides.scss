@@ -47,11 +47,18 @@ $code-block-font-size: 0.62em;
   border-top: 3px solid $accent; padding-top: .35em; margin-top: 0;
 }
 #title-slide .subtitle {
-  font-weight: 400; color: $muted; font-size: .6em; letter-spacing: .01em;
-  margin: .25em 0 1.6em; padding-bottom: .9em; border-bottom: 1px solid $rule;
+  font-weight: 400; color: $muted; font-size: .72em; letter-spacing: .01em;
+  margin: .3em 0 1.25em; padding-bottom: .7em; border-bottom: 1px solid $rule;
 }
-#title-slide .author, #title-slide .quarto-title-authors { font-size: .56em; color: $ink; font-weight: 400; justify-content: flex-start; }
-#title-slide .institute, #title-slide .date { font-size: .44em; color: $muted; }
+#title-slide .author, #title-slide .quarto-title-authors {
+  font-size: .78em; color: $ink; font-weight: 400; line-height: 1.25;
+  justify-content: flex-start;
+}
+#title-slide .quarto-title-author-name { font-size: 1em; font-weight: 500; }
+#title-slide .quarto-title-affiliation {
+  color: $muted; font-size: .88em; line-height: 1.25; margin-top: .25em;
+}
+#title-slide .institute, #title-slide .date { font-size: .68em; color: $muted; }
 #title-slide .quarto-title-authors { display: block; }
 
 // ---- Секционные слайды:  # Заголовок {.divider} ----
@@ -77,6 +84,12 @@ $code-block-font-size: 0.62em;
 // ---- Колонки: вертикально по центру, графики не растягиваем ----
 .reveal .columns { align-items: center; gap: 1.3em; }
 .reveal .columns img { margin-top: .1em; }
+.reveal .visual-stack img {
+  display: block;
+  max-height: 270px;
+  margin: .15em auto;
+  object-fit: contain;
+}
 
 // вывод исполняемых ячеек (stdout) — моноширинно, аккуратно
 .reveal .cell-output pre { margin: .3em 0 0; }
@@ -104,17 +117,6 @@ $code-block-font-size: 0.62em;
   width: auto !important;
   max-width: 100%;
   max-height: 185px;
-}
-
-// Интерактивная лётная лаборатория: один крупный объект без внутренних полей слайда
-.reveal section.mission-lab-slide h2 { margin-bottom: .22em; }
-.reveal section.mission-lab-slide .mission-frame {
-  display: block;
-  width: 100%;
-  height: 575px;
-  margin: 0;
-  border: 1px solid $rule;
-  background: #fff;
 }
 
 // ---- Математика крупнее и в фокусе ----
@@ -148,3 +150,21 @@ $code-block-font-size: 0.62em;
 .reveal .small { font-size: .8em; }
 .reveal .center { text-align: center; }
 .reveal .accent { color: $accent; }
+
+// Quarto Live добавляет индикатор в последний слайд. Классы d-none и d-flex
+// имеют одинаковую специфичность, поэтому правило d-flex может показать пустой
+// контейнер. Явно скрываем индикатор после завершения загрузки.
+.reveal #exercise-loading-indicator.d-none { display: none !important; }
+
+// Крупный кадр официального графа GitHub Actions без пустых полей скриншота.
+.reveal .workflow-graph-zoom {
+  height: 420px;
+  overflow: hidden;
+  text-align: center;
+}
+.reveal .workflow-graph-zoom img {
+  width: 1040px;
+  max-width: none;
+  margin: 0;
+  transform: translateY(-126px);
+}

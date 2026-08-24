@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from assets.course_case import (
-    aggregate_flight_predictions,
+    aggregate_flight_scores,
     course_holdout_masks,
     generate_course_case,
 )
@@ -53,31 +53,29 @@ def test_starter_generator_matches_lecture_generator() -> None:
 
 
 def test_aggregation_uses_maximum_and_sorted_flight_ids() -> None:
-    probability = np.asarray([0.2, 0.8, 0.4, 0.3])
+    window_score = np.asarray([0.2, 0.8, 0.4, 0.3])
     target = np.asarray([1, 1, 0, 0])
     flight_id = np.asarray(["F2", "F2", "F1", "F1"])
 
-    flights, flight_target, flight_probability = aggregate_flight_predictions(
-        probability, target, flight_id
-    )
+    flights, flight_target, flight_score = aggregate_flight_scores(window_score, target, flight_id)
 
     assert flights.tolist() == ["F1", "F2"]
     assert flight_target.tolist() == [0, 1]
-    assert flight_probability.tolist() == pytest.approx([0.4, 0.8])
+    assert flight_score.tolist() == pytest.approx([0.4, 0.8])
 
 
 def test_aggregation_rejects_inconsistent_flight_target() -> None:
     with pytest.raises(ValueError, match="inconsistent targets"):
-        aggregate_flight_predictions(
+        aggregate_flight_scores(
             np.asarray([0.2, 0.8]),
             np.asarray([0, 1]),
             np.asarray(["F1", "F1"]),
         )
 
 
-def test_aggregation_rejects_non_finite_probability() -> None:
+def test_aggregation_rejects_non_finite_score() -> None:
     with pytest.raises(ValueError, match="finite"):
-        aggregate_flight_predictions(
+        aggregate_flight_scores(
             np.asarray([np.nan]),
             np.asarray([0]),
             np.asarray(["F1"]),

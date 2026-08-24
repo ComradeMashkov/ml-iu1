@@ -1,22 +1,21 @@
 project:
   type: website
   output-dir: _site
+  render:
+    - "**/*.qmd"
+    - "!lectures/L00-speaker-script.md"
   resources:
-    - interactive/flight-mission.html
-    - assets/flight-mission.css
-    - assets/flight-mission.mjs
-    - assets/flight-mission-core.mjs
-    - assets/models/nasa-global-hawk.glb
-    - assets/models/README.md
     - starter/.gitignore
     - starter/.github/workflows/check.yml
     - starter/Makefile
     - starter/README.md
+    - starter/configs/first-model.json
     - starter/configs/baseline.json
     - starter/pyproject.toml
     - starter/src/ml_sau/__init__.py
     - starter/src/ml_sau/baseline.py
     - starter/src/ml_sau/course_case.py
+    - starter/src/ml_sau/first_model.py
     - starter/src/ml_sau/sensor.py
     - starter/src/ml_sau/sensor_source.py
     - starter/tests/test_sources.py
@@ -42,10 +41,10 @@ website:
         href: index.qmd
       - text: "Программа"
         href: syllabus.qmd
+      - text: "Вход"
+        href: prerequisites.qmd
       - text: "Карта курса"
         href: course-map.qmd
-      - text: "Лётная лаборатория"
-        href: interactive/index.qmd
       - text: "Лекции"
         href: lectures/index.qmd
       - text: "Лаборатории"

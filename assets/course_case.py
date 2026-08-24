@@ -173,27 +173,28 @@ def course_holdout_masks(
     return train, validation, test
 
 
-def aggregate_flight_predictions(
-    probability: NDArray[np.float64],
+def aggregate_flight_scores(
+    window_score: NDArray[np.float64],
     target: NDArray[np.int64],
     flight_id: NDArray[np.str_],
 ) -> tuple[NDArray[np.str_], NDArray[np.int64], NDArray[np.float64]]:
-    """Aggregate window probabilities for an after-flight decision.
+    """Aggregate window scores for an after-flight decision.
 
-    The first course policy uses the maximum window probability. A flight must
+    The first course policy uses the maximum window score as an explicit heuristic. A flight must
     have exactly one target value; otherwise the window-level label contract is
     inconsistent. Metrics and threshold selection are applied to this returned
-    flight-level table, not to the correlated source windows.
+    flight-level table, not to the correlated source windows. The result is not
+    called a probability because the aggregation is not calibrated.
     """
 
-    if not (len(probability) == len(target) == len(flight_id)):
-        raise ValueError("probability, target, and flight_id must have equal length")
-    if not np.isfinite(probability).all():
-        raise ValueError("probability must contain only finite values")
+    if not (len(window_score) == len(target) == len(flight_id)):
+        raise ValueError("window_score, target, and flight_id must have equal length")
+    if not np.isfinite(window_score).all():
+        raise ValueError("window_score must contain only finite values")
 
     flights = np.unique(flight_id)
     flight_target = np.empty(flights.size, dtype=np.int64)
-    flight_probability = np.empty(flights.size, dtype=np.float64)
+    flight_score = np.empty(flights.size, dtype=np.float64)
 
     for index, flight in enumerate(flights):
         mask = flight_id == flight
@@ -201,6 +202,6 @@ def aggregate_flight_predictions(
         if labels.size != 1:
             raise ValueError(f"flight {flight} has inconsistent targets")
         flight_target[index] = labels[0]
-        flight_probability[index] = probability[mask].max()
+        flight_score[index] = window_score[mask].max()
 
-    return flights, flight_target, flight_probability
+    return flights, flight_target, flight_score

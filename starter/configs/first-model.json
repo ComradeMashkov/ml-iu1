@@ -1,0 +1,12 @@
+{
+  "data_seed": 1126,
+  "demonstration_threshold": 0.8,
+  "features": [
+    "tracking_rmse_deg",
+    "current_rms_a",
+    "temperature_c",
+    "vibration_rms_g",
+    "load_rms_kn",
+    "supply_voltage_v"
+  ]
+}

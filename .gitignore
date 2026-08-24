@@ -5,6 +5,9 @@
 /_freeze/
 _quarto_internal_scss_error.scss
 
+# Локальные материалы преподавателя
+/lectures/L00-speaker-script.md
+
 # Python
 __pycache__/
 *.py[cod]

@@ -1,8 +1,8 @@
 ---
-title: "Базовая модель классификации"
-subtitle: "Семинар S3 · разбиение, метрики, порог и результат запуска"
-author: "Машков И.И. · кафедра ИУ-1"
-institute: "МГТУ им. Н.Э. Баумана · осенний семестр 2026"
+title: "Честная базовая модель"
+subtitle: "Семинар S3 · полётный score, порог и воспроизводимый отчёт"
+author: "Машков И. И. · кафедра ИУ-1"
+institute: "МГТУ им. Н. Э. Баумана · осенний семестр 2026"
 format:
   live-revealjs:
     theme: [default, ../assets/theme/slides.scss]
@@ -19,369 +19,279 @@ format:
     fig-align: center
     footer: "Машинное обучение · ИУ-1 · S3"
     chalkboard: true
-    include-in-header:
-      - text: |
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-          <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
 jupyter: python3
 ---
 
 ```{python}
 #| echo: false
 #| output: false
-#| warning: false
 import sys
+
 sys.path.append("../assets")
 
+import lesson_figures as lf
 import numpy as np
-import matplotlib.pyplot as plt
-
 from course_case import (
     PHYSICAL_FEATURES,
-    aggregate_flight_predictions,
+    aggregate_flight_scores,
     course_holdout_masks,
     generate_course_case,
 )
-from figstyle import set_style, ACCENT, ACCENT2, GREEN, MUTED
+from figstyle import set_style
 from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import average_precision_score, confusion_matrix, precision_recall_curve
+from sklearn.metrics import average_precision_score, precision_recall_curve
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 set_style()
-case = generate_course_case()
-train_mask, validation_mask, test_mask = course_holdout_masks(case)
-feature_idx = np.arange(len(PHYSICAL_FEATURES))
+s3_case = generate_course_case()
+s3_train, s3_validation, _ = course_holdout_masks(s3_case)
+s3_feature_idx = np.arange(len(PHYSICAL_FEATURES))
+s3_model = make_pipeline(
+    StandardScaler(),
+    LogisticRegression(class_weight="balanced", max_iter=2000, random_state=42),
+)
+s3_dummy = DummyClassifier(strategy="prior")
+s3_model.fit(s3_case.X[s3_train][:, s3_feature_idx], s3_case.y[s3_train])
+s3_dummy.fit(s3_case.X[s3_train][:, s3_feature_idx], s3_case.y[s3_train])
+s3_window_score = s3_model.predict_proba(s3_case.X[s3_validation][:, s3_feature_idx])[:, 1]
+s3_dummy_window_score = s3_dummy.predict_proba(s3_case.X[s3_validation][:, s3_feature_idx])[:, 1]
+_, s3_target, s3_score = aggregate_flight_scores(
+    s3_window_score,
+    s3_case.y[s3_validation],
+    s3_case.flight_id[s3_validation],
+)
+_, _, s3_dummy_score = aggregate_flight_scores(
+    s3_dummy_window_score,
+    s3_case.y[s3_validation],
+    s3_case.flight_id[s3_validation],
+)
+s3_precision, s3_recall, s3_thresholds = precision_recall_curve(s3_target, s3_score)
+s3_eligible = np.flatnonzero(s3_recall[:-1] >= 0.85)
+s3_best_precision = s3_precision[s3_eligible].max()
+s3_candidates = s3_eligible[s3_precision[s3_eligible] == s3_best_precision]
+s3_threshold = float(s3_thresholds[s3_candidates].max())
+s3_prediction = s3_score >= s3_threshold
+s3_ap = average_precision_score(s3_target, s3_score)
+s3_dummy_ap = average_precision_score(s3_target, s3_dummy_score)
 ```
 
-## Результат семинара
+## Инженерная задача
 
-К концу S3 команда сохраняет один воспроизводимый запуск базовой модели:
+::: {.columns}
+::: {.column width="56%"}
+Нужно получить один воспроизводимый результат: сравнить ранжирование будущих
+полётов известных приводов простой моделью и константным правилом при минимальной
+полноте 0.85.
+
+Тест на новых приводах остаётся закрытым до контрольной точки.
+:::
+::: {.column width="44%"}
+![](../assets/images/l1/nasa-flea-onboard.jpg){fig-alt="Испытательный стенд FLEA, закреплённый на борту воздушного судна" width="500"}
+
+[FLEA на борту: оценка модели должна быть привязана к физическому испытанию. Balaban et al., 2010.]{.figcap}
+:::
+:::
+
+::: {.notes}
+0:00–0:04. Разложить критерий на модель, сценарий переноса, baseline, метрику и
+ограничение порога.
+:::
+
+## Входные знания
+
+Студент может:
+
+- прочитать контракт признаков S2 и назвать единицы агрегатов S3;
+- различить строку-окно, решение-полёт и новый объект-привод;
+- объяснить train/validation/test;
+- вручную вычислить precision и recall по матрице ошибок.
+
+::: {.notes}
+0:04–0:08. Восстановить роли идентификаторов: `flight_id` объединяет зависимые
+окна, `actuator_id` задаёт объект переноса. При затруднении вернуть манифест L1.
+:::
+
+## Результат и приёмка
+
+::: {.columns}
+::: {.column width="62%"}
+Студент реализует:
+
+1. `aggregate_flight_scores`;
+2. `select_threshold`.
+
+Готовый runner обучает модели, проверяет конфигурацию и сохраняет:
 
 ```text
-reports/runs/<run-id>/
+reports/runs/s3-baseline/
 ├── config.json
 ├── split.json
 ├── validation-metrics.json
 └── model.joblib
 ```
+:::
+::: {.column width="38%"}
+![](../assets/images/l1/nasa-iron-bird.jpg){fig-alt="Наземный стенд Iron Bird для испытаний привода и крыла F/A-18" width="450"}
 
-Метрики рассчитаны по полётам, порог выбран на валидационной выборке, тестовая выборка не используется во время
-обязательной части.
-
-::: {.notes}
-**Тайминг:** 0:00–0:04. Создать ветку `s3/flight-baseline`. Показать каталог готового запуска
-преподавателя, затем удалить его и воспроизвести командой.
+[Стенд отделяет настройку от лётной проверки — та же логика нужна train/validation/test. NASA.]{.figcap}
+:::
 :::
 
-## Что уже подготовлено
-
-Starter предоставляет:
-
-- детерминированный генератор окон телеметрии привода;
-- `flight_id`, `actuator_id`, время и метку полёта;
-- сигнатуры функций агрегации и оценки;
-- тесты структуры данных.
-
-На S3 не нужно писать 250 строк инфраструктуры. Задача — правильно собрать и проверить
-эксперимент.
-
 ::: {.notes}
-**Тайминг:** 0:04–0:07. Напомнить происхождение данных: они синтетические. S2 не является
-предобработкой этой таблицы.
+0:08–0:12. Артефакт индивидуальный. Принять можно только вместе с тестами и
+объяснением одной ложной тревоги или пропуска.
 :::
 
-## Протокол из L1
+## Что подготовлено
+
+В `baseline.py` уже есть:
+
+- загрузка конфигурации и синтетического набора;
+- `StandardScaler` + `LogisticRegression` и `DummyClassifier`;
+- обучение только на train;
+- AP, матрица ошибок, сериализация JSON и `model.joblib`;
+- отсутствие кода, возвращающего студенту тестовую метрику.
+
+Две `NotImplementedError` отмечают предметные решения занятия.
+
+::: {.notes}
+0:12–0:17. Проследить runner сверху вниз. Студент не переписывает CLI и сохранение
+файлов.
+:::
+
+## Полный маршрут запуска
+
+::: {.columns}
+::: {.column width="61%"}
+```text
+course_holdout_masks
+  → fit scaler + logistic regression на train
+  → window_score на validation
+  → aggregate_flight_scores
+  → Average Precision против DummyClassifier
+  → select_threshold при recall ≥ 0.85
+  → confusion matrix и разбор ошибок
+  → сохранить конфигурацию, split и model
+```
+:::
+::: {.column width="39%"}
+![](../assets/images/l1/nasa-flea-coupling.jpg){fig-alt="Схема нагрузочного и испытательных приводов стенда FLEA" width="450"}
+
+[Тестовый и нагрузочный приводы выполняют разные роли. Balaban et al., 2010.]{.figcap}
+:::
+:::
+
+::: {.notes}
+0:17–0:23. Каждый студент указывает две стрелки, которые реализует сам, и две,
+которые обязан проверить чтением готового кода.
+:::
+
+# Этап 1 · Оценка полёта {.divider background-color="#23373B"}
+
+## Определение агрегации
+
+Модель выдаёт `window_score`. Для одного решения по полёту S3 использует явную
+эвристику:
+
+$$
+\operatorname{flight\_score}(F)=\max_{i\in F}
+\operatorname{window\_score}_i.
+$$
+
+Функция обязана проверить равные длины входов, конечность score и единственную
+целевую метку внутри каждого `flight_id`. Результат сортируется по идентификатору.
+
+```{python}
+#| echo: false
+#| fig-height: 2.3
+#| fig-width: 7.8
+lf.flight_aggregation();
+```
+
+::: {.notes}
+0:23–0:29. Объяснить, почему максимум не становится вероятностью полёта. Назвать
+риск одного выброса.
+:::
+
+## Задача 1 · тесты и реализация
+
+Минимальные тесты:
+
+```python
+score = np.array([0.2, 0.8, 0.4, 0.3])
+y = np.array([1, 1, 0, 0])
+flight = np.array(["F2", "F2", "F1", "F1"])
+ids, target, flight_score = aggregate_flight_scores(score, y, flight)
+assert ids.tolist() == ["F1", "F2"]
+assert flight_score.tolist() == [0.4, 0.8]
+```
+
+Добавьте проверки противоречивой цели и `NaN`, затем реализуйте функцию.
+
+::: {.notes}
+0:29–0:41. 8 минут индивидуально, 4 минуты на взаимную проверку тестов.
+Ожидается цикл по уникальным полётам; векторизация не является целью.
+:::
+
+## Проверьте манифест до fit
+
+Runner должен сохранить:
 
 ```yaml
 decision_unit: flight
-group_key: flight_id
-features: physical_only
-aggregation: max_window_probability
-primary_metric: average_precision
-threshold_rule: maximize_precision_at_recall_gte_0.80
+dependence_group: flight_id
+validation_policy: future_flights_of_known_actuators
+test_policy: unseen_actuators
+deployment_group: actuator_id
+time_order_key: flight_order
+split_version: course-holdout-v2
 ```
 
-Параметры записаны до просмотра итоговых метрик.
+Добавьте в тест утверждения о непересечении `flight_id` и отсутствии тестовых
+`actuator_id` в train/validation.
 
 ::: {.notes}
-**Тайминг:** 0:07–0:10. Спросить, какое эксплуатационное решение соответствует строке
-`decision_unit`.
+0:41–0:47. Проверить обе оси: зависимые окна остаются вместе, новые приводы
+полностью закрыты.
 :::
 
-# 1 · Данные и разбиение {.divider background-color="#23373B"}
+# Этап 2 · Обучить и сравнить {.divider background-color="#23373B"}
 
-::: {.notes}
-**Тайминг:** 0:10. Открыть `src/ml_sau/baseline.py`.
-:::
+## Почему логистическая регрессия — baseline
 
-## Проверьте инварианты данных
+Она строит линейную оценку агрегатов:
 
-```python
-assert len(X) == len(y) == len(flight_id)
-assert np.isfinite(X).all()
+$$
+s(x)=\sigma(b+w^\mathsf{T}x).
+$$
 
-for flight in np.unique(flight_id):
-    labels = np.unique(y[flight_id == flight])
-    assert labels.size == 1
-```
+`StandardScaler` оценивает масштаб только по train. Логистическая регрессия
+даёт проверяемый первый ориентир, а `DummyClassifier` показывает уровень
+константного правила по частоте класса.
 
-Метка задаётся для полёта и повторяется у его окон. Несогласованные метки внутри группы —
-ошибка данных.
-
-::: {.notes}
-**Тайминг:** 0:10–0:15. Студенты добавляют проверку в функцию загрузки и тест с намеренно
-испорченной группой.
-:::
-
-## Разбиение состоит из целых полётов
-
-```python
-train_mask, validation_mask, test_mask = course_holdout_masks(case)
-
-train_flights = set(case.flight_id[train_mask])
-validation_flights = set(case.flight_id[validation_mask])
-test_flights = set(case.flight_id[test_mask])
-
-assert train_flights.isdisjoint(validation_flights)
-assert train_flights.isdisjoint(test_flights)
-assert validation_flights.isdisjoint(test_flights)
-```
-
-::: {.notes}
-**Тайминг:** 0:15–0:20. Проверку disjoint сохранить в production-коде и тестах, а не
-выполнять один раз вручную.
-:::
-
-## Сохраните манифест
-
-```json
-{
-  "version": "course-holdout-v1",
-  "group_key": "flight_id",
-  "train": ["F000", "F001"],
-  "validation": ["F040", "F041"],
-  "test": ["F052", "F053"]
-}
-```
-
-В реальном файле списки полные и отсортированные. Тест проверяет, что объединение частей
-совпадает с множеством доступных полётов.
-
-::: {.notes}
-**Тайминг:** 0:20–0:25. Реализовать сериализацию без случайного порядка set.
-:::
-
-## Признаки базовой модели
-
-Используем только измеримые физические признаки:
-
-```python
-feature_names = PHYSICAL_FEATURES
-X = case.X[:, :len(feature_names)]
-```
-
-Скрытый `nuisance_code` остаётся в генераторе для демонстрации утечки, но в базовую модель не
-попадает.
-
-::: {.notes}
-**Тайминг:** 0:25–0:28. Проверить совпадение числа колонок и имён. Идентификаторы групп не
-должны случайно стать числовыми признаками.
-:::
-
-# 2 · Два базовых ориентира {.divider background-color="#23373B"}
-
-::: {.notes}
-**Тайминг:** 0:28. Переход к обучению.
-:::
-
-## Константный ориентир
-
-```python
-dummy = DummyClassifier(strategy="prior")
-dummy.fit(X_train, y_train)
-```
-
-Он показывает качество правила, которое знает только долю положительного класса. Сложная
-модель должна быть полезнее этого ориентира на той же выборке.
-
-::: {.notes}
-**Тайминг:** 0:28–0:32. Не ожидать AP=0.5: для случайного ранжирования ориентир связан с
-долей положительного класса.
-:::
-
-## Логистическая регрессия в конвейере
-
-```python
-model = make_pipeline(
-    StandardScaler(),
-    LogisticRegression(
-        class_weight="balanced",
-        max_iter=2000,
-        random_state=42,
-    ),
-)
-model.fit(X_train, y_train)
-```
-
-Scaler обучается только на train. `class_weight` не заменяет выбор метрики и порога.
-
-::: {.notes}
-**Тайминг:** 0:32–0:38. Студенты реализуют обучение и запускают тест на детерминированный
-результат с фиксированным начальным состоянием генератора.
-:::
-
-## Оконные вероятности агрегируются по полётам
-
-```python
-window_probability = model.predict_proba(X_validation)[:, 1]
-flight_id, flight_target, flight_probability = aggregate_flight_predictions(
-    window_probability,
-    y_validation,
-    validation_flight_id,
-)
-```
-
-В учебном варианте вероятность полёта — максимум вероятностей его окон. Иной агрегатор
-потребует новой записи в конфигурации.
-
-::: {.notes}
-**Тайминг:** 0:38–0:44. Студенты добавляют тест: перестановка строк не меняет результат,
-порядок выходных flight_id стабилен.
-:::
-
-## Сравнение проводится на одном уровне
+Сложная модель должна сравниваться с обоими на том же split.
 
 ```{python}
 #| echo: false
-def flight_scores(estimator, mask):
-    window_probability = estimator.predict_proba(case.X[mask][:, feature_idx])[:, 1]
-    return aggregate_flight_predictions(
-        window_probability, case.y[mask], case.flight_id[mask]
-    )
-
-dummy = DummyClassifier(strategy="prior")
-dummy.fit(case.X[train_mask][:, feature_idx], case.y[train_mask])
-model = make_pipeline(
-    StandardScaler(),
-    LogisticRegression(class_weight="balanced", max_iter=2000, random_state=42),
-)
-model.fit(case.X[train_mask][:, feature_idx], case.y[train_mask])
-
-_, val_y, dummy_probability = flight_scores(dummy, validation_mask)
-_, _, model_probability = flight_scores(model, validation_mask)
-print(f"dummy AP: {average_precision_score(val_y, dummy_probability):.3f}")
-print(f"logistic AP: {average_precision_score(val_y, model_probability):.3f}")
+#| fig-height: 2.25
+#| fig-width: 7.8
+lf.feature_ablation(
+    ["DummyClassifier", "логистическая регрессия"],
+    [s3_dummy_ap, s3_ap],
+    xlabel="Average Precision по полётам",
+);
 ```
 
 ::: {.notes}
-**Тайминг:** 0:44–0:47. Обе строки — AP по одному набору полётов. Не сравнивать оконную
-метрику одной модели с полётной метрикой другой.
+0:47–0:53. Повторить термины L0: признаки, параметры и score. Проверить, где
+происходит `fit` scaler и модели.
 :::
 
-# 3 · Порог и отчёт {.divider background-color="#23373B"}
+## Запустите обучение
 
-::: {.notes}
-**Тайминг:** 0:47. Переход к рабочей точке.
-:::
-
-## Выберите порог на валидационной выборке
-
-```python
-precision, recall, thresholds = precision_recall_curve(
-    flight_target, flight_probability
-)
-eligible = np.flatnonzero(recall[:-1] >= 0.80)
-if eligible.size == 0:
-    raise RuntimeError("minimum recall is not achievable")
-best_precision = precision[:-1][eligible].max()
-candidates = eligible[precision[:-1][eligible] == best_precision]
-best = candidates[np.argmax(thresholds[candidates])]
-threshold = float(thresholds[best])
-```
-
-При равной precision берётся самый высокий порог. Если допустимого порога нет, запуск
-завершается понятной ошибкой.
-
-::: {.notes}
-**Тайминг:** 0:47–0:54. Студенты реализуют функцию `select_threshold` и два теста: обычный
-случай и недостижимое ограничение.
-:::
-
-## Рядом с долями сохраняйте числа
-
-```python
-prediction = flight_probability >= threshold
-tn, fp, fn, tp = confusion_matrix(
-    flight_target, prediction, labels=[0, 1]
-).ravel()
-```
-
-Отчёт содержит AP, threshold, precision, recall, TN, FP, FN, TP и число полётов. Название
-`average_precision` не сокращается до неоднозначного `pr_auc`.
-
-::: {.notes}
-**Тайминг:** 0:54–0:58. Проверить JSON: все NumPy-скаляры преобразованы в обычные `float`
-и `int`.
-:::
-
-## Кривая показывает доступные компромиссы
-
-```{python}
-#| echo: false
-#| fig-height: 3.4
-#| fig-width: 7.2
-precision, recall, thresholds = precision_recall_curve(val_y, model_probability)
-fig, ax = plt.subplots()
-ax.step(recall, precision, where="post", color=ACCENT, linewidth=2.4)
-ax.axvline(0.80, color=ACCENT2, linestyle="--", label="требование recall")
-ax.set(xlabel="recall по полётам", ylabel="precision по полётам", xlim=(0, 1.02), ylim=(0, 1.02))
-ax.legend()
-plt.show()
-```
-
-::: {.notes}
-**Тайминг:** 0:58–1:01. Не объявлять выбранную точку оптимальной вне заданного ограничения и
-текущей валидационной выборки.
-:::
-
-## Конфигурация запуска
-
-```json
-{
-  "seed": 42,
-  "feature_set": "physical-v1",
-  "aggregation": "max",
-  "min_recall": 0.8,
-  "split_version": "course-holdout-v1"
-}
-```
-
-CLI получает путь к конфигурации, а не десяток скрытых значений внутри функций.
-
-::: {.notes}
-**Тайминг:** 1:01–1:05. Поменять одно значение и убедиться, что оно отражается в сохранённом
-config файла запуска.
-:::
-
-## Как связать результат и код без круговой ссылки
-
-1. Закоммитьте код и конфигурацию.
-2. Убедитесь, что отслеживаемые файлы не изменены.
-3. Запустите `make baseline`.
-4. Запишите текущий commit SHA и `dirty: false` в отчёт.
-5. Каталог запуска сохраните как результат CI или добавьте отдельным последующим коммитом.
-
-Отчёт ссылается на коммит **исполняемого кода**, а не пытается содержать хэш коммита,
-который включает сам отчёт.
-
-::: {.notes}
-**Тайминг:** 1:05–1:10. Это исправляет типичную самоссылку. Если отчёт добавлен следующим
-коммитом, поле `code_commit` по-прежнему указывает на предыдущий коммит кода.
-:::
-
-## Команда запуска
+После реализации агрегации:
 
 ```bash
 uv run python -m ml_sau.baseline \
@@ -389,66 +299,165 @@ uv run python -m ml_sau.baseline \
   --output reports/runs/s3-baseline
 ```
 
-Повторный запуск на чистом checkout должен дать те же JSON-значения в пределах явно
-заданной численной точности.
+До реализации порога запуск должен остановиться именно в `select_threshold`.
+Это ожидаемая граница учебной работы, а не повод менять runner.
 
 ::: {.notes}
-**Тайминг:** 1:10–1:17. Команды запускаются через `uv run`. Студенты обмениваются каталогами
-и сверяют конфигурацию, разбиение и метрики.
+0:53–0:59. Если ошибка появилась раньше, классифицировать её: контракт данных,
+агрегация или окружение.
 :::
 
-# 4 · Тестовая оценка и приёмка {.divider background-color="#23373B"}
+## Сравнение до порога
+
+::: {.columns}
+::: {.column width="50%"}
+Откройте `validation-metrics.json` после полного запуска и сравните:
+
+- `average_precision` логистической модели;
+- `dummy_average_precision` константного правила;
+- `unit: flight`;
+- `score_semantics`.
+
+AP строится после сортировки полётов по score и усредняет precision в позициях
+положительных полётов. Он оценивает порядок без одного фиксированного порога,
+не выбирает рабочее решение и не превращает score в вероятность.
+:::
+::: {.column width="50%"}
+```{python}
+#| echo: false
+#| fig-height: 4.0
+#| fig-width: 5.6
+lf.precision_recall(s3_target, s3_score);
+```
+:::
+:::
 
 ::: {.notes}
-**Тайминг:** 1:17. Обязательная базовая модель уже готова.
+0:59–1:05. До готового запуска преподаватель может показать эталонную структуру
+JSON без чисел.
 :::
 
-## Тестовая выборка — отдельная контрольная точка
+# Этап 3 · Выбрать решение {.divider background-color="#23373B"}
 
-После фиксации признаков, модели, агрегации и порога можно один раз для этой версии протокола
-выполнить:
+## Определение правила порога
 
-```bash
-uv run python -m ml_sau.baseline \
-  --config configs/baseline.json \
-  --evaluate-test
+Порог превращает оценку полёта в решение:
+$\widehat y=\mathbb{1}[\mathrm{flight\_score}\ge\tau]$.
+`select_threshold(target, score, min_recall)` выбирает $\tau$:
+
+1. только конечные пороги, для которых `recall ≥ min_recall`;
+2. максимальный precision;
+3. при равном precision — больший порог.
+
+Функция проверяет `0 < min_recall ≤ 1`, обе целевые категории и конечность score.
+Если допустимого порога нет, она вызывает `ValueError`.
+
+```{python}
+#| echo: false
+#| fig-height: 2.3
+#| fig-width: 7.4
+lf.threshold_tradeoff(s3_target, s3_score);
 ```
 
-Результат тестовой оценки не используется для подбора этой же версии. Если он меняет решения, создаётся
-новая версия эксперимента и следующая контрольная выборка.
-
 ::: {.notes}
-**Тайминг:** 1:17–1:21. На учебной паре тестовую оценку не запускать всем автоматически. Преподаватель
-может разрешить контрольную точку после просмотра результатов валидации.
+1:05–1:10. Обсудить tie-break: больший порог даёт более консервативное число
+назначенных осмотров при той же точности в проверенных точках.
 :::
 
-## Короткий разбор ошибок
+## Задача 2 · тест до функции
 
-Для FP и FN сохраните таблицу:
+Сконструируйте маленький пример, где:
 
-```text
-flight_id | actuator_id | target | probability | decision
+- несколько порогов удовлетворяют полноте;
+- один имеет лучшую precision;
+- два порога имеют одинаковую precision и нужен tie-break.
+
+Используйте `precision_recall_curve`, учитывая: массив порогов короче массивов
+precision и recall на один элемент. Затем реализуйте выбор.
+
+::: {.notes}
+1:10–1:20. 7 минут индивидуально, 3 минуты на разбор индексов. Готовый runner
+оставляет студенту именно политику, а не сериализацию.
+:::
+
+## Разбор FP и FN
+
+После запуска прочитайте четыре числа
+`confusion_matrix_tn_fp_fn_tp`. Для одной ошибки зафиксируйте:
+
+1. ложная тревога это или пропуск;
+2. какие средние признаки полёта выделяются;
+3. связана ли гипотеза с режимом, шумом или ограничением максимума;
+4. какое изменение проверить на validation в следующей версии.
+
+Тестовые приводы для этого анализа не открываются.
+
+::: {.columns}
+::: {.column width="46%"}
+```{python}
+#| echo: false
+#| fig-height: 2.35
+#| fig-width: 4.8
+lf.confusion(s3_target, s3_prediction);
 ```
-
-Выберите по одному FP и FN и сформулируйте проверяемую гипотезу. Не подбирайте новую модель
-по единичному примеру из тестовой выборки.
-
-::: {.notes}
-**Тайминг:** 1:21–1:24. На валидационной выборке можно исследовать ошибки; тестовая используется для
-итоговой характеристики зафиксированной версии.
+:::
+::: {.column width="54%"}
+```{python}
+#| echo: false
+#| fig-height: 2.35
+#| fig-width: 7.6
+lf.error_profiles();
+```
+:::
 :::
 
-## Приёмка S3
-
-Покажите:
-
-1. непересекающееся разбиение по `flight_id` и его манифест;
-2. AP dummy и логистической регрессии по полётам;
-3. правило и значение валидационного порога;
-4. JSON с абсолютными числами ошибок;
-5. commit исполняемого кода и успешный `make check`.
+[Профили справа показывают формат разбора; фактические значения вычисляются для найденных FP/FN.]{.figcap}
 
 ::: {.notes}
-**Тайминг:** 1:24–1:30. Проверить один случай воспроизведения на другой машине. Остальное
-собрать ссылками на PR.
+1:20–1:25. Не принимать объяснение «модель ошиблась». Нужна проверяемая гипотеза
+и следующий эксперимент.
+:::
+
+## Самостоятельная проверка артефакта
+
+::: {.columns}
+::: {.column width="40%"}
+Удалите только каталог своего запуска, повторите команду и проверьте:
+
+- одинаковые `config.json`, `split.json` и метрики;
+- наличие версии split и единицы метрики;
+- отсутствие `test-metrics.json`;
+- успешный `make check`.
+
+Student runner не вычисляет test-метрику: закрытый пакет запускается
+преподавателем отдельно, а test не используется как дополнительная validation.
+:::
+::: {.column width="60%"}
+```{python}
+#| echo: false
+#| fig-height: 3.8
+#| fig-width: 5.4
+lf.repeatable_runs();
+```
+:::
+:::
+
+::: {.notes}
+1:25–1:28. Ответ: тестовый пакет запускается преподавателем в отдельном
+instructor-gate; test не используется как ещё одна validation.
+:::
+
+## Приёмка
+
+Индивидуально показать:
+
+- две функции и минимум пять содержательных тестов;
+- полный каталог `reports/runs/s3-baseline/`;
+- разницу ролей `flight_id` и `actuator_id`;
+- AP против DummyClassifier, порог и матрицу ошибок;
+- одну гипотезу об FP/FN без просмотра test.
+
+::: {.notes}
+1:28–1:30. Зафиксировать изменения, требующие новой версии протокола:
+агрегация, признаки, split или правило выбора порога.
 :::
