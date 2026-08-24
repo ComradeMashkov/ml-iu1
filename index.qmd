@@ -74,6 +74,5 @@ ARM64. Студенты приходят с подготовкой по мате
 
 [Программа курса](syllabus.qmd) · [Входная диагностика](prerequisites.qmd) ·
 [Связь занятий и результатов](course-map.qmd) ·
-[Теоретический минимум](theory.qmd) ·
 [Лекции](lectures/index.qmd) ·
 [Семинары](seminars/index.qmd) · [Проект](project/index.qmd)

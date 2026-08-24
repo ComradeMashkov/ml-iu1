@@ -46,8 +46,6 @@ website:
         href: prerequisites.qmd
       - text: "Карта курса"
         href: course-map.qmd
-      - text: "Теория"
-        href: theory.qmd
       - text: "Лекции"
         href: lectures/index.qmd
       - text: "Семинары"
