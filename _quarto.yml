@@ -4,6 +4,7 @@ project:
   render:
     - "**/*.qmd"
     - "!lectures/L00-speaker-script.md"
+    - "!seminars/S01-speaker-script.md"
   resources:
     - starter/.gitignore
     - starter/.github/workflows/check.yml
@@ -45,9 +46,11 @@ website:
         href: prerequisites.qmd
       - text: "Карта курса"
         href: course-map.qmd
+      - text: "Теория"
+        href: theory.qmd
       - text: "Лекции"
         href: lectures/index.qmd
-      - text: "Лаборатории"
+      - text: "Семинары"
         href: seminars/index.qmd
       - text: "Проект"
         href: project/index.qmd

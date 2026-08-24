@@ -557,6 +557,8 @@ lf.threshold_tradeoff(validation_target, validation_score);
 ## Источники {.smaller}
 
 - [Е. Соколов: введение, переобучение и отложенная выборка](https://github.com/esokolov/ml-course-hse/blob/master/ml1-2026-spring/lecture-notes/lecture01-intro.tex)
+- [НИУ ВШЭ 2026: оценки классификатора, порог и PR-метрики](https://github.com/esokolov/ml-course-hse/blob/master/ml1-2026-spring/seminars/sem05-linclass-metrics.tex)
+- [НИУ ВШЭ 2026: калибровка вероятностей](https://github.com/esokolov/ml-course-hse/blob/master/ml1-2026-spring/seminars/sem06-calibration.tex)
 - [scikit-learn: model evaluation](https://scikit-learn.org/stable/modules/model_evaluation.html)
 - [scikit-learn: common pitfalls and leakage](https://scikit-learn.org/stable/common_pitfalls.html)
 - [scikit-learn: precision–recall](https://scikit-learn.org/stable/auto_examples/model_selection/plot_precision_recall.html)

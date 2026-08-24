@@ -97,23 +97,33 @@ def test_ready_lessons_do_not_prompt_the_audience_with_questions(path: Path) -> 
 
 
 @pytest.mark.parametrize("path", SEMINARS)
-def test_seminar_states_prerequisites_artifact_and_acceptance(path: Path) -> None:
+def test_seminar_states_prerequisites_and_result(path: Path) -> None:
     text = path.read_text().lower()
 
     assert "входные знания" in text
-    assert "результат" in text
-    assert "приёмка" in text
+    assert "результат занятия" in text
     assert "индивиду" in text
 
 
-def test_teacher_script_is_excluded_from_the_student_site() -> None:
+def test_seminars_do_not_end_with_acceptance_slide() -> None:
+    for path in SEMINARS:
+        headings = re.findall(r"(?m)^## (.+)$", path.read_text())
+        assert headings
+        assert headings[-1].strip().lower() != "приёмка"
+
+
+def test_teacher_scripts_are_excluded_from_the_student_site() -> None:
     quarto = (ROOT / "_quarto.yml").read_text()
     gitignore = (ROOT / ".gitignore").read_text()
     lecture_index = (ROOT / "lectures/index.qmd").read_text()
+    seminar_index = (ROOT / "seminars/index.qmd").read_text()
 
     assert "!lectures/L00-speaker-script.md" in quarto
+    assert "!seminars/S01-speaker-script.md" in quarto
     assert "/lectures/L00-speaker-script.md" in gitignore
+    assert "/seminars/S01-speaker-script.md" in gitignore
     assert "L00-speaker-script" not in lecture_index
+    assert "S01-speaker-script" not in seminar_index
 
 
 def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
@@ -152,6 +162,63 @@ def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
 
     for term in ["fit", "score", "accuracy", "ложная тревога", "пропуск"]:
         assert term in s1, f"S1 does not apply {term}"
+
+
+def test_theory_reference_defines_zero_entry_vocabulary() -> None:
+    theory = (ROOT / "theory.qmd").read_text().lower()
+
+    for term in [
+        "машинное обучение",
+        "физический объект",
+        "наблюдение",
+        "единица решения",
+        "пространство объектов",
+        "признак",
+        "признаковый вектор",
+        "целевая переменная",
+        "пространство ответов",
+        "обучающий пример",
+        "обучающая выборка",
+        "размер выборки",
+        "матрица «объекты–признаки»",
+        "обучение с учителем",
+        "регрессия",
+        "бинарная классификация",
+        "многоклассовая классификация",
+        "семейство моделей",
+        "параметры модели",
+        "алгоритм обучения",
+        "обученная модель",
+        "гиперпараметр",
+        "эмпирический риск",
+        "обобщающая способность",
+        "переобучение",
+        "разбиение данных",
+        "отложенная выборка",
+        "утечка данных",
+        "агрегация",
+        "калибровка",
+        "порог",
+        "precision",
+        "recall",
+        "average precision",
+    ]:
+        assert f"**{term}" in theory, f"theory reference does not define {term}"
+
+
+def test_student_site_calls_practical_classes_seminars() -> None:
+    quarto = (ROOT / "_quarto.yml").read_text()
+    public_pages = [
+        ROOT / "index.qmd",
+        ROOT / "syllabus.qmd",
+        ROOT / "seminars/index.qmd",
+        ROOT / "project/index.qmd",
+    ]
+    public_text = "\n".join(path.read_text() for path in public_pages)
+
+    assert 'text: "Семинары"' in quarto
+    assert "Лаборатории" not in quarto
+    assert "Лаборатории" not in public_text
 
 
 def test_score_is_not_called_a_flight_probability() -> None:
