@@ -137,13 +137,14 @@ def test_ready_lessons_do_not_prompt_the_audience_with_questions(path: Path) -> 
 
 
 def test_ready_materials_avoid_editorial_neuroslop() -> None:
-    sources = READY_LESSONS + [
+    private_scripts = [
         ROOT / "lectures/L00-speaker-script.md",
         ROOT / "lectures/L01-speaker-script.md",
         ROOT / "seminars/S01-speaker-script.md",
         ROOT / "seminars/S02-speaker-script.md",
         ROOT / "seminars/S03-speaker-script.md",
     ]
+    sources = READY_LESSONS + [path for path in private_scripts if path.exists()]
     stale_phrases = [
         "главная мысль",
         "ключевой вывод",
@@ -472,6 +473,9 @@ def test_private_lecture_scripts_match_actual_reveal_slide_numbers() -> None:
             ROOT / "lectures/L01-speaker-script.md",
         ),
     ]
+
+    if not all(script.exists() for _, script in pairs):
+        pytest.skip("private lecture scripts are intentionally absent from the repository")
 
     for lecture, script in pairs:
         scripted_numbers = [
