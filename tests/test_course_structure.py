@@ -346,7 +346,7 @@ def test_project_decisions_are_fixed_in_versioned_protocols() -> None:
     for dataset_id in ["dataset/447", "dataset/791", "dataset/551", "dataset/240"]:
         assert dataset_id in datasets
     assert "Test-A" in gate and "Test-B" in gate
-    assert "S12" in gate and "S16" in gate
+    assert "S12" in gate and "S14" in gate
     assert "20 MiB" in platform
     assert "256 MiB" in platform
     assert "p95 ≤ 50 ms" in platform
@@ -360,20 +360,51 @@ def test_schedule_preserves_the_new_dependency_order() -> None:
         "S4 · Карточка проекта, репозиторий и CI",
         "S6 · Диагностика и регуляризация MLP",
         "S7 · 1D-CNN и сравнение с базовой моделью",
-        "L4 · Семейства задач и метрики решений",
+        "L4 · Семейства задач, метрики и границы применения",
+        "L5 · Гибридная оценка, мониторинг и безопасный резерв",
+        "L6 · Инференс и эксплуатация на целевой платформе",
     ]:
         assert expected in home
+
+
+def test_calendar_uses_denominator_fridays_and_pair_times() -> None:
+    home = (ROOT / "index.qmd").read_text()
+
+    for date in [
+        "11 сентября 2026",
+        "25 сентября 2026",
+        "9 октября 2026",
+        "23 октября 2026",
+        "6 ноября 2026",
+        "20 ноября 2026",
+        "4 декабря 2026",
+        "18 декабря 2026",
+    ]:
+        assert date in home
+
+    for pair_time in ["15:55–17:25", "17:35–19:05", "19:15–20:45"]:
+        assert pair_time in home
+
+    assert "1 сентября 2026 года, во вторник" in home
+    assert "1 января 2027" not in home
+    assert "Дата переноса уточняется" not in home
+    assert "нового материала в этот день нет" in home
 
 
 def test_future_lessons_are_marked_as_planned() -> None:
     home = (ROOT / "index.qmd").read_text()
 
-    for lesson in ["L2", "L3", "L4", "L5", "L6", "L7", "L8", "S4", "S17"]:
+    for lesson in ["L2", "L3", "L4", "L5", "L6", "S4", "S15"]:
         schedule_rows = [
             line for line in home.splitlines() if line.startswith("|") and f"{lesson} ·" in line
         ]
         assert schedule_rows
         assert all("запланировано" in line for line in schedule_rows)
+
+    assert "L7 ·" not in home
+    assert "L8 ·" not in home
+    assert "S16 ·" not in home
+    assert "S17 ·" not in home
 
 
 def test_removed_flight_simulator_cannot_return_to_the_site() -> None:
