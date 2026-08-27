@@ -4,6 +4,7 @@ project:
   render:
     - "**/*.qmd"
     - "!lectures/L00-speaker-script.md"
+    - "!lectures/L01-speaker-script.md"
     - "!seminars/S01-speaker-script.md"
     - "!seminars/S02-speaker-script.md"
     - "!seminars/S03-speaker-script.md"

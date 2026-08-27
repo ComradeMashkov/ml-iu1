@@ -150,6 +150,13 @@ $code-block-font-size: 0.62em;
 .reveal .small { font-size: .8em; }
 .reveal .center { text-align: center; }
 .reveal .accent { color: $accent; }
+.reveal .definition {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: .08em;
+  text-underline-offset: .14em;
+  margin-right: .18em;
+}
 
 // Quarto Live добавляет индикатор в последний слайд. Классы d-none и d-flex
 // имеют одинаковую специфичность, поэтому правило d-flex может показать пустой

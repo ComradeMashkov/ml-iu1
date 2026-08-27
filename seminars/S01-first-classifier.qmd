@@ -264,7 +264,7 @@ max по окнам полёта         → получить flight_score
 flight_score ≥ 0.8          → назначить класс
 ```
 
-**Accuracy** — доля полётов с верно назначенным классом:
+[Опр.]{.definition} **Accuracy** — доля полётов с верно назначенным классом:
 
 $$
 \mathrm{accuracy}=\frac{TP+TN}{TP+TN+FP+FN}.

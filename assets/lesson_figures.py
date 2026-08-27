@@ -129,6 +129,42 @@ def learning_curve() -> plt.Figure:
     return fig
 
 
+def generalization_gap() -> plt.Figure:
+    """Contrast training error with error on unseen objects as complexity grows."""
+
+    complexity = np.linspace(0, 1, 240)
+    train_error = 0.34 * np.exp(-3.2 * complexity) + 0.035
+    validation_error = 0.12 + 0.72 * (complexity - 0.56) ** 2
+    best_index = int(np.argmin(validation_error))
+
+    fig, ax = plt.subplots(figsize=(7.8, 3.1))
+    ax.plot(complexity, train_error, color=ACCENT, label="ошибка train")
+    ax.plot(complexity, validation_error, color=GREEN, label="ошибка новых объектов")
+    ax.axvline(
+        complexity[best_index],
+        color=AMBER,
+        linestyle="--",
+        label="минимум validation",
+    )
+    ax.fill_between(
+        complexity,
+        train_error,
+        validation_error,
+        where=complexity >= complexity[best_index],
+        color=ACCENT2,
+        alpha=0.10,
+    )
+    ax.text(0.83, 0.29, "переобучение", ha="center", color=ACCENT2, weight="bold")
+    ax.set(
+        xlabel="сложность семейства моделей",
+        ylabel="ошибка",
+        xlim=(0, 1),
+        ylim=(0, 0.38),
+    )
+    ax.legend(ncol=3, fontsize=9, loc="upper center")
+    return fig
+
+
 def sorted_scores(
     score: np.ndarray,
     target: np.ndarray,

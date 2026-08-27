@@ -28,6 +28,36 @@ def content_slides(path: Path) -> list[str]:
     return re.split(r"(?m)^## ", path.read_text())[1:]
 
 
+def reveal_slide_numbers(path: Path) -> list[int]:
+    """Return non-divider, non-reference Reveal slide numbers from a QMD source."""
+
+    slide_number = 1  # Reveal title slide
+    content_numbers: list[int] = []
+    in_fence = False
+    in_yaml = False
+
+    for line_number, line in enumerate(path.read_text().splitlines()):
+        if line_number == 0 and line == "---":
+            in_yaml = True
+            continue
+        if in_yaml:
+            if line == "---":
+                in_yaml = False
+            continue
+        if line.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        if match := re.match(r"^(#{1,2}) (.+)$", line):
+            slide_number += 1
+            title = match.group(2)
+            if "{.divider" not in title and not title.startswith("Источники"):
+                content_numbers.append(slide_number)
+
+    return content_numbers
+
+
 def visible_lesson_text(path: Path) -> str:
     return re.sub(r"::: \{\.notes\}.*?\n:::", "", path.read_text(), flags=re.DOTALL)
 
@@ -88,7 +118,7 @@ def test_lecture_follows_concept_introduction_cycle(path: Path) -> None:
         "определение",
         "формализац",
         "разобранный пример",
-        "самостоятельная практика",
+        "итог",
     ]:
         assert marker in text, f"{path.name}: missing {marker}"
     assert text.count("контрольный разбор") >= 2
@@ -104,6 +134,32 @@ def test_ready_lessons_do_not_prompt_the_audience_with_questions(path: Path) -> 
     assert "проверка понимания" not in text.lower()
     for prompt in ["спросить", "попросить", "опросить", "ответ аудитории"]:
         assert prompt not in notes.lower(), f"{path.name}: note still asks for {prompt}"
+
+
+def test_ready_materials_avoid_editorial_neuroslop() -> None:
+    sources = READY_LESSONS + [
+        ROOT / "lectures/L00-speaker-script.md",
+        ROOT / "lectures/L01-speaker-script.md",
+        ROOT / "seminars/S01-speaker-script.md",
+        ROOT / "seminars/S02-speaker-script.md",
+        ROOT / "seminars/S03-speaker-script.md",
+    ]
+    stale_phrases = [
+        "главная мысль",
+        "ключевой вывод",
+        "важно понимать",
+        "не просто",
+        "это важно",
+        "становится частью",
+    ]
+
+    for path in sources:
+        text = path.read_text().lower()
+        for phrase in stale_phrases:
+            assert phrase not in text, f"{path.name}: generic phrase remains: {phrase}"
+        assert len(re.findall(r"сначала.{0,220}затем", text, re.DOTALL)) <= 8, (
+            f"{path.name}: repeated artificial 'сначала … затем' construction"
+        )
 
 
 @pytest.mark.parametrize("path", SEMINARS)
@@ -193,9 +249,11 @@ def test_teacher_scripts_are_excluded_from_the_student_site() -> None:
     lecture_index = (ROOT / "lectures/index.qmd").read_text()
     seminar_index = (ROOT / "seminars/index.qmd").read_text()
 
-    assert "!lectures/L00-speaker-script.md" in quarto
-    assert "/lectures/L00-speaker-script.md" in gitignore
-    assert "L00-speaker-script" not in lecture_index
+    for lecture_number in range(2):
+        script = f"L0{lecture_number}-speaker-script.md"
+        assert f"!lectures/{script}" in quarto
+        assert f"/lectures/{script}" in gitignore
+        assert script.removesuffix(".md") not in lecture_index
     for seminar_number in range(1, 4):
         script = f"S0{seminar_number}-speaker-script.md"
         assert f"!seminars/{script}" in quarto
@@ -217,22 +275,34 @@ def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
         "размер выборки",
         "признак",
         "признаковый вектор",
+        "численный признак",
+        "категориальный признак",
+        "порядковый признак",
+        "feature engineering",
         "матрица «объекты–признаки»",
         "пространство объектов",
         "пространство ответов",
         "обучение с учителем",
+        "обучение без учителя",
+        "обучение с подкреплением",
         "бинарная классификация",
         "многоклассовая классификация",
         "регрессия",
+        "линейная модель",
+        "логит",
+        "функция активации",
         "семейство",
         "параметр",
         "гиперпараметр",
+        "регуляризация",
         "алгоритм обучения",
         "обученная модель",
         "вывод (`inference`)",
         "оценка модели",
         "функция потерь",
+        "логарифмическая потеря",
         "эмпирический риск",
+        "конвейер (`pipeline`)",
         "базовая модель",
         "обобщающая способность",
         "переобучение",
@@ -244,10 +314,16 @@ def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
         "зависимая группа",
         "объект переноса",
         "разбиение",
+        "отложенная выборка",
         "**train**",
         "**validation**",
         "**test**",
         "утечка данных",
+        "предобработка",
+        "стандартизация",
+        "кросс-валидация",
+        "мягкий классификатор",
+        "жёсткий классификатор",
         "агрегация",
         "**score**",
         "калибровка",
@@ -257,6 +333,10 @@ def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
         "tn",
         "precision",
         "recall",
+        "f1-мера",
+        "accuracy",
+        "дисбаланс классов",
+        "roc-auc",
         "average precision",
         "порог",
     ]:
@@ -264,6 +344,140 @@ def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
 
     for term in ["fit", "score", "accuracy", "ложная тревога", "пропуск"]:
         assert term in s1, f"S1 does not apply {term}"
+
+
+def test_core_terms_have_visible_definition_labels() -> None:
+    required = {
+        ROOT / "lectures/L00-engineering-ml.qmd": [
+            "машинное обучение",
+            "объект",
+            "наблюдение",
+            "обучающий пример",
+            "выборка",
+            "признак",
+            "целевая переменная",
+            "метка класса",
+            "численный признак",
+            "категориальный признак",
+            "порядковый признак",
+            "бинарный признак",
+            "feature engineering",
+            "матрица «объекты–признаки»",
+            "обучение с учителем",
+            "обучение без учителя",
+            "обучение с подкреплением",
+            "класс",
+            "бинарная классификация",
+            "многоклассовая классификация",
+            "регрессия",
+            "линейная модель",
+            "логит",
+            "функция активации",
+            "сигмоида",
+            "модель",
+            "семейство",
+            "алгоритм обучения",
+            "обученная модель",
+            "вывод (`inference`)",
+            "параметр",
+            "гиперпараметр",
+            "регуляризация",
+            "оптимизация",
+            "логарифмическая потеря",
+            "конвейер (`pipeline`)",
+            "score",
+            "порог",
+            "базовая модель",
+            "обобщающая способность",
+            "переобучение",
+            "остаток регрессии",
+            "mae",
+            "mse",
+        ],
+        ROOT / "lectures/L01-supervised-validation.qmd": [
+            "эмпирическая ошибка",
+            "недообучение",
+            "единица решения",
+            "зависимая группа",
+            "объект переноса",
+            "разбиение",
+            "отложенная выборка",
+            "train",
+            "validation",
+            "test",
+            "манифест разбиения",
+            "утечка данных",
+            "предобработка",
+            "стандартизация",
+            "кросс-валидация",
+            "мягкий классификатор",
+            "жёсткий классификатор",
+            "агрегация",
+            "score",
+            "класс",
+            "вероятность",
+            "калибровка",
+            "матрица ошибок",
+            "accuracy",
+            "дисбаланс классов",
+            "precision",
+            "recall",
+            "f1-мера",
+            "roc-auc",
+            "average precision",
+            "порог",
+        ],
+        ROOT / "seminars/S01-first-classifier.qmd": ["accuracy"],
+        ROOT / "seminars/S02-sensor-data-pipeline.qmd": [
+            "non_finite",
+            "duplicate",
+            "backward",
+            "линейная интерполяция",
+        ],
+        ROOT / "seminars/S03-honest-baseline.qmd": [
+            "агрегация",
+            "правило порога",
+        ],
+    }
+
+    for path, terms in required.items():
+        text = path.read_text().lower()
+        for term in terms:
+            pattern = rf"\[опр\.\]\{{\.definition\}}.{{0,140}}{re.escape(term)}"
+            assert re.search(pattern, text, re.DOTALL), f"{path.name}: {term} has no Опр. label"
+
+
+def test_definition_label_is_underlined_and_required_by_lecture_template() -> None:
+    theme = (ROOT / "assets/theme/slides.scss").read_text()
+    template = (ROOT / "lectures/_template.qmd").read_text()
+
+    assert ".reveal .definition" in theme
+    assert "text-decoration: underline" in theme
+    assert "[Опр.]{.definition}" in template
+    for stale_instruction in [
+        "вопрос аудитории",
+        "попросить привести",
+        "самостоятельная практика",
+        "индивидуальная работа",
+        "голосование",
+    ]:
+        assert stale_instruction not in template.lower()
+
+
+def test_private_lecture_scripts_match_actual_reveal_slide_numbers() -> None:
+    pairs = [
+        (ROOT / "lectures/L00-engineering-ml.qmd", ROOT / "lectures/L00-speaker-script.md"),
+        (
+            ROOT / "lectures/L01-supervised-validation.qmd",
+            ROOT / "lectures/L01-speaker-script.md",
+        ),
+    ]
+
+    for lecture, script in pairs:
+        scripted_numbers = [
+            int(number) for number in re.findall(r"(?m)^## Слайд (\d+)\.", script.read_text())
+        ]
+        assert scripted_numbers == reveal_slide_numbers(lecture), lecture.name
 
 
 def test_student_site_calls_practical_classes_seminars() -> None:
