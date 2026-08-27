@@ -64,7 +64,7 @@ website:
   page-footer:
     border: true
     left: "© 2026 · Машков И.И. · кафедра ИУ-1"
-    center: "Машинное обучение для систем управления ЛА"
+    center: "Машинное обучение · ИУ-1"
     right: "Собрано с [Quarto](https://quarto.org)"
 
 format:
