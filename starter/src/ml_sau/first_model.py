@@ -24,8 +24,14 @@ def _flight_table(
     """Create a compact flight table for the S1 preview."""
 
     flights = np.unique(flight_id)
-    flight_target = np.asarray([target[flight_id == flight][0] for flight in flights])
-    flight_score = np.asarray([window_score[flight_id == flight].max() for flight in flights])
+    target_values = []
+    score_values = []
+    for flight in flights:
+        flight_mask = flight_id == flight
+        target_values.append(target[flight_mask][0])
+        score_values.append(window_score[flight_mask].max())
+    flight_target = np.asarray(target_values)
+    flight_score = np.asarray(score_values)
     return flights, flight_target, flight_score
 
 
@@ -37,22 +43,33 @@ def run_first_model(config: Path, output: Path) -> dict[str, object]:
     unknown = set(selected) - set(PHYSICAL_FEATURES)
     if unknown:
         raise ValueError(f"unknown physical features: {sorted(unknown)}")
-    feature_idx = np.asarray([PHYSICAL_FEATURES.index(name) for name in selected])
+    feature_columns = []
+    for name in selected:
+        feature_columns.append(PHYSICAL_FEATURES.index(name))
+    feature_idx = np.asarray(feature_columns)
 
     case = generate_course_case(seed=int(settings.get("data_seed", 1126)))
     train, validation, _ = course_holdout_masks(case)
+    X_selected = case.X[:, feature_idx]
+    X_train = X_selected[train]
+    y_train = case.y[train]
+    X_validation = X_selected[validation]
+    y_validation = case.y[validation]
+    validation_flight_id = case.flight_id[validation]
     model = make_pipeline(
         StandardScaler(),
         LogisticRegression(class_weight="balanced", max_iter=2000, random_state=42),
     )
-    model.fit(case.X[train][:, feature_idx], case.y[train])
-    window_score = model.predict_proba(case.X[validation][:, feature_idx])[:, 1]
-    flights, target, score = _flight_table(
-        window_score, case.y[validation], case.flight_id[validation]
-    )
+    model.fit(X_train, y_train)
+    probability_table = model.predict_proba(X_validation)
+    window_score = probability_table[:, 1]
+    flights, target, score = _flight_table(window_score, y_validation, validation_flight_id)
     threshold = float(settings.get("demonstration_threshold", 0.8))
     prediction = score >= threshold
-    error_idx = np.flatnonzero(prediction != target)
+    error_flights = []
+    for index in range(len(flights)):
+        if prediction[index] != target[index]:
+            error_flights.append(str(flights[index]))
 
     report: dict[str, object] = {
         "artifact": "s1-first-model",
@@ -68,7 +85,7 @@ def run_first_model(config: Path, output: Path) -> dict[str, object]:
         "demonstration_threshold": threshold,
         "threshold_source": "instructor-provided illustration; selection is taught in L1-S3",
         "demonstration_accuracy": float(accuracy_score(target, prediction)),
-        "example_error_flights": flights[error_idx[:2]].tolist(),
+        "example_error_flights": error_flights[:2],
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")

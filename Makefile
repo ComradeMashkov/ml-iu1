@@ -11,8 +11,8 @@ lock-check:
 	uv lock --check --project starter
 
 lint:
-	uv run ruff check assets tests starter/src starter/tests
-	uv run ruff format --check assets tests starter/src starter/tests
+	uv run ruff check assets tests starter/src starter/tests starter/tools
+	uv run ruff format --check assets tests starter/src starter/tests starter/tools
 
 test-python:
 	uv run python -m pytest -q tests

@@ -1,3 +1,4 @@
+import json
 import re
 from itertools import pairwise
 from pathlib import Path
@@ -15,11 +16,20 @@ SEMINARS = [
     ROOT / "seminars/S02-sensor-data-pipeline.qmd",
     ROOT / "seminars/S03-honest-baseline.qmd",
 ]
+LIVE_CODING_NOTEBOOKS = [
+    ROOT / "starter/notebooks/S01-live-coding.ipynb",
+    ROOT / "starter/notebooks/S02-live-coding.ipynb",
+    ROOT / "starter/notebooks/S03-live-coding.ipynb",
+]
 READY_LESSONS = LECTURES + SEMINARS
 
 
 def content_slides(path: Path) -> list[str]:
     return re.split(r"(?m)^## ", path.read_text())[1:]
+
+
+def visible_lesson_text(path: Path) -> str:
+    return re.sub(r"::: \{\.notes\}.*?\n:::", "", path.read_text(), flags=re.DOTALL)
 
 
 @pytest.mark.parametrize("path", READY_LESSONS)
@@ -99,10 +109,75 @@ def test_ready_lessons_do_not_prompt_the_audience_with_questions(path: Path) -> 
 @pytest.mark.parametrize("path", SEMINARS)
 def test_seminar_states_prerequisites_and_result(path: Path) -> None:
     text = path.read_text().lower()
+    notes = "\n".join(re.findall(r"::: \{\.notes\}(.*?)\n:::", text, re.DOTALL))
 
     assert "входные знания" in text
-    assert "результат занятия" in text
-    assert "индивиду" in text
+    assert "что построим" in text
+    assert "notebook" in text
+    assert "свернуть презентац" in notes
+    assert "вернуться к слайд" in notes
+    assert "преподаватель" not in text
+    assert "студент" not in text
+
+
+@pytest.mark.parametrize("path", SEMINARS)
+def test_visible_seminar_slides_contain_no_stage_directions(path: Path) -> None:
+    visible = visible_lesson_text(path).lower()
+
+    for phrase in [
+        "преподаватель",
+        "студент",
+        "синхронно",
+        "свернуть презентац",
+        "вернуться к слайд",
+        "перед notebook",
+        "после notebook",
+        "каркас",
+        "результат занятия",
+    ]:
+        assert phrase not in visible, f"{path.name}: stage direction remains: {phrase}"
+
+
+@pytest.mark.parametrize("path", SEMINARS)
+def test_seminars_do_not_assign_independent_or_fill_in_work(path: Path) -> None:
+    text = path.read_text().lower()
+
+    for prompt in [
+        "## самостоятель",
+        "работать индивидуально",
+        "минут индивидуально",
+        "заполните",
+        "впишите",
+        "выберите один эксперимент",
+        "создайте `tests",
+        "реализуйте `",
+        "добавьте проверки",
+        "сохраните исходный",
+        "нарисуйте без кода",
+    ]:
+        assert prompt not in text, f"{path.name}: independent prompt remains: {prompt}"
+    assert "|  |" not in text, f"{path.name}: blank fill-in table remains on a slide"
+
+
+def test_live_coding_notebooks_are_empty_scaffolds_with_ordered_blocks() -> None:
+    quarto = (ROOT / "_quarto.yml").read_text()
+
+    for expected_blocks, path in zip([5, 4, 5], LIVE_CODING_NOTEBOOKS, strict=True):
+        notebook = json.loads(path.read_text())
+        markdown = "\n".join(
+            "".join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "markdown"
+        ).lower()
+        code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+
+        assert markdown.count("\n## ") == expected_blocks
+        assert len(code_cells) == expected_blocks
+        assert all(cell["execution_count"] is None for cell in code_cells)
+        assert all(not cell["outputs"] for cell in code_cells)
+        assert all(not cell["source"] for cell in code_cells)
+        assert "преподаватель" not in path.read_text().lower()
+        assert "студент" not in path.read_text().lower()
+        assert "живой кодинг" not in path.read_text().lower()
+        assert f"starter/notebooks/{path.name}" in quarto
 
 
 def test_seminars_do_not_end_with_acceptance_slide() -> None:
@@ -119,11 +194,13 @@ def test_teacher_scripts_are_excluded_from_the_student_site() -> None:
     seminar_index = (ROOT / "seminars/index.qmd").read_text()
 
     assert "!lectures/L00-speaker-script.md" in quarto
-    assert "!seminars/S01-speaker-script.md" in quarto
     assert "/lectures/L00-speaker-script.md" in gitignore
-    assert "/seminars/S01-speaker-script.md" in gitignore
     assert "L00-speaker-script" not in lecture_index
-    assert "S01-speaker-script" not in seminar_index
+    for seminar_number in range(1, 4):
+        script = f"S0{seminar_number}-speaker-script.md"
+        assert f"!seminars/{script}" in quarto
+        assert f"/seminars/{script}" in gitignore
+        assert script.removesuffix(".md") not in seminar_index
 
 
 def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:

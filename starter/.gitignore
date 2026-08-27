@@ -3,4 +3,4 @@
 .ruff_cache/
 __pycache__/
 *.py[cod]
-reports/runs/
+reports/

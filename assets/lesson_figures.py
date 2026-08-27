@@ -15,6 +15,66 @@ from matplotlib.patches import Patch, Rectangle
 from sklearn.metrics import precision_recall_curve
 
 
+def overlapping_windows() -> plt.Figure:
+    """Show why overlapping rows from one flight are not independent trials."""
+
+    fig, ax = plt.subplots(figsize=(6.4, 3.0))
+    windows = [(0, 20, "W1: 0–20 с"), (10, 30, "W2: 10–30 с"), (20, 40, "W3: 20–40 с")]
+    y_positions = [2, 1, 0]
+    colors = [ACCENT, GREEN, AMBER]
+
+    for (start, stop, label), y_value, color in zip(windows, y_positions, colors, strict=True):
+        ax.add_patch(
+            Rectangle(
+                (start, y_value - 0.24),
+                stop - start,
+                0.48,
+                facecolor=color,
+                edgecolor="white",
+                linewidth=1.5,
+                alpha=0.82,
+            )
+        )
+        ax.text(start + 0.8, y_value, label, va="center", color="white", weight="bold")
+
+    ax.annotate(
+        "10 общих секунд",
+        xy=(15, 1.72),
+        xytext=(15, 2.62),
+        ha="center",
+        arrowprops={"arrowstyle": "-[,widthB=2.3,lengthB=0.7", "color": INK},
+    )
+    ax.annotate(
+        "10 общих секунд",
+        xy=(25, 0.72),
+        xytext=(25, -0.62),
+        ha="center",
+        arrowprops={"arrowstyle": "-[,widthB=2.3,lengthB=0.7", "color": INK},
+    )
+    ax.text(
+        42,
+        1,
+        "общий контекст:\nflight_id = F05\nactuator_id = EMA-07\ny_flight = 1",
+        va="center",
+        fontsize=10,
+        bbox={"boxstyle": "round,pad=0.45", "facecolor": "white", "edgecolor": MUTED},
+    )
+    ax.text(
+        20,
+        -1.05,
+        "3 строки таблицы, но 1 независимый полёт",
+        ha="center",
+        weight="bold",
+        color=INK,
+    )
+    ax.set(xlim=(-1, 59), ylim=(-1.3, 3.0), xlabel="время одного полёта, с")
+    ax.set_xticks([0, 10, 20, 30, 40])
+    ax.set_yticks([])
+    ax.spines[["left", "top", "right"]].set_visible(False)
+    ax.grid(axis="x", alpha=0.25)
+    return fig
+
+
 def four_flights() -> plt.Figure:
     """Plot the four-flight example and one possible linear boundary."""
 
@@ -69,21 +129,135 @@ def learning_curve() -> plt.Figure:
     return fig
 
 
-def sorted_scores(score: np.ndarray, target: np.ndarray, threshold: float) -> plt.Figure:
+def sorted_scores(
+    score: np.ndarray,
+    target: np.ndarray,
+    threshold: float,
+    unit: str = "окна",
+    figsize: tuple[float, float] = (8.0, 3.0),
+    annotate_outcomes: bool = True,
+) -> plt.Figure:
     """Plot sorted model scores and the operational threshold."""
 
     score = np.asarray(score)
     target = np.asarray(target)
     sample = np.linspace(0, len(score) - 1, min(90, len(score)), dtype=int)
+    masks = {
+        "TN": (target == 0) & (score < threshold),
+        "FP": (target == 0) & (score >= threshold),
+        "FN": (target == 1) & (score < threshold),
+        "TP": (target == 1) & (score >= threshold),
+    }
+    representatives: dict[str, int] = {}
+    for label, mask in masks.items():
+        candidates = np.flatnonzero(mask)
+        if candidates.size:
+            representatives[label] = int(
+                candidates[np.argmin(np.abs(score[candidates] - threshold))]
+            )
+    sample = np.unique(np.r_[sample, list(representatives.values())])
     order = np.argsort(score[sample])
     selected_score = score[sample][order]
     selected_target = target[sample][order]
-    fig, ax = plt.subplots(figsize=(8.0, 3.0))
+    selected_indices = sample[order]
+    fig, ax = plt.subplots(figsize=figsize)
     colors = np.where(selected_target == 1, ACCENT2, ACCENT)
     ax.scatter(np.arange(len(order)), selected_score, c=colors, s=34)
-    ax.axhline(threshold, color=INK, linestyle="--", label=f"порог {threshold:.2f}")
-    ax.set(xlabel="окна, отсортированные по score", ylabel="score", ylim=(-0.03, 1.03))
-    ax.legend(loc="upper left")
+    threshold_line = ax.axhline(
+        threshold, color=INK, linestyle="--", label=f"порог {threshold:.2f}"
+    )
+    if annotate_outcomes:
+        offsets = {
+            "TN": (-58, -42),
+            "FP": (-44, 48),
+            "FN": (24, -48),
+            "TP": (30, 52),
+        }
+        for label, original_index in representatives.items():
+            plot_index = int(np.flatnonzero(selected_indices == original_index)[0])
+            ax.annotate(
+                label,
+                (plot_index, selected_score[plot_index]),
+                xytext=offsets[label],
+                textcoords="offset points",
+                weight="bold",
+                arrowprops={"arrowstyle": "->", "color": INK},
+            )
+    ax.set(
+        xlabel=f"{unit}, отсортированные по score",
+        ylabel="score",
+        ylim=(-0.03, 1.03),
+    )
+    ax.legend(
+        handles=[
+            Patch(color=ACCENT, label="истинный класс y = 0"),
+            Patch(color=ACCENT2, label="истинный класс y = 1"),
+            threshold_line,
+        ],
+        loc="upper left",
+        fontsize=9,
+    )
+    return fig
+
+
+def decision_threshold(threshold: float = 0.5) -> plt.Figure:
+    """Show how one score threshold maps to two engineering actions."""
+
+    fig, ax = plt.subplots(figsize=(6.8, 3.2))
+    ax.axvspan(0, threshold, color=ACCENT, alpha=0.15)
+    ax.axvspan(threshold, 1, color=ACCENT2, alpha=0.15)
+    ax.axvline(threshold, color=INK, linewidth=3)
+    ax.text(
+        threshold / 2,
+        0.58,
+        "$\\widehat y=0$\nштатный регламент",
+        ha="center",
+        va="center",
+        fontsize=13,
+        weight="bold",
+        color=ACCENT,
+    )
+    ax.text(
+        (threshold + 1) / 2,
+        0.58,
+        "$\\widehat y=1$\nдополнительный осмотр",
+        ha="center",
+        va="center",
+        fontsize=13,
+        weight="bold",
+        color=ACCENT2,
+    )
+    ax.text(
+        threshold,
+        0.94,
+        f"порог $\\tau={threshold:.1f}$",
+        ha="center",
+        va="top",
+        fontsize=12,
+        weight="bold",
+    )
+    ax.text(
+        threshold / 2,
+        0.08,
+        "$\\leftarrow$ уменьшить $\\tau$\nбольше осмотров\nбольше ложных тревог",
+        ha="center",
+        va="center",
+        fontsize=10,
+        color=INK,
+    )
+    ax.text(
+        (threshold + 1) / 2,
+        0.08,
+        "увеличить $\\tau$ $\\rightarrow$\nменьше осмотров\nбольше пропусков",
+        ha="center",
+        va="center",
+        fontsize=10,
+        color=INK,
+    )
+    ax.set(xlim=(0, 1), ylim=(-0.12, 1.02), xlabel="score модели")
+    ax.set_yticks([])
+    ax.spines[["left", "top", "right"]].set_visible(False)
+    ax.grid(False)
     return fig
 
 

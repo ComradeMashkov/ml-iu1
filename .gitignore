@@ -8,6 +8,8 @@ _quarto_internal_scss_error.scss
 # Локальные материалы преподавателя
 /lectures/L00-speaker-script.md
 /seminars/S01-speaker-script.md
+/seminars/S02-speaker-script.md
+/seminars/S03-speaker-script.md
 
 # Python
 __pycache__/

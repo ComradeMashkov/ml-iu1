@@ -5,11 +5,16 @@ project:
     - "**/*.qmd"
     - "!lectures/L00-speaker-script.md"
     - "!seminars/S01-speaker-script.md"
+    - "!seminars/S02-speaker-script.md"
+    - "!seminars/S03-speaker-script.md"
   resources:
     - starter/.gitignore
     - starter/.github/workflows/check.yml
     - starter/Makefile
     - starter/README.md
+    - starter/notebooks/S01-live-coding.ipynb
+    - starter/notebooks/S02-live-coding.ipynb
+    - starter/notebooks/S03-live-coding.ipynb
     - starter/configs/first-model.json
     - starter/configs/baseline.json
     - starter/pyproject.toml
