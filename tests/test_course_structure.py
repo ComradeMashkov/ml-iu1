@@ -567,14 +567,13 @@ def test_starter_leaves_only_two_focused_functions_per_implementation_lab() -> N
     assert "--evaluate-test" not in baseline
 
 
-def test_course_has_mandatory_entry_gate() -> None:
-    prerequisites = " ".join((ROOT / "prerequisites.qmd").read_text().lower().split())
-    syllabus = " ".join((ROOT / "syllabus.qmd").read_text().lower().split())
+def test_obsolete_entry_page_is_removed_from_the_student_site() -> None:
+    assert not (ROOT / "prerequisites.qmd").exists()
 
-    assert "обязательным допуском к s1" in prerequisites
-    assert "все четыре пункта" in prerequisites
-    assert "число повторных попыток не ограничено" in prerequisites
-    assert "четыре отметки `passed`" in syllabus
+    public_files = [ROOT / "_quarto.yml", *ROOT.glob("*.qmd"), ROOT / "starter/README.md"]
+    public_text = "\n".join(path.read_text() for path in public_files)
+    assert "prerequisites.qmd" not in public_text
+    assert 'text: "Вход"' not in public_text
 
 
 def test_project_decisions_are_fixed_in_versioned_protocols() -> None:

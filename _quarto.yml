@@ -50,8 +50,6 @@ website:
         href: index.qmd
       - text: "Программа"
         href: syllabus.qmd
-      - text: "Вход"
-        href: prerequisites.qmd
       - text: "Карта курса"
         href: course-map.qmd
       - text: "Лекции"
