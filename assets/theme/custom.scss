@@ -78,6 +78,36 @@ tbody tr:hover { background: $surface; }
 .schedule-calendar thead th:first-child { z-index: 2; background: $surface; }
 .schedule-calendar tbody tr:hover td:first-child { background: $surface; }
 
+// ---- Ближайшее занятие: один учебный день и три последовательные пары ----
+.next-class {
+  margin: 1rem 0 1.8rem;
+  padding: 1rem 0;
+  border-top: 2px solid $ink;
+  border-bottom: 1px solid $line;
+}
+.next-class-date { margin: 0 0 .8rem; }
+.next-class-date strong { display: block; font-size: 1.08rem; }
+.next-class-date span { color: $muted; font-size: .9rem; }
+.next-class-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.next-class-slot { padding: .2rem .9rem; border-left: 1px solid $line; }
+.next-class-slot:first-child { padding-left: 0; border-left: 0; }
+.next-class-slot:last-child { padding-right: 0; }
+.next-class-time {
+  display: block;
+  margin-bottom: .25rem;
+  color: $accent;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.next-class-topic { font-size: .94rem; line-height: 1.45; }
+
+// ---- Короткая хронология изменений ----
+dl.updates { margin: 1rem 0; }
+dl.updates dt { color: $accent; font-size: .88rem; font-weight: 600; }
+dl.updates dd { margin: .15rem 0 1rem; padding-bottom: 1rem; border-bottom: 1px solid $line; }
+dl.updates dd:last-child { border-bottom: 0; }
+
 // ---- Ссылки ----
 a { color: $accent; text-underline-offset: 2px; }
 a:hover { text-decoration: underline; }
@@ -256,6 +286,13 @@ hr { border: none; border-top: 1px solid $line; margin: 1.6rem 0; }
 }
 
 @media (max-width: 620px) {
+  .next-class-slots { grid-template-columns: 1fr; }
+  .next-class-slot {
+    padding: .75rem 0;
+    border-left: 0;
+    border-top: 1px solid $line;
+  }
+  .next-class-slot:first-child { border-top: 0; }
   .case-route { grid-template-columns: 1fr; }
   .course-map::before { left: 2.7rem; }
   .course-stage { grid-template-columns: 2rem minmax(0, 1fr); gap: 1.55rem; }

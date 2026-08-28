@@ -1,0 +1,174 @@
+---
+title: "Инструменты и установка"
+subtitle: "Windows, Linux и macOS · единое окружение курса"
+---
+
+::: {.note}
+[Главное правило.]{.label} Не устанавливайте NumPy, scikit-learn, Jupyter и
+остальные библиотеки по одной. Курс использует `uv.lock`: одна команда создаёт
+изолированное окружение с согласованными версиями всех пакетов.
+:::
+
+## Что потребуется
+
+| Инструмент | Для чего нужен | Когда |
+|---|---|---|
+| терминал и `make` | запуск одинаковых команд проверки | с S1 |
+| `uv 0.11.32` | Python 3.12, окружение и библиотеки | с S1 |
+| JupyterLab | работа с notebook | с S1 |
+| Git | история изменений и командный проект | с S4 |
+| Docker | воспроизводимая сборка и ARM64-проверка | с S13 |
+
+Python и JupyterLab отдельно устанавливать не нужно: ими управляет `uv` внутри
+проекта. Редактор можно выбрать любой; в примерах используется
+[Visual Studio Code](https://code.visualstudio.com/docs/python/python-tutorial).
+
+## Windows 10/11
+
+Рекомендуемый путь — **WSL 2 с Ubuntu**. Он даёт тот же Linux-терминал, который
+используется в поздних модулях курса.
+
+1. Откройте PowerShell от имени администратора:
+
+```powershell
+wsl --install
+```
+
+2. Перезагрузите компьютер, запустите Ubuntu и создайте пользователя.
+3. В терминале Ubuntu выполните:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential git curl
+curl -LsSf https://astral.sh/uv/0.11.32/install.sh | sh
+```
+
+4. Закройте и снова откройте Ubuntu, затем проверьте установку:
+
+```bash
+uv --version
+uv python install 3.12
+```
+
+Рабочую копию проекта лучше хранить внутри домашнего каталога Ubuntu, например
+`~/ml-iu1`, а не в `/mnt/c`. Подробности: [официальная установка
+WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
+
+## Linux · Ubuntu/Debian
+
+Откройте терминал и установите системные инструменты:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential git curl
+curl -LsSf https://astral.sh/uv/0.11.32/install.sh | sh
+```
+
+Перезапустите терминал и выполните:
+
+```bash
+uv --version
+uv python install 3.12
+```
+
+Для другого дистрибутива замените `apt` его штатным менеджером пакетов, но
+оставьте ту же версию `uv` и Python 3.12.
+
+## macOS
+
+Сначала установите системные инструменты разработчика:
+
+```bash
+xcode-select --install
+```
+
+После завершения установки откройте новое окно Terminal и выполните:
+
+```bash
+curl -LsSf https://astral.sh/uv/0.11.32/install.sh | sh
+```
+
+Перезапустите Terminal и проверьте окружение:
+
+```bash
+uv --version
+uv python install 3.12
+```
+
+Command Line Tools добавляют `git` и `make`; отдельный системный Python курсу не
+нужен. Справка: [Xcode и Command Line
+Tools](https://developer.apple.com/xcode/resources/).
+
+## Первый запуск starter
+
+До S4 Git не является обязательным. Можно [скачать репозиторий как
+ZIP](https://github.com/ComradeMashkov/ml-iu1/archive/refs/heads/main.zip),
+распаковать его и открыть терминал в каталоге `starter`. Не копируйте чужую
+папку `.venv`.
+
+```bash
+uv sync --locked
+make check
+make notebook
+```
+
+Ожидаемый результат: `make check` завершается без ошибок, а `make notebook`
+открывает JupyterLab с каталогом `notebooks/`.
+
+Если Git уже установлен, проект можно получить командой:
+
+```bash
+git clone https://github.com/ComradeMashkov/ml-iu1.git
+cd ml-iu1/starter
+uv sync --locked
+make check
+```
+
+## Команды курса
+
+| Команда | Результат |
+|---|---|
+| `uv sync --locked` | создаёт `.venv` и устанавливает зафиксированные зависимости |
+| `uv run python --version` | показывает Python внутри окружения курса |
+| `make check` | проверяет lock-файл, стиль кода и тесты |
+| `make notebook` | запускает JupyterLab |
+| `make first-model` | создаёт отчёт первого классификатора |
+| `make sensor` | создаёт отчёт качества сенсорного лога после реализации S2 |
+| `make reset-notebooks` | очищает введённый код и результаты во всех учебных notebook |
+
+::: {.note}
+[Осторожно.]{.label} `make reset-notebooks` безвозвратно очищает code cells и
+результаты выполнения. Используйте команду только для получения чистой копии.
+:::
+
+## Библиотеки и документация
+
+### Основной маршрут
+
+- [Python 3.12](https://docs.python.org/3.12/) — язык и стандартная библиотека;
+- [NumPy](https://numpy.org/doc/stable/user/) — массивы и векторные операции;
+- [SciPy](https://docs.scipy.org/doc/scipy/tutorial/) — научные алгоритмы;
+- [Matplotlib](https://matplotlib.org/stable/users/explain/quick_start.html) — графики;
+- [scikit-learn](https://scikit-learn.org/stable/user_guide.html) — базовые модели, метрики и конвейеры;
+- [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/user/interface.html) — работа с notebook;
+- [uv](https://docs.astral.sh/uv/) — окружение, Python и зависимости.
+
+### Последующие модули
+
+- [PyTorch](https://pytorch.org/get-started/locally/) — нейросети и цикл обучения;
+- [ONNX](https://onnx.ai/onnx/) — формат обмена моделями;
+- [ONNX Runtime](https://onnxruntime.ai/docs/) — вывод в Python и C++;
+- [CMake](https://cmake.org/cmake/help/latest/guide/tutorial/) — сборка C++;
+- [Docker](https://docs.docker.com/get-started/) — воспроизводимое окружение;
+- [Git](https://git-scm.com/doc) и [GitHub Actions](https://docs.github.com/actions) — версии и CI;
+- [pytest](https://docs.pytest.org/) и [Ruff](https://docs.astral.sh/ruff/) — тесты и проверка кода.
+
+## Если запуск не получился
+
+1. Убедитесь, что терминал открыт именно в каталоге `starter`.
+2. Выполните `uv --version`: курс ожидает версию `0.11.32`.
+3. Выполните `uv run python --version`: ожидается Python 3.12.
+4. Запустите `make check` ещё раз и сохраните первую строку ошибки.
+5. Сверьте проблему с [маршрутом входной диагностики](prerequisites.qmd).
+
+[Открыть starter README](starter/README.md) · [Вернуться к расписанию](index.qmd#расписание-и-готовность-материалов)

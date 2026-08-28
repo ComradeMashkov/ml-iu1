@@ -3,10 +3,12 @@ project:
   output-dir: _site
   render:
     - "**/*.qmd"
+    - "!lectures/L01-supervised-validation.qmd"
     - "!lectures/L00-speaker-script.md"
     - "!lectures/L01-speaker-script.md"
     - "!seminars/S01-speaker-script.md"
     - "!seminars/S02-speaker-script.md"
+    - "!seminars/S03-honest-baseline.qmd"
     - "!seminars/S03-speaker-script.md"
   resources:
     - starter/.gitignore
@@ -15,7 +17,7 @@ project:
     - starter/README.md
     - starter/notebooks/S01-live-coding.ipynb
     - starter/notebooks/S02-live-coding.ipynb
-    - starter/notebooks/S03-live-coding.ipynb
+    - assets/next-class.js
     - starter/configs/first-model.json
     - starter/configs/baseline.json
     - starter/pyproject.toml
@@ -56,6 +58,8 @@ website:
         href: lectures/index.qmd
       - text: "Семинары"
         href: seminars/index.qmd
+      - text: "Инструменты"
+        href: resources.qmd
       - text: "Проект"
         href: project/index.qmd
     right:

@@ -234,7 +234,11 @@ def test_live_coding_notebooks_are_empty_scaffolds_with_ordered_blocks() -> None
         assert "преподаватель" not in path.read_text().lower()
         assert "студент" not in path.read_text().lower()
         assert "живой кодинг" not in path.read_text().lower()
-        assert f"starter/notebooks/{path.name}" in quarto
+        resource = f"starter/notebooks/{path.name}"
+        if path.name == "S03-live-coding.ipynb":
+            assert resource not in quarto
+        else:
+            assert resource in quarto
 
 
 def test_seminars_do_not_end_with_acceptance_slide() -> None:
@@ -260,6 +264,23 @@ def test_teacher_scripts_are_excluded_from_the_student_site() -> None:
         assert f"!seminars/{script}" in quarto
         assert f"/seminars/{script}" in gitignore
         assert script.removesuffix(".md") not in seminar_index
+
+
+def test_unreleased_l1_and_s3_are_hidden_from_the_student_site() -> None:
+    quarto = (ROOT / "_quarto.yml").read_text()
+    public_pages = [
+        ROOT / "index.qmd",
+        ROOT / "course-map.qmd",
+        ROOT / "lectures/index.qmd",
+        ROOT / "seminars/index.qmd",
+    ]
+    public_text = "\n".join(path.read_text() for path in public_pages)
+
+    assert "!lectures/L01-supervised-validation.qmd" in quarto
+    assert "!seminars/S03-honest-baseline.qmd" in quarto
+    assert "starter/notebooks/S03-live-coding.ipynb" not in quarto
+    assert "lectures/L01-supervised-validation.qmd" not in public_text
+    assert "seminars/S03-honest-baseline.qmd" not in public_text
 
 
 def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
@@ -607,6 +628,37 @@ def test_calendar_uses_denominator_fridays_and_pair_times() -> None:
     assert "1 января 2027" not in home
     assert "Дата переноса уточняется" not in home
     assert "нового материала в этот день нет" in home
+
+
+def test_homepage_has_automatic_next_class_and_update_history() -> None:
+    home = (ROOT / "index.qmd").read_text()
+    script = (ROOT / "assets/next-class.js").read_text()
+
+    assert 'id="next-class-content"' in home
+    assert 'src="assets/next-class.js"' in home
+    assert "История обновлений" in home
+    assert "28 августа 2026" in home
+    assert "Europe/Moscow" in script
+    assert ".schedule-calendar table" in script
+    assert "date >= today" in script
+
+
+def test_resources_cover_all_supported_platforms_and_locked_setup() -> None:
+    resources = (ROOT / "resources.qmd").read_text()
+
+    for heading in ["## Windows 10/11", "## Linux · Ubuntu/Debian", "## macOS"]:
+        assert heading in resources
+    for command in [
+        "wsl --install",
+        "xcode-select --install",
+        "uv python install 3.12",
+        "uv sync --locked",
+        "make check",
+        "make notebook",
+    ]:
+        assert command in resources
+    assert "uv/0.11.32/install.sh" in resources
+    assert "Не устанавливайте NumPy" in resources
 
 
 def test_future_lessons_are_marked_as_planned() -> None:
