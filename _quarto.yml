@@ -58,8 +58,6 @@ website:
         href: seminars/index.qmd
       - text: "Инструменты"
         href: resources.qmd
-      - text: "Проект"
-        href: project/index.qmd
     right:
       - icon: github
         href: "https://github.com/ComradeMashkov/ml-iu1"

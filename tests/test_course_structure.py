@@ -511,7 +511,6 @@ def test_student_site_calls_practical_classes_seminars() -> None:
         ROOT / "index.qmd",
         ROOT / "syllabus.qmd",
         ROOT / "seminars/index.qmd",
-        ROOT / "project/index.qmd",
     ]
     public_text = "\n".join(path.read_text() for path in public_pages)
 
@@ -576,6 +575,15 @@ def test_obsolete_entry_page_is_removed_from_the_student_site() -> None:
     assert 'text: "Вход"' not in public_text
 
 
+def test_unready_project_page_is_removed_from_the_student_site() -> None:
+    assert not (ROOT / "project/index.qmd").exists()
+
+    public_files = [ROOT / "_quarto.yml", *ROOT.glob("*.qmd"), ROOT / "seminars/index.qmd"]
+    public_text = "\n".join(path.read_text() for path in public_files)
+    assert "project/index.qmd" not in public_text
+    assert 'text: "Проект"' not in public_text
+
+
 def test_project_decisions_are_fixed_in_versioned_protocols() -> None:
     datasets = (ROOT / "project/_approved-datasets.md").read_text()
     gate = (ROOT / "project/_test-gate-protocol.md").read_text()
@@ -595,7 +603,7 @@ def test_schedule_preserves_the_new_dependency_order() -> None:
 
     for expected in [
         "S1 · Первый классификатор",
-        "S4 · Карточка проекта, репозиторий и CI",
+        "S4 · Git, репозиторий и CI",
         "S6 · Диагностика и регуляризация MLP",
         "S7 · 1D-CNN и сравнение с базовой моделью",
         "L4 · Семейства задач, метрики и границы применения",
