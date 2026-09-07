@@ -34,12 +34,24 @@ def select_threshold(
     raise NotImplementedError("Implement on S3")
 
 
-def _scores(estimator: object, case: object, mask: NDArray[np.bool_], feature_idx: np.ndarray):
+def _scores(
+    estimator: object,
+    case: object,
+    mask: NDArray[np.bool_],
+    feature_idx: np.ndarray,
+    aggregate_fn: object,
+):
     window_score = estimator.predict_proba(case.X[mask][:, feature_idx])[:, 1]
-    return aggregate_flight_scores(window_score, case.y[mask], case.flight_id[mask])
+    return aggregate_fn(window_score, case.y[mask], case.flight_id[mask])
 
 
-def run_baseline(config: Path, output: Path) -> None:
+def run_baseline(
+    config: Path,
+    output: Path,
+    *,
+    aggregate_fn: object = aggregate_flight_scores,
+    threshold_fn: object = select_threshold,
+) -> None:
     """Train the S3 baseline and save split, model, and validation artifacts."""
 
     settings = json.loads(config.read_text())
@@ -57,10 +69,10 @@ def run_baseline(config: Path, output: Path) -> None:
     )
     model.fit(case.X[train][:, feature_idx], case.y[train])
 
-    flights, target, score = _scores(model, case, validation, feature_idx)
-    _, dummy_target, dummy_score = _scores(dummy, case, validation, feature_idx)
+    flights, target, score = _scores(model, case, validation, feature_idx, aggregate_fn)
+    _, dummy_target, dummy_score = _scores(dummy, case, validation, feature_idx, aggregate_fn)
     np.testing.assert_array_equal(target, dummy_target)
-    threshold = select_threshold(target, score, float(settings["min_recall"]))
+    threshold = threshold_fn(target, score, float(settings["min_recall"]))
     prediction = score >= threshold
 
     output.mkdir(parents=True, exist_ok=True)

@@ -21,6 +21,8 @@ class SensorLog:
     angular_rate_dps: NDArray[np.float64]
     gnss_t_s: NDArray[np.float64]
     speed_mps: NDArray[np.float64]
+    gnss_clock_rate: float = 1.00022
+    gnss_clock_offset_s: float = 0.18
 
 
 def generate_sensor_log(seed: int = 2026) -> SensorLog:
@@ -34,6 +36,8 @@ def generate_sensor_log(seed: int = 2026) -> SensorLog:
     duplicate = int(np.searchsorted(physical_t, 12.0))
     imu_t[duplicate] = imu_t[duplicate - 1]
 
+    # Simplified sensor axes x and z; the z channel contains a component near 1 g.
+    # These teaching waveforms do not model a complete rigid-body trajectory.
     acceleration_g = np.column_stack(
         (
             0.08 * np.sin(2 * np.pi * 0.31 * physical_t),
@@ -44,7 +48,7 @@ def generate_sensor_log(seed: int = 2026) -> SensorLog:
     angular_rate_dps = 17.0 * np.sin(2 * np.pi * 0.17 * physical_t)
     angular_rate_dps += rng.normal(0.0, 0.65, physical_t.size)
 
-    gnss_physical_t = np.arange(0.0, 30.0, 0.1)
+    gnss_physical_t = np.arange(0.0, 30.01, 0.1)
     gnss_t = 1.00022 * gnss_physical_t + 0.18
     speed = 42.0 + 2.4 * np.sin(2 * np.pi * 0.035 * gnss_physical_t)
     speed += rng.normal(0.0, 0.12, speed.size)

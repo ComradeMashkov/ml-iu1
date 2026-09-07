@@ -1,4 +1,4 @@
-"""Return seminar notebooks to their empty-code-cell state."""
+"""Return seminar notebooks to their prepared starter-code state."""
 
 from __future__ import annotations
 
@@ -19,7 +19,21 @@ def _cell_text(cell: dict[str, object], path: Path) -> str:
     raise TypeError(f"{path}: cell source must be a string or a list of strings")
 
 
-def _empty_code_cell(section_title: str) -> dict[str, object]:
+def _starter_source(cell: dict[str, object], path: Path) -> list[str]:
+    metadata = cell.get("metadata", {})
+    if not isinstance(metadata, dict):
+        raise TypeError(f"{path}: cell metadata must be an object")
+    source = metadata.get("starter_source")
+    if (
+        not isinstance(source, list)
+        or not source
+        or not all(isinstance(line, str) for line in source)
+    ):
+        raise ValueError(f"{path}: every level-two section must define metadata.starter_source")
+    return source.copy()
+
+
+def _starter_code_cell(section_title: str, source: list[str]) -> dict[str, object]:
     cell_id = hashlib.sha256(section_title.encode("utf-8")).hexdigest()[:8]
     return {
         "cell_type": "code",
@@ -27,12 +41,12 @@ def _empty_code_cell(section_title: str) -> dict[str, object]:
         "id": cell_id,
         "metadata": {},
         "outputs": [],
-        "source": [],
+        "source": source.copy(),
     }
 
 
 def reset_code_cells(notebook: dict[str, object], path: Path) -> tuple[int, int, int]:
-    """Restore one empty code cell after every level-two section heading."""
+    """Restore one prepared code cell after every level-two section heading."""
     cells = notebook.get("cells")
     if not isinstance(cells, list):
         raise TypeError(f"{path}: notebook must contain a cells list")
@@ -41,7 +55,7 @@ def reset_code_cells(notebook: dict[str, object], path: Path) -> tuple[int, int,
     removed_count = 0
     added_count = 0
     restored_cells: list[dict[str, object]] = []
-    pending_section: str | None = None
+    pending_section: tuple[str, list[str]] | None = None
 
     for cell in cells:
         if not isinstance(cell, dict):
@@ -49,11 +63,16 @@ def reset_code_cells(notebook: dict[str, object], path: Path) -> tuple[int, int,
 
         if cell.get("cell_type") == "markdown":
             if pending_section is not None:
-                restored_cells.append(_empty_code_cell(pending_section))
+                title, source = pending_section
+                restored_cells.append(_starter_code_cell(title, source))
                 added_count += 1
             restored_cells.append(cell)
             text = _cell_text(cell, path).lstrip()
-            pending_section = text.splitlines()[0] if text.startswith("## ") else None
+            pending_section = (
+                (text.splitlines()[0], _starter_source(cell, path))
+                if text.startswith("## ")
+                else None
+            )
             continue
 
         if cell.get("cell_type") != "code":
@@ -65,14 +84,16 @@ def reset_code_cells(notebook: dict[str, object], path: Path) -> tuple[int, int,
             removed_count += 1
             continue
 
-        cell["source"] = []
+        _, source = pending_section
+        cell["source"] = source.copy()
         cell["execution_count"] = None
         cell["outputs"] = []
         restored_cells.append(cell)
         pending_section = None
 
     if pending_section is not None:
-        restored_cells.append(_empty_code_cell(pending_section))
+        title, source = pending_section
+        restored_cells.append(_starter_code_cell(title, source))
         added_count += 1
 
     notebook["cells"] = restored_cells
@@ -82,7 +103,7 @@ def reset_code_cells(notebook: dict[str, object], path: Path) -> tuple[int, int,
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Clear code and outputs from seminar notebooks, preserving Markdown cells."
+        description="Restore prepared seminar notebook code and clear execution outputs."
     )
     parser.add_argument(
         "--notebooks-dir",
@@ -119,7 +140,7 @@ def main() -> None:
     print(
         f"Reset {total_reset} code cells in {len(prepared)} notebooks; "
         f"removed {total_removed} extra and added {total_added} missing code cells. "
-        "Markdown cells were preserved."
+        "Prepared code and Markdown cells were restored."
     )
 
 

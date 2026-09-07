@@ -30,6 +30,10 @@ $code-block-font-size: 0.62em;
 
 /*-- scss:rules --*/
 .reveal { font-weight: 300; letter-spacing: .002em; }              // лёгкий вес — metropolis-воздух
+.reveal p { margin: .55em 0; }
+// Reveal добавляет center для вертикального размещения слайда.
+// Этот класс не должен центрировать многострочные определения.
+.reveal section.center { text-align: left; }
 
 // ---- Frametitle (заголовок слайда) ----
 .reveal h2 {
@@ -94,6 +98,19 @@ $code-block-font-size: 0.62em;
 // вывод исполняемых ячеек (stdout) — моноширинно, аккуратно
 .reveal .cell-output pre { margin: .3em 0 0; }
 .reveal .cell-output code { font-size: .8em; color: $ink; border: none; background: #F4F6F8; }
+.reveal .cell-output-display p { margin: .2em 0; }
+.reveal .cell-output-display img { display: block; margin: .1em auto; }
+// Высота графика задаётся на слайде с учётом его пояснений и колонтитула.
+.reveal section.plot-size .cell-output-display img,
+.reveal section.plot-size img.r-stretch {
+  // Reveal разворачивает отдельный рисунок и задаёт размеры прямо на img.
+  width: auto !important;
+  height: auto !important;
+  max-height: var(--plot-height);
+  display: block;
+  margin: .1em auto;
+}
+.reveal section.compact p { margin-top: .35em; margin-bottom: .35em; }
 
 // Quarto Live: компактный редактор, который помещается в сетку 1280×720
 .reveal section .card.exercise-editor {
@@ -122,10 +139,17 @@ $code-block-font-size: 0.62em;
 // ---- Математика крупнее и в фокусе ----
 .reveal .MathJax, .reveal mjx-container { color: $ink; }
 .reveal .eq-lead mjx-container { font-size: 1.15em !important; }
+.reveal .MathJax_Display { margin: .55em 0 !important; }
 
 // ---- Подписи к рисункам ----
 .reveal figure figcaption,
 .reveal .figcap { color: $muted; font-size: .52em; line-height: 1.3; margin-top: .25em; }
+.reveal p:has(> .figcap:only-child) {
+  font-size: .52em;
+  line-height: 1.3;
+  margin: .25em 0;
+}
+.reveal p > .figcap:only-child { font-size: inherit; }
 .reveal .source { color: $muted; font-size: .44em; }
 
 // ---- Подвал и прогресс ----
@@ -148,7 +172,7 @@ $code-block-font-size: 0.62em;
 // ---- Утилиты ----
 .reveal .muted { color: $muted; }
 .reveal .small { font-size: .8em; }
-.reveal .center { text-align: center; }
+.reveal div.center { text-align: center; }
 .reveal .accent { color: $accent; }
 .reveal .definition {
   font-weight: 600;

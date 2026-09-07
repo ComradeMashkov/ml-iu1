@@ -62,7 +62,7 @@ def overlapping_windows() -> plt.Figure:
     ax.text(
         20,
         -1.05,
-        "3 строки таблицы, но 1 независимый полёт",
+        "3 строки таблицы из одного полёта",
         ha="center",
         weight="bold",
         color=INK,
@@ -76,7 +76,7 @@ def overlapping_windows() -> plt.Figure:
 
 
 def four_flights() -> plt.Figure:
-    """Plot the four-flight example and one possible linear boundary."""
+    """Plot the two candidate rules used in the L0 numerical loss calculation."""
 
     temperature = np.array([47, 51, 64, 69])
     current = np.array([10.2, 11.0, 14.1, 15.0])
@@ -86,8 +86,17 @@ def four_flights() -> plt.Figure:
     ax.scatter(temperature, current, c=colors, s=110, edgecolor="white", linewidth=1.5)
     for index, (x_value, y_value) in enumerate(zip(temperature, current, strict=True), 1):
         ax.annotate(f"F{index:02d}", (x_value, y_value), xytext=(7, 4), textcoords="offset points")
-    boundary_x = np.array([50, 67])
-    ax.plot(boundary_x, 21.5 - 0.14 * boundary_x, "--", color=MUTED, label="одно из правил")
+    # x1=(T-60)/10, x2=(I-12)/2: z_A=x1 and z_B=x1+x2.
+    # Both boundaries use sigmoid(z)=0.5, hence z=0.
+    boundary_x = np.array([46, 70])
+    ax.axvline(60, color=MUTED, linestyle=":", label="A: температура")
+    ax.plot(
+        boundary_x,
+        24 - 0.2 * boundary_x,
+        "--",
+        color=ACCENT,
+        label="B: температура и ток",
+    )
     ax.set(xlabel="средняя температура, °C", ylabel="RMS тока, A")
     ax.legend(loc="upper left")
     return fig
@@ -173,11 +182,10 @@ def sorted_scores(
     figsize: tuple[float, float] = (8.0, 3.0),
     annotate_outcomes: bool = True,
 ) -> plt.Figure:
-    """Plot sorted model scores and the operational threshold."""
+    """Plot all sorted model scores and the operational threshold."""
 
     score = np.asarray(score)
     target = np.asarray(target)
-    sample = np.linspace(0, len(score) - 1, min(90, len(score)), dtype=int)
     masks = {
         "TN": (target == 0) & (score < threshold),
         "FP": (target == 0) & (score >= threshold),
@@ -191,14 +199,13 @@ def sorted_scores(
             representatives[label] = int(
                 candidates[np.argmin(np.abs(score[candidates] - threshold))]
             )
-    sample = np.unique(np.r_[sample, list(representatives.values())])
-    order = np.argsort(score[sample])
-    selected_score = score[sample][order]
-    selected_target = target[sample][order]
-    selected_indices = sample[order]
+    order = np.argsort(score)
+    selected_score = score[order]
+    selected_target = target[order]
+    selected_indices = order
     fig, ax = plt.subplots(figsize=figsize)
     colors = np.where(selected_target == 1, ACCENT2, ACCENT)
-    ax.scatter(np.arange(len(order)), selected_score, c=colors, s=34)
+    ax.scatter(np.arange(len(order)), selected_score, c=colors, s=14 if len(order) > 100 else 34)
     threshold_line = ax.axhline(
         threshold, color=INK, linestyle="--", label=f"порог {threshold:.2f}"
     )
@@ -226,8 +233,8 @@ def sorted_scores(
     )
     ax.legend(
         handles=[
-            Patch(color=ACCENT, label="истинный класс y = 0"),
-            Patch(color=ACCENT2, label="истинный класс y = 1"),
+            Patch(color=ACCENT, label="метка y = 0"),
+            Patch(color=ACCENT2, label="метка y = 1"),
             threshold_line,
         ],
         loc="upper left",

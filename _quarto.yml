@@ -28,6 +28,10 @@ project:
     - starter/src/ml_sau/sensor.py
     - starter/src/ml_sau/sensor_source.py
     - starter/tests/test_sources.py
+    - starter/tests/test_first_model.py
+    - starter/tests/test_sensor.py
+    - starter/tests/test_reset_notebooks.py
+    - starter/tools/reset_notebooks.py
     - starter/uv.lock
   preview:
     port: 4242

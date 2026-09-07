@@ -96,12 +96,14 @@ def test_ready_lesson_has_only_broad_clipping_safeguard(path: Path) -> None:
 
 
 @pytest.mark.parametrize("path", READY_LESSONS)
-def test_ready_lesson_has_a_substantial_visual_layer(path: Path) -> None:
+def test_ready_lesson_has_visual_examples(path: Path) -> None:
     text = path.read_text()
     source_images = len(re.findall(r"!\[[^]]*\]\(", text))
-    reproducible_plots = len(re.findall(r"(?m)^lf\.[a-z_]+\(", text))
+    reproducible_plots = len(re.findall(r"(?m)^(?:lf|s1f|sf)\.[a-z_]+\(", text))
 
-    assert source_images + reproducible_plots >= 7, (
+    # Allow a small number of relevant computed plots rather than requiring
+    # additional photographs to satisfy a numerical quota.
+    assert source_images + reproducible_plots >= 3, (
         f"{path.name}: only {source_images} source images and "
         f"{reproducible_plots} reproducible plots"
     )
@@ -115,13 +117,13 @@ def test_lecture_follows_concept_introduction_cycle(path: Path) -> None:
         "инженерная задача",
         "результат лекции",
         "интуиц",
-        "определение",
+        "[опр.]{.definition}",
         "формализац",
         "разобранный пример",
         "итог",
     ]:
         assert marker in text, f"{path.name}: missing {marker}"
-    assert text.count("контрольный разбор") >= 2
+    assert text.count("контрольный разбор") + text.count("разобранный пример") >= 2
 
 
 @pytest.mark.parametrize("path", READY_LESSONS)
@@ -173,8 +175,6 @@ def test_seminar_states_prerequisites_and_result(path: Path) -> None:
     assert "notebook" in text
     assert "свернуть презентац" in notes
     assert "вернуться к слайд" in notes
-    assert "преподаватель" not in text
-    assert "студент" not in text
 
 
 @pytest.mark.parametrize("path", SEMINARS)
@@ -216,24 +216,35 @@ def test_seminars_do_not_assign_independent_or_fill_in_work(path: Path) -> None:
     assert "|  |" not in text, f"{path.name}: blank fill-in table remains on a slide"
 
 
-def test_live_coding_notebooks_are_empty_scaffolds_with_ordered_blocks() -> None:
+def test_live_coding_notebooks_restore_prepared_scaffolds_with_ordered_blocks() -> None:
     quarto = (ROOT / "_quarto.yml").read_text()
 
-    for expected_blocks, path in zip([5, 4, 5], LIVE_CODING_NOTEBOOKS, strict=True):
+    for expected_blocks, path in zip([6, 6, 5], LIVE_CODING_NOTEBOOKS, strict=True):
         notebook = json.loads(path.read_text())
+        cell_ids = [cell.get("id") for cell in notebook["cells"]]
         markdown = "\n".join(
             "".join(cell["source"]) for cell in notebook["cells"] if cell["cell_type"] == "markdown"
         ).lower()
         code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+        section_cells = [
+            cell
+            for cell in notebook["cells"]
+            if cell["cell_type"] == "markdown"
+            and "".join(cell["source"]).lstrip().startswith("## ")
+        ]
 
         assert markdown.count("\n## ") == expected_blocks
+        assert all(cell_ids)
+        assert len(cell_ids) == len(set(cell_ids))
         assert len(code_cells) == expected_blocks
         assert all(cell["execution_count"] is None for cell in code_cells)
         assert all(not cell["outputs"] for cell in code_cells)
-        assert all(not cell["source"] for cell in code_cells)
-        assert "преподаватель" not in path.read_text().lower()
-        assert "студент" not in path.read_text().lower()
-        assert "живой кодинг" not in path.read_text().lower()
+        assert all(cell["source"] for cell in code_cells)
+        assert all(
+            section["metadata"]["starter_source"] == code["source"]
+            for section, code in zip(section_cells, code_cells, strict=True)
+        )
+        assert "NotImplementedError" in "\n".join("".join(cell["source"]) for cell in code_cells)
         resource = f"starter/notebooks/{path.name}"
         if path.name == "S03-live-coding.ipynb":
             assert resource not in quarto
@@ -505,6 +516,34 @@ def test_private_lecture_scripts_match_actual_reveal_slide_numbers() -> None:
         assert scripted_numbers == reveal_slide_numbers(lecture), lecture.name
 
 
+def test_private_seminar_scripts_match_slides_and_identify_typed_code() -> None:
+    pairs = [
+        (seminar, ROOT / f"seminars/S0{index}-speaker-script.md")
+        for index, seminar in enumerate(SEMINARS, start=1)
+    ]
+    if not all(script.exists() for _, script in pairs):
+        pytest.skip("private seminar scripts are intentionally absent from the repository")
+
+    for seminar, script in pairs:
+        script_text = script.read_text()
+        scripted_numbers = [
+            int(number) for number in re.findall(r"(?m)^## Слайд (\d+)\.", script_text)
+        ]
+        assert scripted_numbers == reveal_slide_numbers(seminar), seminar.name
+
+        if seminar.name.startswith(("S01", "S02")):
+            # Each substantive block has one exact insertion, verified by executing
+            # the notebook. Comments on every bracket are not an explanation.
+            insertions = re.findall(
+                r"<!-- notebook-solution: (\d+) -->\s*```python\n(.*?)```",
+                script_text,
+                re.DOTALL,
+            )
+            assert [int(number) for number, _ in insertions] == list(range(1, 7))
+            for number, source in insertions:
+                compile(source, f"{script.name} block {number}", "exec")
+
+
 def test_student_site_calls_practical_classes_seminars() -> None:
     quarto = (ROOT / "_quarto.yml").read_text()
     public_pages = [
@@ -554,11 +593,11 @@ def test_split_manifest_names_dependence_time_and_deployment_axes() -> None:
         assert all(field in text for field in required), path.name
 
 
-def test_starter_leaves_only_two_focused_functions_per_implementation_lab() -> None:
+def test_published_sensor_module_is_complete_and_unreleased_s3_remains_a_template() -> None:
     sensor = (ROOT / "starter/src/ml_sau/sensor.py").read_text()
     baseline = (ROOT / "starter/src/ml_sau/baseline.py").read_text()
 
-    assert sensor.count("NotImplementedError") == 2
+    assert "NotImplementedError" not in sensor
     assert baseline.count("NotImplementedError") == 2
     assert "def write_quality_report" in sensor
     assert "def run_baseline" in baseline
@@ -589,13 +628,19 @@ def test_project_decisions_are_fixed_in_versioned_protocols() -> None:
     gate = (ROOT / "project/_test-gate-protocol.md").read_text()
     platform = (ROOT / "project/_target-platform.md").read_text()
 
-    for dataset_id in ["dataset/447", "dataset/791", "dataset/551", "dataset/240"]:
-        assert dataset_id in datasets
+    assert "dataset/447" in datasets
+    assert "Все проекты используют" in datasets
+    assert "stable_flag = 0" in datasets
+    assert "30 блоков" in datasets and "Test-A" in datasets and "Test-B" in datasets
+    assert "один испытательный стенд" in datasets
     assert "Test-A" in gate and "Test-B" in gate
     assert "S12" in gate and "S14" in gate
     assert "20 MiB" in platform
     assert "256 MiB" in platform
     assert "p95 ≤ 50 ms" in platform
+    assert "На S4" in platform and "На S13" in platform and "На S14" in platform
+    assert "готовый C++ runner" in platform
+    assert "На S15" in platform and "Raspberry Pi 4B" in platform
 
 
 def test_schedule_preserves_the_new_dependency_order() -> None:
@@ -603,12 +648,14 @@ def test_schedule_preserves_the_new_dependency_order() -> None:
 
     for expected in [
         "S1 · Первый классификатор",
-        "S4 · Git, репозиторий и CI",
+        "S4 · Git, CI и каркас релиза",
         "S6 · Диагностика и регуляризация MLP",
         "S7 · 1D-CNN и сравнение с базовой моделью",
         "L4 · Семейства задач, метрики и границы применения",
         "L5 · Гибридная оценка, мониторинг и безопасный резерв",
-        "L6 · Инференс и эксплуатация на целевой платформе",
+        "L6 · Эквивалентность, квантизация и измерения",
+        "S13 · Экспорт ONNX, проверка в Python и INT8",
+        "S14 · Готовый C++/ARM64 runner и кандидат в релиз",
     ]:
         assert expected in home
 

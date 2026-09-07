@@ -1,8 +1,8 @@
 import numpy as np
 
 from ml_sau.course_case import course_holdout_masks, generate_course_case
-from ml_sau.first_model import run_first_model
-from ml_sau.sensor import build_windows
+from ml_sau.first_model import prepare_preview_split, run_first_model
+from ml_sau.sensor import build_windows, make_quality_report
 from ml_sau.sensor_source import generate_sensor_log
 
 
@@ -58,3 +58,34 @@ def test_first_model_writes_preview_report(tmp_path) -> None:
     assert report["preview_only"] is True
     assert report["decision_unit"] == "flight"
     assert output.exists()
+
+
+def test_preview_split_selects_only_named_physical_features() -> None:
+    case = generate_course_case()
+    selected = ("current_rms_a", "temperature_c")
+
+    split = prepare_preview_split(case, selected)
+
+    assert split.X_train.shape[1] == len(selected)
+    assert split.X_validation.shape[1] == len(selected)
+
+
+def test_quality_report_uses_notebook_functions() -> None:
+    timestamp_calls = 0
+    interpolation_calls = 0
+
+    def timestamp_fn(t_s):
+        nonlocal timestamp_calls
+        timestamp_calls += 1
+        return {"non_finite": 0, "duplicate": 1, "backward": 0}
+
+    def interpolation_fn(t_s, values, grid_s, max_gap_s):
+        nonlocal interpolation_calls
+        interpolation_calls += 1
+        return np.zeros((len(grid_s), *values.shape[1:]))
+
+    report = make_quality_report(timestamp_fn, interpolation_fn)
+
+    assert timestamp_calls == 1
+    assert interpolation_calls == 2
+    assert report["n_valid_windows"] == 29

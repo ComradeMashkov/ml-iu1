@@ -1,6 +1,6 @@
 {
   "data_seed": 1126,
-  "demonstration_threshold": 0.8,
+  "demonstration_threshold": 0.5,
   "features": [
     "tracking_rmse_deg",
     "current_rms_a",
