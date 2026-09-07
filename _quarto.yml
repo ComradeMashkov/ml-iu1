@@ -18,6 +18,7 @@ project:
     - starter/notebooks/S01-live-coding.ipynb
     - starter/notebooks/S02-live-coding.ipynb
     - assets/next-class.js
+    - assets/slides-layout.js
     - starter/configs/first-model.json
     - starter/configs/baseline.json
     - starter/pyproject.toml

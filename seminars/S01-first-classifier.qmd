@@ -23,6 +23,7 @@ format:
       - text: |
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
           <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+          <script src="../assets/slides-layout.js" defer></script>
           <style>
             .reveal .feature-units col:nth-child(1) { width: 35% !important; }
             .reveal .feature-units col:nth-child(2) { width: 55% !important; }
