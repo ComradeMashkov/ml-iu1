@@ -22,6 +22,18 @@ LIVE_CODING_NOTEBOOKS = [
     ROOT / "starter/notebooks/S03-live-coding.ipynb",
 ]
 READY_LESSONS = LECTURES + SEMINARS
+PUBLISHED_NOTEBOOKS = LIVE_CODING_NOTEBOOKS[:2]
+PUBLIC_GUIDES = [
+    ROOT / name
+    for name in [
+        "index.qmd",
+        "syllabus.qmd",
+        "course-map.qmd",
+        "lectures/index.qmd",
+        "seminars/index.qmd",
+        "starter/README.md",
+    ]
+]
 CONCEPT_NAMES = {"обобщающая способность": ("обобщающая способность", "обобщение")}
 
 
@@ -59,8 +71,15 @@ def reveal_slide_numbers(path: Path) -> list[int]:
     return content_numbers
 
 
+def lesson_source_text(path: Path) -> str:
+    if path.suffix == ".ipynb":
+        notebook = json.loads(path.read_text())
+        return "\n\n".join("".join(cell["source"]) for cell in notebook["cells"])
+    return path.read_text()
+
+
 def visible_lesson_text(path: Path) -> str:
-    return re.sub(r"::: \{\.notes\}.*?\n:::", "", path.read_text(), flags=re.DOTALL)
+    return re.sub(r"::: \{\.notes\}.*?\n:::", "", lesson_source_text(path), flags=re.DOTALL)
 
 
 @pytest.mark.parametrize("path", READY_LESSONS)
@@ -150,7 +169,7 @@ def test_introductory_lecture_paces_definitions() -> None:
 
 
 def test_published_introductory_lessons_avoid_rhetorical_corrections() -> None:
-    sources = [LECTURES[0], *SEMINARS[:2]]
+    sources = [LECTURES[0], *SEMINARS[:2], *PUBLISHED_NOTEBOOKS, *PUBLIC_GUIDES]
     scripts = [
         ROOT / "lectures/L00-speaker-script.md",
         ROOT / "seminars/S01-speaker-script.md",
@@ -159,7 +178,7 @@ def test_published_introductory_lessons_avoid_rhetorical_corrections() -> None:
     sources.extend(script for script in scripts if script.exists())
 
     for path in sources:
-        text = re.sub(r"```.*?```", "", path.read_text().lower(), flags=re.DOTALL)
+        text = re.sub(r"```.*?```", "", lesson_source_text(path).lower(), flags=re.DOTALL)
         prose = re.sub(r"\s+", " ", text)
         for pattern in [r"\bне\b[^.!?;:]{1,180},\s*а\b", r",\s*а\s+не\b"]:
             assert not re.search(pattern, prose), (
@@ -187,7 +206,8 @@ def test_ready_materials_avoid_editorial_neuroslop() -> None:
         ROOT / "seminars/S02-speaker-script.md",
         ROOT / "seminars/S03-speaker-script.md",
     ]
-    sources = READY_LESSONS + [path for path in private_scripts if path.exists()]
+    sources = READY_LESSONS + PUBLISHED_NOTEBOOKS
+    sources += [path for path in private_scripts if path.exists()]
     stale_phrases = [
         "главная мысль",
         "ключевой вывод",
@@ -198,7 +218,7 @@ def test_ready_materials_avoid_editorial_neuroslop() -> None:
     ]
 
     for path in sources:
-        text = path.read_text().lower()
+        text = lesson_source_text(path).lower()
         for phrase in stale_phrases:
             assert phrase not in text, f"{path.name}: generic phrase remains: {phrase}"
         assert len(re.findall(r"сначала.{0,220}затем", text, re.DOTALL)) <= 8, (
@@ -218,12 +238,12 @@ def test_seminar_states_prerequisites_and_result(path: Path) -> None:
     assert "вернуться к слайд" in notes
 
 
-@pytest.mark.parametrize("path", [LECTURES[0], *SEMINARS])
+@pytest.mark.parametrize("path", [LECTURES[0], *SEMINARS, *PUBLISHED_NOTEBOOKS])
 def test_visible_introductory_slides_contain_no_stage_directions(path: Path) -> None:
     visible = visible_lesson_text(path).lower()
 
     for phrase in [
-        "преподаватель",
+        "преподавател",
         "студент",
         "синхронно",
         "свернуть презентац",
@@ -236,9 +256,20 @@ def test_visible_introductory_slides_contain_no_stage_directions(path: Path) -> 
         assert phrase not in visible, f"{path.name}: stage direction remains: {phrase}"
 
 
-@pytest.mark.parametrize("path", [LECTURES[0], *SEMINARS])
+@pytest.mark.parametrize("path", PUBLIC_GUIDES)
+def test_public_guides_describe_content_without_participant_stage_directions(path: Path) -> None:
+    visible = re.sub(r"\s+", " ", visible_lesson_text(path).lower())
+    for pattern in [
+        r"преподавател[а-яё]*\s+(?:объясня|пиш|показыва|ввод|разбира|дела)",
+        r"студент[а-яё]*\s+(?:смотр|повторя|дела|фиксиру)",
+        r"преподавательск[а-яё]*\s+live\s+coding",
+    ]:
+        assert not re.search(pattern, visible), f"{path.name}: participant stage direction"
+
+
+@pytest.mark.parametrize("path", [LECTURES[0], *SEMINARS, *PUBLISHED_NOTEBOOKS])
 def test_introductory_lessons_do_not_assign_independent_or_fill_in_work(path: Path) -> None:
-    text = path.read_text().lower()
+    text = lesson_source_text(path).lower()
 
     for prompt in [
         "## самостоятель",
