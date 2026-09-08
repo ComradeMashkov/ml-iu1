@@ -152,6 +152,56 @@ $code-block-font-size: 0.62em;
 .reveal p > .figcap:only-child { font-size: inherit; }
 .reveal .source { color: $muted; font-size: .44em; }
 
+// L0: крупные примеры и короткие цепочки вычислений.
+.reveal .l0-process {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5em;
+  margin: 1.1em 0;
+}
+.reveal .l0-step {
+  position: relative;
+  padding-top: .5em;
+  border-top: 3px solid $accent;
+}
+.reveal .l0-step + .l0-step::before {
+  content: "→";
+  position: absolute;
+  left: -1.15em;
+  top: .6em;
+  color: $accent;
+}
+.reveal .l0-step p { font-size: .85em; }
+.reveal .l0-step p:first-child { font-size: 1em; }
+.reveal .l0-answer-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  margin: 1em 0;
+}
+.reveal .l0-answer-pair > .column {
+  width: 100% !important;
+  box-sizing: border-box;
+}
+.reveal .l0-answer-pair > .column + .column {
+  border-left: 1px solid $rule;
+  padding-left: 1em;
+}
+.reveal .l0-answer-pair h3 { color: $accent; margin: .7em 0 .4em; }
+.reveal .l0-score-ruler {
+  text-align: center;
+  color: $accent;
+  background: #F1F5FA;
+  padding: .4em;
+  margin: 1em 0;
+}
+.reveal .l0-baseline-number { margin: 1em 0; text-align: center; }
+.reveal .l0-baseline-number strong { font-size: 2em; color: $accent; }
+.reveal section.l0-table table { font-size: .88em; width: 85%; }
+.reveal section.l0-table table td,
+.reveal section.l0-table table th { padding: .25em .5em; }
+.reveal section.l0-code pre.sourceCode { font-size: .76em; }
+
 // ---- Подвал и прогресс ----
 .reveal .footer { color: $muted; font-size: .42em; font-weight: 400; }
 .reveal .slide-number { background: transparent; color: $muted; font-weight: 400; }

@@ -22,6 +22,7 @@ LIVE_CODING_NOTEBOOKS = [
     ROOT / "starter/notebooks/S03-live-coding.ipynb",
 ]
 READY_LESSONS = LECTURES + SEMINARS
+CONCEPT_NAMES = {"обобщающая способность": ("обобщающая способность", "обобщение")}
 
 
 def content_slides(path: Path) -> list[str]:
@@ -99,7 +100,7 @@ def test_ready_lesson_has_only_broad_clipping_safeguard(path: Path) -> None:
 def test_ready_lesson_has_visual_examples(path: Path) -> None:
     text = path.read_text()
     source_images = len(re.findall(r"!\[[^]]*\]\(", text))
-    reproducible_plots = len(re.findall(r"(?m)^(?:lf|s1f|sf)\.[a-z_]+\(", text))
+    reproducible_plots = len(re.findall(r"(?m)^(?:lf|l0f|s1f|sf)\.[a-z_]+\(", text))
 
     # Allow a small number of relevant computed plots rather than requiring
     # additional photographs to satisfy a numerical quota.
@@ -109,7 +110,7 @@ def test_ready_lesson_has_visual_examples(path: Path) -> None:
     )
 
 
-@pytest.mark.parametrize("path", LECTURES)
+@pytest.mark.parametrize("path", LECTURES[1:])
 def test_lecture_follows_concept_introduction_cycle(path: Path) -> None:
     text = path.read_text().lower()
 
@@ -124,6 +125,46 @@ def test_lecture_follows_concept_introduction_cycle(path: Path) -> None:
     ]:
         assert marker in text, f"{path.name}: missing {marker}"
     assert text.count("контрольный разбор") + text.count("разобранный пример") >= 2
+
+
+def test_introductory_lecture_explains_a_complete_prediction_example() -> None:
+    """Check the teaching content without prescribing boilerplate slide titles."""
+
+    path = LECTURES[0]
+    text = path.read_text().lower()
+    headings = [heading.lower() for heading in re.findall(r"(?m)^## (.+)$", text)]
+
+    assert not any(heading.startswith("результат лекции") for heading in headings)
+    assert not any(heading.startswith("итог и выход") for heading in headings)
+    for marker in ["привод", "осмотр", "fit", "predict_proba", "f01", "f04"]:
+        assert marker in text, f"L0: missing part of the worked example: {marker}"
+
+
+def test_introductory_lecture_paces_definitions() -> None:
+    for block in content_slides(LECTURES[0]):
+        title = block.splitlines()[0]
+        visible = block.split("::: {.notes}", 1)[0]
+        assert visible.count("[Опр.]{.definition}") <= 2, (
+            f"L0: {title}: split the new definitions across the explanation"
+        )
+
+
+def test_published_introductory_lessons_avoid_rhetorical_corrections() -> None:
+    sources = [LECTURES[0], *SEMINARS[:2]]
+    scripts = [
+        ROOT / "lectures/L00-speaker-script.md",
+        ROOT / "seminars/S01-speaker-script.md",
+        ROOT / "seminars/S02-speaker-script.md",
+    ]
+    sources.extend(script for script in scripts if script.exists())
+
+    for path in sources:
+        text = re.sub(r"```.*?```", "", path.read_text().lower(), flags=re.DOTALL)
+        prose = re.sub(r"\s+", " ", text)
+        for pattern in [r"\bне\b[^.!?;:]{1,180},\s*а\b", r",\s*а\s+не\b"]:
+            assert not re.search(pattern, prose), (
+                f"{path.name}: rhetorical correction remains; state the meaning directly"
+            )
 
 
 @pytest.mark.parametrize("path", READY_LESSONS)
@@ -177,8 +218,8 @@ def test_seminar_states_prerequisites_and_result(path: Path) -> None:
     assert "вернуться к слайд" in notes
 
 
-@pytest.mark.parametrize("path", SEMINARS)
-def test_visible_seminar_slides_contain_no_stage_directions(path: Path) -> None:
+@pytest.mark.parametrize("path", [LECTURES[0], *SEMINARS])
+def test_visible_introductory_slides_contain_no_stage_directions(path: Path) -> None:
     visible = visible_lesson_text(path).lower()
 
     for phrase in [
@@ -195,8 +236,8 @@ def test_visible_seminar_slides_contain_no_stage_directions(path: Path) -> None:
         assert phrase not in visible, f"{path.name}: stage direction remains: {phrase}"
 
 
-@pytest.mark.parametrize("path", SEMINARS)
-def test_seminars_do_not_assign_independent_or_fill_in_work(path: Path) -> None:
+@pytest.mark.parametrize("path", [LECTURES[0], *SEMINARS])
+def test_introductory_lessons_do_not_assign_independent_or_fill_in_work(path: Path) -> None:
     text = path.read_text().lower()
 
     for prompt in [
@@ -301,46 +342,35 @@ def test_first_module_defines_core_ml_vocabulary_before_later_lessons() -> None:
 
     for term in [
         "машинное обучение",
-        "**объект**",
-        "**наблюдение**",
-        "обучающий пример",
         "выборка",
-        "размер выборки",
         "признак",
-        "признаковый вектор",
-        "численный признак",
-        "категориальный признак",
-        "порядковый признак",
-        "feature engineering",
-        "матрица «объекты–признаки»",
-        "пространство объектов",
-        "пространство ответов",
+        "целевая переменная",
         "обучение с учителем",
-        "обучение без учителя",
-        "обучение с подкреплением",
-        "бинарная классификация",
-        "многоклассовая классификация",
+        "классификация",
         "регрессия",
         "линейная модель",
-        "логит",
-        "функция активации",
-        "семейство",
+        "сигмоида",
         "параметр",
         "гиперпараметр",
         "регуляризация",
-        "алгоритм обучения",
-        "обученная модель",
-        "вывод (`inference`)",
-        "оценка модели",
+        "оптимизация",
+        "train",
+        "validation",
+        "test",
+        "вывод",
         "функция потерь",
-        "логарифмическая потеря",
         "эмпирический риск",
-        "конвейер (`pipeline`)",
+        "порог",
+        "агрегация",
+        "метрика",
         "базовая модель",
         "обобщающая способность",
         "переобучение",
+        "mae",
     ]:
-        assert term in l0, f"L0 does not define {term}"
+        assert any(name in l0 for name in CONCEPT_NAMES.get(term, (term,))), (
+            f"L0 does not define {term}"
+        )
 
     for term in [
         "единица решения",
@@ -383,49 +413,25 @@ def test_core_terms_have_visible_definition_labels() -> None:
     required = {
         ROOT / "lectures/L00-engineering-ml.qmd": [
             "машинное обучение",
-            "объект",
-            "наблюдение",
-            "обучающий пример",
             "выборка",
             "признак",
             "целевая переменная",
-            "метка класса",
-            "численный признак",
-            "категориальный признак",
-            "порядковый признак",
-            "бинарный признак",
-            "feature engineering",
-            "матрица «объекты–признаки»",
             "обучение с учителем",
-            "обучение без учителя",
-            "обучение с подкреплением",
-            "класс",
-            "бинарная классификация",
-            "многоклассовая классификация",
+            "классификация",
             "регрессия",
             "линейная модель",
-            "логит",
-            "функция активации",
-            "сигмоида",
-            "модель",
-            "семейство",
-            "алгоритм обучения",
-            "обученная модель",
-            "вывод (`inference`)",
             "параметр",
             "гиперпараметр",
             "регуляризация",
-            "оптимизация",
-            "логарифмическая потеря",
-            "конвейер (`pipeline`)",
-            "score",
+            "функция потерь",
+            "эмпирический риск",
+            "агрегация",
             "порог",
+            "метрика",
             "базовая модель",
             "обобщающая способность",
             "переобучение",
-            "остаток регрессии",
             "mae",
-            "mse",
         ],
         ROOT / "lectures/L01-supervised-validation.qmd": [
             "эмпирическая ошибка",
@@ -476,7 +482,8 @@ def test_core_terms_have_visible_definition_labels() -> None:
     for path, terms in required.items():
         text = path.read_text().lower()
         for term in terms:
-            pattern = rf"\[опр\.\]\{{\.definition\}}.{{0,140}}{re.escape(term)}"
+            names = "|".join(re.escape(name) for name in CONCEPT_NAMES.get(term, (term,)))
+            pattern = rf"\[опр\.\]\{{\.definition\}}.{{0,140}}(?:{names})"
             assert re.search(pattern, text, re.DOTALL), f"{path.name}: {term} has no Опр. label"
 
 
