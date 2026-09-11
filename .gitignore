@@ -11,6 +11,8 @@ _quarto_internal_scss_error.scss
 /seminars/S01-speaker-script.md
 /seminars/S02-speaker-script.md
 /seminars/S03-speaker-script.md
+/lectures/*-speaker-script.pdf
+/seminars/*-speaker-script.pdf
 
 # Python
 __pycache__/
