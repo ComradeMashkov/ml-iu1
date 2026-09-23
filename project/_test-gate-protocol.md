@@ -4,7 +4,7 @@
 starter-репозиторий. Процедура проверяет независимость результата, а не пытается
 криптографически скрыть общедоступный исходный датасет.
 
-## Подготовка до S4
+## Подготовка до S5
 
 1. Из UCI Hydraulic Systems создаются train, validation, Test-A и Test-B по
    `split-v1` из [`_approved-datasets.md`](_approved-datasets.md).

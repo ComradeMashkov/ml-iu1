@@ -143,7 +143,7 @@ def assemble_quality_report(log, time_quality, grid_s, batch, X, max_gap_s):
     return {
         "artifact": "s2-quality-and-feature-contract",
         "synthetic_data": True,
-        "source": "separate IMU/GNSS teaching log; not the S1/S3 actuator table",
+        "source": "separate IMU/GNSS teaching log; not the S1 actuator table",
         "timestamp_quality": time_quality,
         "clock_conversion": {
             "reference": "provided common time in seconds",

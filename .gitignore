@@ -11,6 +11,8 @@ _quarto_internal_scss_error.scss
 /seminars/S01-speaker-script.md
 /seminars/S02-speaker-script.md
 /seminars/S03-speaker-script.md
+/seminars/S04-speaker-script.md
+/teaching/
 /lectures/*-speaker-script.pdf
 /seminars/*-speaker-script.pdf
 
@@ -34,3 +36,25 @@ venv/
 .idea/
 
 **/*.quarto_ipynb
+
+# Локальная подготовка и проверка курса
+/_quarto-teacher.yml
+/Makefile
+/pyproject.toml
+/uv.lock
+/.python-version
+/tests/
+/.pytest_cache/
+/.ruff_cache/
+/_extensions/
+/lectures/_template.qmd
+/assets/*.py
+/assets/images/
+/assets/generated/**/*.png
+/assets/media/*
+!/assets/media/gofman-algorithm-meme.png
+/starter/tools/build_sep25_notebooks.py
+/.codex/
+/.agents/
+*.zip
+*.log

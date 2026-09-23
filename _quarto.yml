@@ -2,14 +2,24 @@ project:
   type: website
   output-dir: _site
   render:
-    - "**/*.qmd"
-    - "!lectures/L01-supervised-validation.qmd"
+    - "index.qmd"
+    - "syllabus.qmd"
+    - "course-map.qmd"
+    - "resources.qmd"
+    - "lectures/index.qmd"
+    - "lectures/L00-engineering-ml.qmd"
+    - "lectures/L01-how-models-learn.qmd"
+    - "seminars/index.qmd"
+    - "seminars/S01-first-classifier.qmd"
+    - "seminars/S02-sensor-data-pipeline.qmd"
+    - "seminars/S03-gradient-descent.qmd"
+    - "seminars/S04-model-evaluation.qmd"
     - "!lectures/L00-speaker-script.md"
     - "!lectures/L01-speaker-script.md"
     - "!seminars/S01-speaker-script.md"
     - "!seminars/S02-speaker-script.md"
-    - "!seminars/S03-honest-baseline.qmd"
     - "!seminars/S03-speaker-script.md"
+    - "!seminars/S04-speaker-script.md"
   resources:
     - starter/.gitignore
     - starter/.github/workflows/check.yml
@@ -17,13 +27,23 @@ project:
     - starter/README.md
     - starter/notebooks/S01-live-coding.ipynb
     - starter/notebooks/S02-live-coding.ipynb
+    - starter/notebooks/S03-live-coding.ipynb
+    - starter/notebooks/S04-live-coding.ipynb
+    - starter/notebooks/solutions/S01-complete.ipynb
+    - starter/notebooks/solutions/S02-complete.ipynb
+    - starter/notebooks/solutions/S03-complete.ipynb
+    - starter/notebooks/solutions/S04-complete.ipynb
+    - starter/lessons/s03.py
+    - starter/lessons/s04.py
+    - starter/lessons/s01.py
+    - starter/lessons/s02.py
+    - starter/data/**
     - assets/next-class.js
     - assets/slides-layout.js
+    - assets/vendor/katex/**
     - starter/configs/first-model.json
-    - starter/configs/baseline.json
     - starter/pyproject.toml
     - starter/src/ml_sau/__init__.py
-    - starter/src/ml_sau/baseline.py
     - starter/src/ml_sau/course_case.py
     - starter/src/ml_sau/first_model.py
     - starter/src/ml_sau/sensor.py

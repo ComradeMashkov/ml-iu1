@@ -1,10 +1,11 @@
 [project]
 name = "ml-sau-starter"
 version = "0.1.0"
-description = "Starter project for IU-1 machine-learning seminars S1-S3"
+description = "Starter project for IU-1 machine-learning seminars S1-S4"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "joblib>=1.4,<2",
+  "matplotlib>=3.9,<4",
   "numpy>=2.0,<3",
   "scikit-learn>=1.5,<2",
 ]

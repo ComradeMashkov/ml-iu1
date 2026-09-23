@@ -1,7 +1,0 @@
-{
-  "aggregation": "max_window_score_heuristic",
-  "data_seed": 1126,
-  "feature_set": "physical-v1",
-  "min_recall": 0.85,
-  "split_version": "course-holdout-v2"
-}

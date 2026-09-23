@@ -51,6 +51,26 @@ def reset_code_cells(notebook: dict[str, object], path: Path) -> tuple[int, int,
     if not isinstance(cells, list):
         raise TypeError(f"{path}: notebook must contain a cells list")
 
+    if notebook.get("metadata", {}).get("classroom_format") == "sequential-v2":
+        restored = []
+        count = 0
+        removed = 0
+        for cell in cells:
+            if cell.get("cell_type") != "code":
+                restored.append(cell)
+                continue
+            starter = cell.get("metadata", {}).get("starter_source")
+            if starter is None:
+                removed += 1
+                continue
+            cell["source"] = starter.splitlines(keepends=True)
+            cell["execution_count"] = None
+            cell["outputs"] = []
+            restored.append(cell)
+            count += 1
+        notebook["cells"] = restored
+        return count, removed, 0
+
     reset_count = 0
     removed_count = 0
     added_count = 0

@@ -32,8 +32,13 @@ jobs:
           enable-cache: true
           version: "0.11.32"
 
-      - name: Install locked Python environment
-        run: uv sync --locked
+      - name: Check student source files
+        run: python .github/check_public.py
+
+      - name: Verify seminar code
+        run: |
+          uv sync --locked --project starter
+          make -C starter check
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -42,9 +47,14 @@ jobs:
 
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.9.38"
 
-      - name: Verify sources and render site
-        run: make verify
+      - name: Render student site
+        run: quarto render
+
+      - name: Check published files
+        run: python .github/check_public.py --site _site
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

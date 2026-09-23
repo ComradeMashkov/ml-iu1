@@ -2,7 +2,7 @@
 
 ## Выданный каркас
 
-На S4 в starter-проект добавляются Dockerfile, CI job, CMake-проект и CLI с
+На S8 в starter-проект добавляются Dockerfile, CI job, CMake-проект и CLI с
 тестовым тензором. На S14 преподаватель выдаёт готовый C++ runner для ONNX
 Runtime и ARM64 smoke-test. Студент изменяет два участка:
 

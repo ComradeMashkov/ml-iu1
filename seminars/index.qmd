@@ -4,15 +4,15 @@ subtitle: "Слайды ↔ Jupyter notebook"
 ---
 
 Для каждого готового семинара доступны слайды с определениями и примерами,
-Jupyter notebook для вычислений и описание получаемых файлов. Для S1–S2 используется
+Jupyter notebook для вычислений и описание результатов. Для S1–S4 используется
 [готовый стартовый репозиторий](../starter/README.md).
 
 | # | Тема | Результат | Статус |
 |:--:|---|---|:--:|
-| [S1](S01-first-classifier.qmd) | Первый классификатор | [notebook](../starter/notebooks/S01-live-coding.ipynb), сравнение признаков и разбор ошибки | готово |
-| [S2](S02-sensor-data-pipeline.qmd) | От многосенсорного лога к признакам | [notebook](../starter/notebooks/S02-live-coding.ipynb), матрица признаков и отчёт качества | готово |
-| S3 | Базовая модель и оценка | агрегация score, порог и валидационный отчёт | готовится |
-| S4 | Git, CI и каркас релиза | история изменений, одна команда проверки и готовый deployment scaffold | план |
+| [S1](S01-first-classifier.qmd) | Первый классификатор | [notebook](../starter/notebooks/S01-live-coding.ipynb), [полная версия](../starter/notebooks/solutions/S01-complete.ipynb); перебор порогов и разбор ошибки | готово |
+| [S2](S02-sensor-data-pipeline.qmd) | Из измерений в таблицу | [notebook](../starter/notebooks/S02-live-coding.ipynb), [полная версия](../starter/notebooks/solutions/S02-complete.ipynb); дополнительный материал, не требуется для S3–S4 | вне основного маршрута |
+| [S3](S03-gradient-descent.qmd) | Градиентный спуск своими руками | [notebook](../starter/notebooks/S03-live-coding.ipynb), [полная версия](../starter/notebooks/solutions/S03-complete.ipynb); понятный цикл обучения | готово |
+| [S4](S04-model-evaluation.qmd) | Проверка модели на новых сообщениях | [notebook](../starter/notebooks/S04-live-coding.ipynb), [полная версия](../starter/notebooks/solutions/S04-complete.ipynb); разбиение, ошибки и порог | готово |
 | S5 | PyTorch: данные и цикл обучения | модель и модульные тесты | план |
 | S6 | Диагностика MLP | кривые обучения и регуляризация | план |
 | S7 | 1D-CNN | временная модель и ablation | план |
@@ -28,3 +28,7 @@ Jupyter notebook для вычислений и описание получае�
 : {tbl-colwidths="[7,38,43,12]"}
 
 [Расписание](../index.qmd#расписание-и-готовность-материалов)
+
+S2 отдельно не проводится. Проверка исходных данных и построение признака
+включены в S3–S4. Знакомство с Git и повторяемым запуском переносится
+в подготовку S5, подключение готовой CI-проверки — в S8.

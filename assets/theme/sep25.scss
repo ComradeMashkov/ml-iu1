@@ -1,0 +1,25 @@
+/*-- scss:rules --*/
+// Only L1, S3 and S4 include this extension of the common course theme.
+.reveal table {
+  font-size: .94em;
+  width: 92%;
+  margin: .65em auto;
+}
+.reveal table td, .reveal table th {
+  padding: .23em .45em;
+}
+.reveal pre.sourceCode { font-size: .78em; }
+.reveal .source { font-size: .57em; }
+.reveal .katex { font-size: 1.04em; }
+.reveal .katex-display { margin: .5em 0; }
+.reveal .mail-example {
+  border-left: 5px solid #215caf;
+  background: #f3f6fa;
+  padding: .35em .75em;
+  margin: .7em 0;
+}
+.reveal .mail-example p:first-child { font-size: .85em; color: #38536e; }
+
+.reveal .full-letter { font-size: .87em; line-height: 1.32; }
+.reveal .full-letter p { margin: .40em 0; }
+.reveal .full-letter p:first-child { font-size: 1em; }
