@@ -10,7 +10,7 @@ from urllib.parse import unquote, urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_RULES = [
     r"(?:\.gitignore|README\.md|_quarto\.yml)",
-    r"(?:index|syllabus|course-map|resources)\.qmd",
+    r"(?:index|resources)\.qmd",
     r"\.github/(?:check_public\.py|workflows/publish\.yml)",
     r"lectures/(?:index|L00-engineering-ml|L01-how-models-learn)\.qmd",
     r"seminars/(?:index|S01-first-classifier|S02-sensor-data-pipeline|S03-gradient-descent|S04-model-evaluation)\.qmd",

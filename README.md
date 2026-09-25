@@ -5,7 +5,6 @@
 
 **[Сайт курса: расписание, лекции и семинары](https://comrademashkov.github.io/ml-iu1/)**
 
-- [Программа](https://comrademashkov.github.io/ml-iu1/syllabus.html)
 - [Лекции](https://comrademashkov.github.io/ml-iu1/lectures/)
 - [Семинары](https://comrademashkov.github.io/ml-iu1/seminars/)
 - [Установка инструментов](https://comrademashkov.github.io/ml-iu1/resources.html)

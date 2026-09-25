@@ -16,8 +16,8 @@ subtitle: "Windows, Linux и macOS · единое окружение курса
 | терминал и `make` | запуск одинаковых команд проверки | с S1 |
 | `uv 0.11.32` | Python 3.12, окружение и библиотеки | с S1 |
 | JupyterLab | работа с notebook | с S1 |
-| Git | история изменений и совместная работа | к S5 |
-| Docker | воспроизводимая сборка и ARM64-проверка | с S13 |
+| Git | получение материалов и сохранение версий | по желанию |
+| PyTorch | нейросети и обучение по градиенту | L3, S7–S8 |
 
 Python и JupyterLab отдельно устанавливать не нужно: ими управляет `uv` внутри
 проекта. Редактор можно выбрать любой; в примерах используется
@@ -101,7 +101,7 @@ Tools](https://developer.apple.com/xcode/resources/).
 
 ## Первый запуск starter
 
-До S4 Git не является обязательным. Можно [скачать репозиторий как
+Материалы можно получить без Git: [скачать репозиторий как
 ZIP](https://github.com/ComradeMashkov/ml-iu1/archive/refs/heads/main.zip),
 распаковать его и открыть терминал в каталоге `starter`. Не копируйте чужую
 папку `.venv`.
@@ -132,8 +132,10 @@ make check
 | `uv run python --version` | показывает Python внутри окружения курса |
 | `make check` | проверяет lock-файл, стиль кода и тесты |
 | `make notebook` | запускает JupyterLab |
-| `make first-model` | создаёт отчёт первого классификатора |
-| `make sensor` | создаёт отчёт качества сенсорного лога после реализации S2 |
+| `make s01` | перебирает температурные пороги и проверяет выбранное правило |
+| `make s02` | проверяет учебный CSV и сохраняет таблицу средних температур |
+| `make s03` | обучает фильтр на четырёх сообщениях и строит график потери |
+| `make s04` | проверяет модель на реальном корпусе SMS |
 | `make reset-notebooks` | очищает введённый код и результаты во всех учебных notebook |
 
 ::: {.note}
@@ -153,15 +155,14 @@ make check
 - [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/user/interface.html) — работа с notebook;
 - [uv](https://docs.astral.sh/uv/) — окружение, Python и зависимости.
 
-### Последующие модули
+### Для следующих занятий
 
-- [PyTorch](https://pytorch.org/get-started/locally/) — нейросети и цикл обучения;
-- [ONNX](https://onnx.ai/onnx/) — формат обмена моделями;
-- [ONNX Runtime](https://onnxruntime.ai/docs/) — вывод в Python и C++;
-- [CMake](https://cmake.org/cmake/help/latest/guide/tutorial/) — сборка C++;
-- [Docker](https://docs.docker.com/get-started/) — воспроизводимое окружение;
-- [Git](https://git-scm.com/doc) и [GitHub Actions](https://docs.github.com/actions) — версии и CI;
-- [pytest](https://docs.pytest.org/) и [Ruff](https://docs.astral.sh/ruff/) — тесты и проверка кода.
+- [PyTorch](https://pytorch.org/get-started/locally/) — нейроны, автоматическое вычисление градиентов и цикл обучения;
+- [Git](https://git-scm.com/doc) — сохранение версий своих экспериментов;
+- [pytest](https://docs.pytest.org/) и [Ruff](https://docs.astral.sh/ruff/) — уже подготовленные проверки учебного кода.
+
+PyTorch добавим к материалам блока нейросетей. Для текущих notebook достаточно
+окружения из `starter`; ставить дополнительные библиотеки заранее не требуется.
 
 ## Если запуск не получился
 
