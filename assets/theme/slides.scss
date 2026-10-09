@@ -29,7 +29,7 @@ $presentation-line-height: 1.35;
 $code-block-font-size: 0.62em;
 
 /*-- scss:rules --*/
-.reveal { font-weight: 300; letter-spacing: .002em; }              // лёгкий вес — metropolis-воздух
+.reveal { font-weight: 300; letter-spacing: .002em; }              // лёгкий вес - metropolis-воздух
 .reveal p { margin: .55em 0; }
 // Reveal добавляет center для вертикального размещения слайда.
 // Этот класс не должен центрировать многострочные определения.
@@ -95,7 +95,7 @@ $code-block-font-size: 0.62em;
   object-fit: contain;
 }
 
-// вывод исполняемых ячеек (stdout) — моноширинно, аккуратно
+// вывод исполняемых ячеек (stdout) - моноширинно, аккуратно
 .reveal .cell-output pre { margin: .3em 0 0; }
 .reveal .cell-output code { font-size: .8em; color: $ink; border: none; background: #F4F6F8; }
 .reveal .cell-output-display p { margin: .2em 0; }

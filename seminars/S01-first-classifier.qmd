@@ -67,7 +67,7 @@ else:
     prediction = 0
 ```
 
-`>=` — не меньше. `if` — если. `else` — иначе.
+`>=` - не меньше. `if` - если. `else` - иначе.
 
 Отступ объединяет строки одной ветки.
 
@@ -86,7 +86,7 @@ for i in range(len(train_temperature)):
     print(i, train_temperature[i], train_target[i])
 ```
 
-`range(10)` даёт номера **0–9**.
+`range(10)` даёт номера **0-9**.
 
 Цикл берёт очередной номер и повторяет строки с отступом.
 
@@ -151,7 +151,7 @@ else:
 
 ## Код 6 · проверить результат
 
-[Опр.]{.definition} **Accuracy** — доля верных ответов.
+[Опр.]{.definition} **Accuracy** - доля верных ответов.
 
 ```python
 accuracy = correct / len(check_target)

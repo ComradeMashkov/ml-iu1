@@ -17,7 +17,7 @@ subtitle: "Windows, Linux и macOS · единое окружение курса
 | `uv 0.11.32` | Python 3.12, окружение и библиотеки | с S1 |
 | JupyterLab | работа с notebook | с S1 |
 | Git | получение материалов и сохранение версий | по желанию |
-| PyTorch | нейросети и обучение по градиенту | L3, S7–S8 |
+| PyTorch | нейросети и обучение по градиенту | L3, S7-S8 |
 
 Python и JupyterLab отдельно устанавливать не нужно: ими управляет `uv` внутри
 проекта. Редактор можно выбрать любой; в примерах используется
@@ -25,7 +25,7 @@ Python и JupyterLab отдельно устанавливать не нужно
 
 ## Windows 10/11
 
-Рекомендуемый путь — **WSL 2 с Ubuntu**. Он даёт тот же Linux-терминал, который
+Рекомендуемый путь - **WSL 2 с Ubuntu**. Он даёт тот же Linux-терминал, который
 используется в поздних модулях курса.
 
 1. Откройте PowerShell от имени администратора:
@@ -147,19 +147,19 @@ make check
 
 ### Основной маршрут
 
-- [Python 3.12](https://docs.python.org/3.12/) — язык и стандартная библиотека;
-- [NumPy](https://numpy.org/doc/stable/user/) — массивы и векторные операции;
-- [SciPy](https://docs.scipy.org/doc/scipy/tutorial/) — научные алгоритмы;
-- [Matplotlib](https://matplotlib.org/stable/users/explain/quick_start.html) — графики;
-- [scikit-learn](https://scikit-learn.org/stable/user_guide.html) — базовые модели, метрики и конвейеры;
-- [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/user/interface.html) — работа с notebook;
-- [uv](https://docs.astral.sh/uv/) — окружение, Python и зависимости.
+- [Python 3.12](https://docs.python.org/3.12/) - язык и стандартная библиотека;
+- [NumPy](https://numpy.org/doc/stable/user/) - массивы и векторные операции;
+- [SciPy](https://docs.scipy.org/doc/scipy/tutorial/) - научные алгоритмы;
+- [Matplotlib](https://matplotlib.org/stable/users/explain/quick_start.html) - графики;
+- [scikit-learn](https://scikit-learn.org/stable/user_guide.html) - базовые модели, метрики и конвейеры;
+- [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/user/interface.html) - работа с notebook;
+- [uv](https://docs.astral.sh/uv/) - окружение, Python и зависимости.
 
 ### Для следующих занятий
 
-- [PyTorch](https://pytorch.org/get-started/locally/) — нейроны, автоматическое вычисление градиентов и цикл обучения;
-- [Git](https://git-scm.com/doc) — сохранение версий своих экспериментов;
-- [pytest](https://docs.pytest.org/) и [Ruff](https://docs.astral.sh/ruff/) — уже подготовленные проверки учебного кода.
+- [PyTorch](https://pytorch.org/get-started/locally/) - нейроны, автоматическое вычисление градиентов и цикл обучения;
+- [Git](https://git-scm.com/doc) - сохранение версий своих экспериментов;
+- [pytest](https://docs.pytest.org/) и [Ruff](https://docs.astral.sh/ruff/) - уже подготовленные проверки учебного кода.
 
 PyTorch добавим к материалам блока нейросетей. Для текущих notebook достаточно
 окружения из `starter`; ставить дополнительные библиотеки заранее не требуется.

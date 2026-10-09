@@ -6,12 +6,16 @@
 _quarto_internal_scss_error.scss
 
 # Локальные материалы преподавателя
+/AGENTS.md
 /lectures/L00-speaker-script.md
 /lectures/L01-speaker-script.md
+/lectures/L02-speaker-script.md
 /seminars/S01-speaker-script.md
 /seminars/S02-speaker-script.md
 /seminars/S03-speaker-script.md
 /seminars/S04-speaker-script.md
+/seminars/S05-speaker-script.md
+/seminars/S06-speaker-script.md
 /teaching/
 /lectures/*-speaker-script.pdf
 /seminars/*-speaker-script.pdf
@@ -53,6 +57,12 @@ venv/
 /assets/generated/**/*.png
 /assets/media/*
 !/assets/media/gofman-algorithm-meme.png
+!/assets/media/delivery-helldivers.jpg
+!/assets/media/prophecy-calendar.jpg
+!/assets/media/internet-real-life.jpg
+!/assets/media/astrologer-ai.jpg
+!/assets/media/be-a-freak-cat.jpg
+!/assets/media/casino-starting-capital.jpg
 /starter/tools/build_sep25_notebooks.py
 /.codex/
 /.agents/

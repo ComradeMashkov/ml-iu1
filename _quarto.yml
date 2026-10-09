@@ -1,24 +1,37 @@
 project:
   type: website
   output-dir: _site
+  post-render:
+    - python3 .github/normalize_dashes.py
   render:
     - "index.qmd"
     - "resources.qmd"
     - "lectures/index.qmd"
     - "lectures/L00-engineering-ml.qmd"
     - "lectures/L01-how-models-learn.qmd"
+    - "lectures/L02-linear-regression.qmd"
     - "seminars/index.qmd"
     - "seminars/S01-first-classifier.qmd"
     - "seminars/S02-sensor-data-pipeline.qmd"
     - "seminars/S03-gradient-descent.qmd"
     - "seminars/S04-model-evaluation.qmd"
+    - "seminars/S05-linear-regression.qmd"
+    - "seminars/S06-regression-limits.qmd"
     - "!lectures/L00-speaker-script.md"
     - "!lectures/L01-speaker-script.md"
+    - "!lectures/L02-speaker-script.md"
     - "!seminars/S01-speaker-script.md"
     - "!seminars/S02-speaker-script.md"
     - "!seminars/S03-speaker-script.md"
     - "!seminars/S04-speaker-script.md"
+    - "!seminars/S05-speaker-script.md"
+    - "!seminars/S06-speaker-script.md"
   resources:
+    - "!teaching/**"
+    - "!**/*-speaker-script.*"
+    - "!**/.ipynb_checkpoints/**"
+    - "!**/__pycache__/**"
+    - "!**/.venv/**"
     - starter/.gitignore
     - starter/.github/workflows/check.yml
     - starter/Makefile
@@ -27,12 +40,18 @@ project:
     - starter/notebooks/S02-live-coding.ipynb
     - starter/notebooks/S03-live-coding.ipynb
     - starter/notebooks/S04-live-coding.ipynb
+    - starter/notebooks/S05-live-coding.ipynb
+    - starter/notebooks/S06-live-coding.ipynb
     - starter/notebooks/solutions/S01-complete.ipynb
     - starter/notebooks/solutions/S02-complete.ipynb
     - starter/notebooks/solutions/S03-complete.ipynb
     - starter/notebooks/solutions/S04-complete.ipynb
+    - starter/notebooks/solutions/S05-complete.ipynb
+    - starter/notebooks/solutions/S06-complete.ipynb
     - starter/lessons/s03.py
     - starter/lessons/s04.py
+    - starter/lessons/s05.py
+    - starter/lessons/s06.py
     - starter/lessons/s01.py
     - starter/lessons/s02.py
     - starter/data/**

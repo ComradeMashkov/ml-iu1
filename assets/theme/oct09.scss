@@ -1,0 +1,16 @@
+/*-- scss:rules --*/
+// The seminar's adjacent error columns have the same width.
+.reveal #s5-07 table {
+  table-layout: fixed;
+}
+
+.reveal .meme-with-content .column {
+  min-width: 0;
+}
+
+.reveal .meme-image img {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+  margin: 0 auto;
+}

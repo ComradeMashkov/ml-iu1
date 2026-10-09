@@ -76,7 +76,7 @@ def interpolate_with_gap_mask(t_s, values, grid_s, max_gap_s):
     t_s = np.asarray(t_s, dtype=np.float64)
     grid_s = np.asarray(grid_s, dtype=np.float64)
     result = linear_interpolation(t_s, values, grid_s)
-    for left, right in zip(t_s[:-1], t_s[1:], strict=True):  # noqa: RUF007 — matches the lesson
+    for left, right in zip(t_s[:-1], t_s[1:], strict=True):  # noqa: RUF007 - matches the lesson
         if right - left > max_gap_s + GAP_TOLERANCE_S:
             inside = (grid_s > left) & (grid_s < right)
             result[inside] = np.nan

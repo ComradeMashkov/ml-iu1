@@ -11,25 +11,29 @@ ROOT = Path(__file__).resolve().parents[1]
 SOURCE_RULES = [
     r"(?:\.gitignore|README\.md|_quarto\.yml)",
     r"(?:index|resources)\.qmd",
-    r"\.github/(?:check_public\.py|workflows/publish\.yml)",
-    r"lectures/(?:index|L00-engineering-ml|L01-how-models-learn)\.qmd",
-    r"seminars/(?:index|S01-first-classifier|S02-sensor-data-pipeline|S03-gradient-descent|S04-model-evaluation)\.qmd",
+    r"\.github/(?:check_public\.py|normalize_dashes\.py|workflows/publish\.yml)",
+    r"lectures/(?:index|L00-engineering-ml|L01-how-models-learn|L02-linear-regression)\.qmd",
+    r"seminars/(?:index|S01-first-classifier|S02-sensor-data-pipeline|S03-gradient-descent|S04-model-evaluation|S05-linear-regression|S06-regression-limits)\.qmd",
     r"project/_[a-z-]+\.md",
     r"assets/(?:logo\.svg|references\.bib|next-class\.js|slides-layout\.js)",
     r"assets/theme/[a-z0-9-]+\.scss",
-    r"assets/generated/(?:intro|sep25)/[a-z0-9-]+\.svg",
+    r"assets/generated/(?:intro|sep25|oct09)/[a-z0-9-]+\.svg",
     r"assets/media/gofman-algorithm-meme\.png",
+    r"assets/media/delivery-helldivers\.jpg",
+    r"assets/media/(?:prophecy-calendar|internet-real-life|astrologer-ai|be-a-freak-cat|casino-starting-capital)\.jpg",
     r"assets/vendor/katex/(?:LICENSE|README\.md|katex\.min\.(?:js|css)|fonts/[\w-]+\.(?:woff2?|ttf))",
     r"starter/(?:\.gitignore|Makefile|README\.md|pyproject\.toml|uv\.lock)",
     r"starter/\.github/workflows/check\.yml",
     r"starter/(?:configs/[\w-]+\.json|data/[\w-]+\.(?:csv|tsv|txt|md))",
-    r"starter/notebooks/(?:S0[1-4]-live-coding|solutions/S0[1-4]-complete)\.ipynb",
-    r"starter/(?:lessons/s0[1-4]\.py|src/ml_sau/[\w]+\.py|tests/test_[\w]+\.py|tools/reset_notebooks\.py)",
+    r"starter/notebooks/(?:S0[1-6]-live-coding|solutions/S0[1-6]-complete)\.ipynb",
+    r"starter/(?:lessons/s0[1-6]\.py|src/ml_sau/[\w]+\.py|tests/test_[\w]+\.py|tools/reset_notebooks\.py)",
 ]
 PRIVATE_CONTENT = re.compile(
     r"(?m)^\s*:{3,}\s*\{[^}\n]*\.notes\b"
     r"|<aside\b[^>]*class=[\"'][^\"']*\bnotes\b"
     r"|/Users/ilamaskov/|codex-clipboard-"
+    r"|Что сказать вслух|Разобраться перед занятием|notebook-solution:"
+    r"|(?:href|src)=[\"'][^\"']*(?:teaching/|speaker-script)"
 )
 
 
@@ -45,9 +49,23 @@ class Links(HTMLParser):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--site", type=Path)
+    parser.add_argument(
+        "--include-untracked",
+        action="store_true",
+        help="Review non-ignored new files before staging or committing (local preparation).",
+    )
     args = parser.parse_args()
     tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT).decode().split("\0")
     tracked = [name for name in tracked if name]
+    if args.include_untracked:
+        new = (
+            subprocess.check_output(
+                ["git", "ls-files", "--others", "--exclude-standard", "-z"], cwd=ROOT
+            )
+            .decode()
+            .split("\0")
+        )
+        tracked = sorted(set(tracked).union(name for name in new if name))
     errors = []
     for name in tracked:
         if not any(re.fullmatch(rule, name) for rule in SOURCE_RULES):

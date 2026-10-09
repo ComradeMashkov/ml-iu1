@@ -40,7 +40,7 @@
   week.textContent = `Пятница · учебная неделя ${cells[1].textContent.trim()}`;
   dateLine.append(dateTitle, week);
 
-  const times = ["15:55–17:25", "17:35–19:05", "19:15–20:45"];
+  const times = ["15:55-17:25", "17:35-19:05", "19:15-20:45"];
   const slots = document.createElement("div");
   slots.className = "next-class-slots";
 
