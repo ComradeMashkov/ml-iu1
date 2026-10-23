@@ -10,12 +10,12 @@ from urllib.parse import unquote, urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_RULES = [
     r"(?:\.gitignore|README\.md|_quarto\.yml)",
-    r"(?:index|resources)\.qmd",
+    r"(?:index|resources|rk1)\.qmd",
     r"\.github/(?:check_public\.py|normalize_dashes\.py|workflows/publish\.yml)",
     r"lectures/(?:index|L00-engineering-ml|L01-how-models-learn|L02-linear-regression|L03-neural-networks)\.qmd",
     r"seminars/(?:index|S01-first-classifier|S02-sensor-data-pipeline|S03-gradient-descent|S04-model-evaluation|S05-linear-regression|S06-regression-limits|S07-neurons-and-nonlinearity|S08-csgo-forecast)\.qmd",
     r"project/_[a-z-]+\.md",
-    r"assets/(?:logo\.svg|references\.bib|next-class\.js|slides-layout\.js|drawing-quiz\.js|net-lab\.js)",
+    r"assets/(?:rk1-tickets\.pdf|logo\.svg|references\.bib|next-class\.js|slides-layout\.js|drawing-quiz\.js|net-lab\.js)",
     r"assets/theme/[a-z0-9-]+\.scss",
     r"assets/generated/(?:intro|sep25|oct09|oct23)/[a-z0-9-]+\.svg",
     r"assets/generated/oct23/(?:doodles|doodles-seminar|pixels|mistakes|rabbit|drawing-0[1-6]|mistake-0[1-6])\.png",
