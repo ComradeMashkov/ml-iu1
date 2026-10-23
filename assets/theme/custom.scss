@@ -149,3 +149,13 @@ hr { border: none; border-top: 1px solid $line; margin: 1.6rem 0; }
   }
   .next-class-slot:first-child { border-top: 0; }
 }
+
+.rk-banner {
+  margin: 0 0 1.6rem;
+  padding: .9rem 1.1rem;
+  background: #B3261E;
+  color: #fff;
+  font-size: 1.05rem;
+}
+.rk-banner p { margin: 0; }
+.rk-banner a { color: #fff; font-weight: 600; text-decoration: underline; }
