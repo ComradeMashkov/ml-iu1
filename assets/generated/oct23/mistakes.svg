@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="637.602996pt" height="341.836719pt" viewBox="0 0 637.602996 341.836719" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-10-23T12:57:50.520973</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 341.836719 
+L 637.602996 341.836719 
+L 637.602996 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g clip-path="url(#p900be4b0a7)">
+    <image xlink:href="data:image/png;base64,
+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" id="imaged4b796e8be" transform="scale(1 -1) translate(0 -138.96)" x="8.64" y="-23.596719" width="138.96" height="138.96"/>
+   </g>
+   <g id="text_1">
+    <text style="font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle" x="78.377969" y="17.836719" transform="rotate(-0 78.377969 17.836719)">чайник / ответ: кот</text>
+   </g>
+  </g>
+  <g id="axes_2">
+   <g clip-path="url(#p720e431dbe)">
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAMEAAADBCAYAAAB2QtScAAAFdklEQVR4nO3dyyttfRzH8XUej2suEwMpuQ0wESkjDAxc/gCMGLhNXCYkZEAGSoiUSBmQARLJAKFI+RPIbUZRSGHg0n565vu7aq+zD9v5vF/D/WmdI5136/Rrr71/+Xw+nwMI++e7fwDguxEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5BEB5P0r/xsIAU9PT+Y2NzdnbvPz8wH/eV4VFhaa2+LiormFhYU5oY47AeQRAeQRAeQRAeQRAeQRAeRxRBpEJycn5jY5OWluCwsL5vb8/GxupaWlAR9nunl5efF0DJqdnW1u/f39TqjjTgB5RAB5RAB5RAB5RAB5RAB5HJH6cX5+bv7DaG1tNbednR1zi42NNbfa2lpza2trM7ecnBznq8TFxZnb4OCguaWkpJhbQ0ODEwq4E0AeEUAeEUAeEUAeEUAeEUCe7BHpxsaGudXV1ZlbdHS0uY2NjZlbfX29uSUkJDihbnx83Nxub2/NrbGx0dzu7u7Mraenx/kq3Akgjwggjwggjwggjwggjwgg75fP5/P9rb+FoaEhc+vt7TW34uJic1teXja3pKQkR9Hn56end8guLS15eug/KirKCSbuBJBHBJBHBJBHBJBHBJD3V5wOWc/2lpeXe3pj19TUlLmFh4cH+NNpW1lZMbfq6mpzOz09NbesrCwnmLgTQB4RQB4RQB4RQB4RQB4RQN6Pecb48fEx4Od38/PzzWs4Bv0aaWlpnq7b3Nw0N45IgSDjv0OQRwSQRwSQRwSQRwSQ92OOSFtaWszt/v7e7+tbW1vmNbwb9Gtkubzj0+2Z7M7OTnN7f3/3+3p3d7fjBXcCyCMCyCMCyCMCyCMCyCMCyAupB+3dPuKwpqbG3EZGRvy+3tHREZSfC3+G2z89t49vXF9f9/v62dmZeU1ycrK5cSeAPCKAPCKAPCKAPCKAPCKAvC8/Il1bW/P0JdoFBQXmtr+/7/f1t7c385rZ2VlzOz4+NrePjw9P36Di9u03FRUV5paSkuIourq6MrfMzEy/r09MTJjXtLe3mxt3AsgjAsgjAsgjAsgjAsgjAshzfdD+5ubG0xHjxcWFuS0uLppbSUmJua2urprb0dGR39ebmprMa87Pzz09HB4TE2NuDw8P5rawsOB4kZeXZ24HBwd+X4+Pj3d+ui2XD0mwZGRkePq7uBNAHhFAHhFAHhFAHhFAHhFAnusR6fb2trn19/d7+uWlp6eb2/T0tLn19fUFfF12drZ5zeHhobkVFRU5weZ2bOx2HOj28HhERIQT6i4vL81tdHTU3GZmZsytqqrK7+uVlZWOF9wJII8III8III8III8III8IIM/1Qfvr62tPR53W1+n8DrevV+rq6gr4WNXtoXgEZm9vz9zKysrMLTIy0tyam5vNbXh4OKhHxtwJII8III8III8III8III8IIM/zZ5Hu7u6a28DAgLm9vr6aW2pqqqd3rebm5pob/ry7uztPH5BgvRv0f4mJic5X4U4AeUQAeUQAeUQAeUQAeSH1Zd7Ad+BOAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAHlEAEfdfzodCUPAQ+v5AAAAAElFTkSuQmCC" id="image94032b8962" transform="scale(1 -1) translate(0 -138.96)" x="249.12" y="-23.596719" width="138.96" height="138.96"/>
+   </g>
+   <g id="text_2">
+    <text style="font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle" x="318.801498" y="17.836719" transform="rotate(-0 318.801498 17.836719)">чайник / ответ: кот</text>
+   </g>
+  </g>
+  <g id="axes_3">
+   <g clip-path="url(#p6b8049b7e4)">
+    <image xlink:href="data:image/png;base64,
+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" id="imageb65554158d" transform="scale(1 -1) translate(0 -138.96)" x="489.6" y="-23.596719" width="138.96" height="138.96"/>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle" x="559.225028" y="17.836719" transform="rotate(-0 559.225028 17.836719)">чайник / ответ: кот</text>
+   </g>
+  </g>
+  <g id="axes_4">
+   <g clip-path="url(#p80634a2e4e)">
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAMEAAADBCAYAAAB2QtScAAAFLElEQVR4nO3dzyvlexzHca4rZCFKFiSSyUJTyEYKG2IxCzXlx2ImCyur2c1/MEWNneywmbE6C4qNFBsp1FgoG002osRIaZRz17e8v3W+95yM+3w+lufVQSfPvvXpe84pzmaz2SIJ7K+X/gOkl2YEwjMC4RmB8IxAeEYgPCMQnhEIzwiEZwTCMwLhGYHwjEB4RiA8IxCeEQjPCIRnBMIzAuEZgfCMQHhGIDwjEJ4RCM8IhGcEwjMC4RmB8IxAeEYgPCMQnhEIzwiEZwTCMwLhGYHwjEB4RiA8IxCeEQjPCIRnBMIzAuEZgfCMQHhGIDwjEN7f+Fcgj87OzsItk8mEW0dHR7gNDAz8579LybwSCM8IhGcEwjMC4RmB8IxAeMXZbDaLfxXypLGxMdzOz89T/cz9/f1w6+7uTvUz9W9eCYRnBMIzAuEZgfCMQHhGIDzvIs3R7e1tqmPQ4eHhcNvY2Ai3o6OjcPOIND+8EgjPCIRnBMIzAuEZgfCMQHgekebo4uIi1T/Nw8NDqueVlpaG28TERLgtLCw8+3hVVVX4nLu7u3A7PT0Nt58/f4ZbTU1NuDU3N4dbQ0NDuJWUlBTlk1cC4RmB8IxAeEYgPCMQnhEIzyPSHF1dXaX6p2lpaQm37e3tcJuamkr1+6Lj052dnfA5s7OzRX+KysrKcPv06VO4ff78+dnHKyoqwud4JRCeEQjPCIRnBMIzAuEZgfD8LNI8HpG+efMm3G5ubvL+z9bX1xduc3Nzf/yb8xsS7hS9vLwMt9+/f4fb4uLis49PT0+Hz/FKIDwjEJ4RCM8IhGcEwjMC4XlEmkcHBweptiRNTU3hNjg4GG739/fPPt7f3x8+5/DwMNyenp7C7fv37+GWyWTCbXV1Ndyqq6vDbX5+PtzGx8dz/sACrwTCMwLhGYHwjEB4RiC8gpwO7e7upvo2l3fv3oXb4+NjuJ2cnIRbXV1dzu/5pRobG0t1klNcXJxqSzpxSrK0tBRuHz58yPnneSUQnhEIzwiEZwTCMwLhGYHwCvIxjCsrK+G2trYWbpOTk3n/W8rKyp59/Pj4ONU3qPz48SPcOjs7i16z3t7eVEekSafsSVt5eXm4dXV1hVtbW1tRPnklEJ4RCM8IhGcEwjMC4RmB8ApyRFpbW5v3jyP88uVLqi93jr59JenjCEdGRsLt27dv4XZ9fZ3qPbN/ipmZmXDr6ekJt62trXBrbW0Nt+Hh4ZyPtgvBK4HwjEB4RiA8IxCeEQjPCIRXkDfaf/36NdUXMSdJunPw/fv34TYwMPDs40NDQ6ne1J/0JdN3d3ep3nCul+WVQHhGIDwjEJ4RCM8IhGcEwkt9F+nFxUW4/fr1K+8vbNLdp0l3mEZ3dq6vr4fPGR0dDbe3b9+Gm8egr5NXAuEZgfCMQHhGIDwjEJ4RCC/xLtLl5eXwBfr48eP/9sVL+kzOhYWFcGtvby/QX6RC8kogPCMQnhEIzwiEZwTCMwLhJR6RXl1dhS/Q5uZmuNXX14dbTU1Nqq/vqaqqCre9vb2c3zSfdFdqR0dHuCV9hqleJ68EwjMC4RmB8IxAeEYgPCMQXkE+i1R6TbwSCM8IhGcEwjMC4RmB8IxAeEYgPCMQnhEIzwiEZwTCMwLhGYHwjEB4RiA8IxCeEQjPCIRnBMIzAuEZgfCMQHhGIDwjEJ4RCM8IhGcEwjMC4RmB8IxAeEYgPCMQnhEIzwiEZwTCMwLhGYHwjEB4RiA8IxCeEQjPCIRnBMIzAuEZgfCMQHhGoCK6fwDx8/SgdXp6oQAAAABJRU5ErkJggg==" id="image62213f8e85" transform="scale(1 -1) translate(0 -138.96)" x="8.64" y="-195.676719" width="138.96" height="138.96"/>
+   </g>
+   <g id="text_4">
+    <text style="font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle" x="78.377969" y="189.736719" transform="rotate(-0 78.377969 189.736719)">чайник / ответ: кот</text>
+   </g>
+  </g>
+  <g id="axes_5">
+   <g clip-path="url(#pfbb7c1ca00)">
+    <image xlink:href="data:image/png;base64,
+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" id="image964a3eb707" transform="scale(1 -1) translate(0 -138.96)" x="249.12" y="-195.676719" width="138.96" height="138.96"/>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle" x="318.801498" y="189.736719" transform="rotate(-0 318.801498 189.736719)">чайник / ответ: кот</text>
+   </g>
+  </g>
+  <g id="axes_6">
+   <g clip-path="url(#p8ef33581f3)">
+    <image xlink:href="data:image/png;base64,
+iVBORw0KGgoAAAANSUhEUgAAAMEAAADBCAYAAAB2QtScAAAFjklEQVR4nO3dO0gcexiG8dEoEoNRXPBCRNDCG0HBG7YKaqUWFlpotBBUSGEhYmdjs4WFaGFjYaMgiJqUIt4LLyhiaZFAtEmhiYp4zR4OnNJvYP8sJ7u+z6/cl01k4GFgmJ2JC4VCIQ8QFv+3/wDgbyMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyEtQPQLX19fmNjU1ZW4zMzPmdn5+7kXa1dXVi58HAgHzO21tbebW1dVlbpWVlZ4izgSQRwSQRwSQRwSQRwSQRwSQFxcKhUKv9Sjs7u6aW3t7u7l9//7d3BoaGsytpKTE3JKSkjwXiYmJL37+48cP8zsLCwvmdnNzY26fP382t4mJCe+14kwAeUQAeUQAeUQAeUQAeUQAef/7XaRnZ2fmtri4aG63t7cvfp6enm5+Z2hoyNwyMjLM7eDgwNwqKiq8aDc5OWluo6Oj5hYMBs3t48eP5tbb2+vFMs4EkEcEkEcEkEcEkEcEkEcEkOd8F+nv37/N7dOnT+b25cuXqDjoy8vL5tbc3OwpqqurMze/u1ZPT0+9WMaZAPKIAPKIAPKIAPKIAPKIAPJ87yK9uLgwt/r6enM7OjqK+IFNSAj/htc3b96YW19fn7l9+PDB3EpLS8P+UXysaGxsNLfh4WFze3x8jOljwpkA8ogA8ogA8ogA8ogA8ogA8hJc77Q8PDx0OnidnZ3mtrS0ZG4PDw8vfj4wMGB+p7i42Ny6u7vNraamxtxyc3OdnuVZVVVlbm/fvvUi6f7+3tw2NzfNbXx83OnBBLFwGdQPZwLIIwLIIwLIIwLIIwLI8/2N8Z8/f8wDlJqa6vQ2FFfx8fFhX7X4+fOn0/+VmZlpbnd3d+Z2eXnpRTvrOP6roKDAczmWx8fH5paTk+NFO84EkEcEkEcEkEcEkEcEkEcEkOf8GMaWlhZz297eNrdfv355LpdkXS75paWlmdvV1ZW5PT09OT1icmxszNxOTk7M7fn52YukuLg4cysrK3O6tF1eXm5uRUVF5raxsRH1N95xJoA8IoA8IoA8IoA8IoA8IoA850uk8/Pz5tbR0WFuWVlZ5nZ+fm5ugUDgxc/z8vLM7yQnJ5vb+vq605tq/H53/Zp9/frV6Xj5/ZZ7amrK3JKSksK+xP7+/XunS+mcCSCPCCCPCCCPCCCPCCCPCCAv/Ne//Gdubs7p7k2/l0L7vY3GupK7t7fnRVphYWHE/81Y19TUZG7BYNDpDTerq6vmVltbG/ajOv3u4u3p6TE3zgSQRwSQRwSQRwSQRwSQRwSQ53wXaX5+vrl9+/bN3N69e2dura2t5mb9mX4vHN/f33d6tqbfpdqdnR1zq66uNjdVa2tr5jY9PW1uW1tbL36ekpJifmdlZcXcsrOzzY0zAeQRAeQRAeQRAeQRAeQRAeQ5XyL1e/Gz32XQtrY2c/O7/OXC79mms7Oz5jYyMmJug4OD5tbf3x/GX4dowZkA8ogA8ogA8ogA8ogA8ogA8pwvkQKvBWcCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCyCMCeOr+ASjkExqe5VxuAAAAAElFTkSuQmCC" id="image4a18d76f27" transform="scale(1 -1) translate(0 -138.96)" x="489.6" y="-195.676719" width="138.96" height="138.96"/>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: middle" x="559.225028" y="189.736719" transform="rotate(-0 559.225028 189.736719)">кот / ответ: чайник</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p900be4b0a7">
+   <rect x="8.927969" y="23.836719" width="138.9" height="138.9"/>
+  </clipPath>
+  <clipPath id="p720e431dbe">
+   <rect x="249.351498" y="23.836719" width="138.9" height="138.9"/>
+  </clipPath>
+  <clipPath id="p6b8049b7e4">
+   <rect x="489.775028" y="23.836719" width="138.9" height="138.9"/>
+  </clipPath>
+  <clipPath id="p80634a2e4e">
+   <rect x="8.927969" y="195.736719" width="138.9" height="138.9"/>
+  </clipPath>
+  <clipPath id="pfbb7c1ca00">
+   <rect x="249.351498" y="195.736719" width="138.9" height="138.9"/>
+  </clipPath>
+  <clipPath id="p8ef33581f3">
+   <rect x="489.775028" y="195.736719" width="138.9" height="138.9"/>
+  </clipPath>
+ </defs>
+</svg>

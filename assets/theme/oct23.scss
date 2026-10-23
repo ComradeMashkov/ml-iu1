@@ -1,0 +1,108 @@
+/*-- scss:rules --*/
+.reveal { font-weight: 400; }
+.reveal h2 { font-size: 1.32em; }
+.reveal table { font-size: .9em; margin: .5em auto; }
+.reveal table td, .reveal table th { padding: .23em .6em; }
+.reveal .katex { font-size: 1.05em; }
+.reveal .katex-display { margin: .5em 0; }
+.reveal .source { display: block; font-size: .52em; line-height: 1.3; margin-top: .4em; }
+.reveal img { display: block; margin: .15em auto; object-fit: contain; }
+.reveal .columns { gap: 1.2em; }
+.reveal pre.sourceCode { font-size: .7em; }
+
+.reveal .drawing-quiz {
+  display: grid;
+  grid-template-columns: 48% 48%;
+  align-items: center;
+  gap: 4%;
+  min-height: 390px;
+}
+.reveal .drawing-quiz [hidden] { display: none !important; }
+.reveal .drawing-quiz img { width: 350px; height: 350px; margin: 0 auto; }
+.reveal .drawing-quiz-progress { font-size: .7em; color: #6b7178; }
+.reveal .drawing-quiz-choices { display: flex; gap: .5em; }
+.reveal .drawing-quiz button {
+  font: inherit;
+  font-size: .85em;
+  padding: .4em .8em;
+  border: 2px solid #215caf;
+  border-radius: 6px;
+  background: white;
+  color: #215caf;
+  cursor: pointer;
+}
+.reveal .drawing-quiz button:hover,
+.reveal .drawing-quiz button[aria-pressed="true"] { background: #215caf; color: white; }
+.reveal .drawing-quiz button:focus-visible { outline: 3px solid #20232a; outline-offset: 4px; }
+.reveal .drawing-quiz button:disabled { cursor: default; }
+.reveal .drawing-quiz-feedback { min-height: 3.5em; font-size: .8em; }
+
+// Where the numbers of a slide come from: one quiet line instead of repeated sentences.
+.reveal .given {
+  display: block;
+  margin-top: .6em;
+  font-size: .5em;
+  line-height: 1.35;
+  color: #5a626a;
+  border-left: 3px solid #cbd4e1;
+  padding-left: .6em;
+}
+.reveal .caption { display: block; text-align: center; font-size: .6em; color: #5a626a; }
+
+.reveal .relu-lab {
+  display: grid;
+  grid-template-columns: 56% 42%;
+  gap: 2%;
+  align-items: center;
+}
+.reveal .relu-lab svg { width: 100%; max-height: 330px; }
+.reveal .relu-lab svg text { font-size: 15px; fill: #5a626a; }
+.reveal .relu-lab .axis { stroke: #8796a8; stroke-width: 1.5; }
+.reveal .relu-lab .relu-line { stroke: #215caf; stroke-width: 4; }
+.reveal .relu-lab .relu-kink { fill: #d77b26; }
+.reveal .relu-controls { font-size: .72em; }
+.reveal .relu-controls label { display: block; margin: .5em 0; }
+.reveal .relu-controls input[type=range] { width: 100%; accent-color: #215caf; }
+.reveal .relu-formula { font-size: 1.15em; font-weight: 600; }
+.reveal .relu-readout { min-height: 3.6em; color: #20232a; }
+
+.reveal .xray {
+  display: grid;
+  grid-template-columns: 250px 120px 400px 1fr;
+  gap: 18px;
+  align-items: start;
+  font-size: .6em;
+}
+.reveal .xray canvas { image-rendering: pixelated; display: block; }
+.reveal .xray-pad {
+  width: 240px;
+  height: 240px;
+  border: 2px solid #215caf;
+  border-radius: 8px;
+  cursor: crosshair;
+  touch-action: none;
+  background: white;
+}
+.reveal .xray-buttons { margin-top: .5em; display: flex; flex-wrap: wrap; gap: .3em; }
+.reveal .xray button {
+  font: inherit;
+  padding: .2em .5em;
+  border: 2px solid #215caf;
+  border-radius: 6px;
+  background: white;
+  color: #215caf;
+  cursor: pointer;
+}
+.reveal .xray button:hover { background: #215caf; color: white; }
+.reveal .xray button:focus-visible { outline: 3px solid #20232a; outline-offset: 2px; }
+.reveal .xray-head { margin: 0 0 .4em; font-weight: 600; }
+.reveal .xray-input { width: 112px; height: 112px; border: 1px solid #cbd4e1; }
+.reveal .xray-note { margin: .2em 0; color: #5a626a; }
+.reveal .xray-grid { display: grid; grid-template-columns: repeat(4, 80px); gap: 6px 12px; }
+.reveal .xray-tile { text-align: center; transition: opacity .15s; }
+.reveal .xray-tile canvas { width: 76px; height: 76px; margin: 0 auto; border: 1px solid #e3e7ec; }
+.reveal .xray-tile span { display: block; font-size: .85em; min-height: 1.2em; color: #8796a8; }
+.reveal .xray-head .teapot, .reveal .xray-tile span.teapot { color: #c0392b; font-weight: 600; }
+.reveal .xray-head .cat, .reveal .xray-tile span.cat { color: #215caf; font-weight: 600; }
+.reveal .xray-verdict { font-size: 1.5em; font-weight: 700; line-height: 1.2; min-height: 2.4em; }
+.reveal .xray-score { color: #5a626a; }

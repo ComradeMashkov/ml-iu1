@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1240" height="460" viewBox="0 0 1240 460">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#8796a8" stroke-width="1.3"/></marker></defs>
+<rect width="1240" height="460" fill="white"/>
+<g font-family="Helvetica Neue,Arial,sans-serif" fill="#20232a">
+<text x="100" y="37" text-anchor="middle" font-size="27" font-weight="600">Вход</text>
+<text x="435" y="37" text-anchor="middle" font-size="27" font-weight="600">Скрытый слой</text>
+<text x="780" y="37" text-anchor="middle" font-size="27" font-weight="600">Скрытый слой</text>
+<text x="1125" y="37" text-anchor="middle" font-size="27" font-weight="600">Выход</text>
+<line x1="137.49798548457372" y1="168.8436143234282" x2="393.554858148629" y2="126.80442627410568" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="137.30427957174192" y1="182.23814379750218" x2="393.7689541575484" y2="231.99994632907655" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="133.2647080087512" y1="193.37006263169843" x2="398.2337437798013" y2="339.6962465649649" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="133.05378707572243" y1="291.2530759869037" x2="398.4668669163068" y2="140.72028443552747" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="137.19663059527582" y1="302.2275697263603" x2="393.88793460522146" y2="248.5905808287597" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="137.58368594953507" y1="315.6095053656023" x2="393.46013658209284" y2="353.800020385387" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="472.5261318208892" y1="125.98242681202582" x2="738.5237490400698" y2="168.3878440498662" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="468.28601422443415" y1="138.33142812360143" x2="743.2101948045728" y2="289.7389478633879" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="472.34300198377525" y1="232.9643619450858" x2="738.7261557021432" y2="182.77623153437884" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="472.24116238670393" y1="247.55617787556312" x2="738.8387152568009" y2="301.6484349796408" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="468.48902086893844" y1="342.0421192441924" x2="742.9858190395944" y2="194.84818399326102" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="472.6071027620135" y1="354.5496952518821" x2="738.4342548419851" y2="316.0240210373935" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="817.3430019837753" y1="182.0356380549142" x2="1083.7261557021432" y2="232.22376846562116" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="817.2411623867039" y1="302.4438221244369" x2="1083.838715256801" y2="248.35156502035923" stroke="#8796a8" stroke-width="2" marker-end="url(#arrow)"/>
+<circle cx="100" cy="175" r="36" fill="#eef1f4" stroke="#20232a" stroke-width="2.5"/>
+<text x="100" y="184" text-anchor="middle" font-size="29">x₁</text>
+<circle cx="100" cy="310" r="36" fill="#eef1f4" stroke="#20232a" stroke-width="2.5"/>
+<text x="100" y="319" text-anchor="middle" font-size="29">x₂</text>
+<circle cx="435" cy="120" r="36" fill="#e9f1ff" stroke="#215caf" stroke-width="2.5"/>
+<text x="435" y="129" text-anchor="middle" font-size="29">h₁</text>
+<circle cx="435" cy="240" r="36" fill="#e9f1ff" stroke="#215caf" stroke-width="2.5"/>
+<text x="435" y="249" text-anchor="middle" font-size="29">h₂</text>
+<circle cx="435" cy="360" r="36" fill="#e9f1ff" stroke="#215caf" stroke-width="2.5"/>
+<text x="435" y="369" text-anchor="middle" font-size="29">h₃</text>
+<circle cx="780" cy="175" r="36" fill="#e9f1ff" stroke="#215caf" stroke-width="2.5"/>
+<text x="780" y="184" text-anchor="middle" font-size="29">g₁</text>
+<circle cx="780" cy="310" r="36" fill="#e9f1ff" stroke="#215caf" stroke-width="2.5"/>
+<text x="780" y="319" text-anchor="middle" font-size="29">g₂</text>
+<circle cx="1125" cy="240" r="36" fill="#fff0df" stroke="#215caf" stroke-width="2.5"/>
+<text x="1125" y="249" text-anchor="middle" font-size="29">z</text>
+<text x="620" y="438" text-anchor="middle" font-size="24">В скрытом нейроне: взвешенная сумма + смещение, затем ReLU</text>
+</g>
+</svg>

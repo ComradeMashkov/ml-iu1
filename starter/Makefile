@@ -1,4 +1,4 @@
-.PHONY: setup notebook reset-notebooks check first-model sensor s01 s02 s03 s04 s05 s06 format
+.PHONY: setup notebook reset-notebooks check first-model sensor s01 s02 s03 s04 s05 s06 s07 s08 format
 
 setup:
 	uv sync --locked
@@ -42,3 +42,9 @@ s05:
 
 s06:
 	uv run python lessons/s06.py
+
+s07:
+	uv run python lessons/s07.py
+
+s08:
+	uv run python lessons/s08.py

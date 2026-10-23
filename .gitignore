@@ -7,15 +7,19 @@ _quarto_internal_scss_error.scss
 
 # Локальные материалы преподавателя
 /AGENTS.md
+/open-latest.command
 /lectures/L00-speaker-script.md
 /lectures/L01-speaker-script.md
 /lectures/L02-speaker-script.md
+/lectures/L03-speaker-script.md
 /seminars/S01-speaker-script.md
 /seminars/S02-speaker-script.md
 /seminars/S03-speaker-script.md
 /seminars/S04-speaker-script.md
 /seminars/S05-speaker-script.md
 /seminars/S06-speaker-script.md
+/seminars/S07-speaker-script.md
+/seminars/S08-speaker-script.md
 /teaching/
 /lectures/*-speaker-script.pdf
 /seminars/*-speaker-script.pdf
@@ -55,6 +59,13 @@ venv/
 /assets/*.py
 /assets/images/
 /assets/generated/**/*.png
+!/assets/generated/oct23/doodles.png
+!/assets/generated/oct23/doodles-seminar.png
+!/assets/generated/oct23/pixels.png
+!/assets/generated/oct23/mistakes.png
+!/assets/generated/oct23/rabbit.png
+!/assets/generated/oct23/drawing-0[1-6].png
+!/assets/generated/oct23/mistake-0[1-6].png
 /assets/media/*
 !/assets/media/gofman-algorithm-meme.png
 !/assets/media/delivery-helldivers.jpg
