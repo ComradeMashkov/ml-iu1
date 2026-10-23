@@ -44,10 +44,17 @@ h2 { font-size: 1.32rem; font-weight: 600; margin-top: 2.2rem;
 h3 { font-size: 1.08rem; font-weight: 600; margin-top: 1.4rem; color: $ink; }
 
 // ---- Masthead (шапка главной) ----
-.masthead { margin: .5rem 0 1.6rem; padding-bottom: 1.1rem; border-bottom: 2px solid $ink; }
+.masthead {
+  margin: .5rem 0 1.4rem; padding: 1.6rem 1.6rem 1.4rem; border-radius: 16px;
+  background:
+    radial-gradient(circle at 92% 8%, rgba($accent, .16), transparent 42%),
+    radial-gradient(circle at 8% 100%, rgba(#C0362C, .07), transparent 40%),
+    linear-gradient(180deg, $surface, #fff);
+  border: 1px solid $line;
+}
 .masthead .course-id { font-size: .82rem; letter-spacing: .12em; text-transform: uppercase;
   color: $muted; font-weight: 600; }
-.masthead h1 { margin: .35rem 0 .5rem; }
+.masthead h1 { margin: .35rem 0 0; font-size: 2.35rem; letter-spacing: -.01em; }
 .masthead .meta { color: $muted; font-size: .95rem; }
 
 // ---- Таблицы (расписание - главный визуальный элемент) ----
@@ -81,9 +88,12 @@ tbody tr:hover { background: $surface; }
 // ---- Ближайшее занятие: один учебный день и три последовательные пары ----
 .next-class {
   margin: 1rem 0 1.8rem;
-  padding: 1rem 0;
-  border-top: 2px solid $ink;
-  border-bottom: 1px solid $line;
+  padding: 1rem 1.2rem;
+  border: 1px solid $line;
+  border-top: 3px solid $accent;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 18px rgba($ink, .05);
 }
 .next-class-date { margin: 0 0 .8rem; }
 .next-class-date strong { display: block; font-size: 1.08rem; }
@@ -112,9 +122,19 @@ a:hover { text-decoration: underline; }
 .note .label { font-weight: 600; color: $accent; }
 
 // ---- Описание модулей: definition-list вместо карточек ----
-dl.modules { margin: 1rem 0; }
-dl.modules dt { font-weight: 600; margin-top: .8rem; }
-dl.modules dd { margin: 0 0 .2rem 0; color: $muted; }
+.modules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; }
+.module { padding: .95rem 1.05rem; border: 1px solid $line; border-radius: 12px; background: #fff;
+  transition: border-color .2s, box-shadow .2s; }
+.module:hover { border-color: rgba($accent, .35); box-shadow: 0 4px 16px rgba($accent, .08); }
+.module-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .45rem; }
+.module-id { display: inline-grid; place-items: center; width: 2rem; height: 2rem; border-radius: 8px;
+  background: rgba($accent, .1); color: $accent; font-weight: 700; }
+.module-status { font-size: .74rem; font-weight: 600; padding: .12rem .55rem; border-radius: 999px;
+  background: $surface; color: $muted; border: 1px solid $line; }
+.module-status.done { background: rgba(#1E7A46, .1); color: #1E7A46; border-color: rgba(#1E7A46, .2); }
+.module-title { font-weight: 600; margin: 0 0 .25rem; line-height: 1.35; }
+.module p:last-child { margin: 0; color: $muted; font-size: .93rem; line-height: 1.55; }
+@media (max-width: 620px) { .modules { grid-template-columns: 1fr; } }
 
 // ---- Код ----
 code { color: #b1003a; background: $surface; padding: .05rem .3rem; border-radius: 2px; }
@@ -150,12 +170,94 @@ hr { border: none; border-top: 1px solid $line; margin: 1.6rem 0; }
   .next-class-slot:first-child { border-top: 0; }
 }
 
+// ---- Плашка рубежного контроля ----
+$rk: #C0362C;
 .rk-banner {
-  margin: 0 0 1.6rem;
-  padding: .9rem 1.1rem;
-  background: #B3261E;
-  color: #fff;
-  font-size: 1.05rem;
+  display: flex; align-items: center; gap: 1rem;
+  margin: 0 0 1.8rem; padding: .95rem 1.1rem .95rem 1.2rem;
+  background: linear-gradient(100deg, rgba($rk, .12), rgba($rk, .04) 70%);
+  border: 1px solid rgba($rk, .22); border-left: 4px solid $rk;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  color: $ink !important; text-decoration: none !important;
+  transition: background .2s, box-shadow .2s, transform .2s;
 }
-.rk-banner p { margin: 0; }
-.rk-banner a { color: #fff; font-weight: 600; text-decoration: underline; }
+.rk-banner:hover {
+  background: linear-gradient(100deg, rgba($rk, .17), rgba($rk, .06) 70%);
+  box-shadow: 0 6px 22px rgba($rk, .14); transform: translateY(-1px);
+}
+.rk-pulse {
+  flex: none; width: .7rem; height: .7rem; border-radius: 50%; background: $rk;
+  box-shadow: 0 0 0 0 rgba($rk, .45); animation: rk-pulse 2s infinite;
+}
+@keyframes rk-pulse { 70% { box-shadow: 0 0 0 .55rem rgba($rk, 0); } 100% { box-shadow: 0 0 0 0 rgba($rk, 0); } }
+@media (prefers-reduced-motion: reduce) { .rk-pulse { animation: none; } }
+.rk-text { flex: 1; display: flex; flex-direction: column; line-height: 1.35; }
+.rk-kicker { font-size: .78rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: $rk; }
+.rk-title { font-size: 1.02rem; }
+.rk-date {
+  flex: none; display: flex; flex-direction: column; align-items: center;
+  padding: .3rem .75rem; border-radius: 8px; background: rgba(#fff, .7);
+  border: 1px solid rgba($rk, .18); font-size: .74rem; line-height: 1.1; color: $muted;
+}
+.rk-date b { font-size: 1.35rem; color: $rk; }
+.rk-cta {
+  flex: none; padding: .45rem .9rem; border-radius: 999px;
+  background: $rk; color: #fff; font-weight: 600; font-size: .9rem;
+}
+@media (max-width: 560px) {
+  .rk-banner { flex-wrap: wrap; gap: .7rem; }
+  .rk-text { flex-basis: calc(100% - 2rem); }
+  .rk-date { flex-direction: row; gap: .3rem; align-items: baseline; margin-left: 1.7rem; }
+  .rk-date b { font-size: 1rem; }
+  .rk-cta { margin-left: auto; }
+}
+
+// ---- Страница РК ----
+.rk-download { display: inline-flex; align-items: center; gap: .5rem; margin: .4rem 0 .6rem;
+  padding: .6rem 1.1rem; border-radius: 999px; background: $accent; color: #fff !important;
+  font-weight: 600; text-decoration: none !important; }
+.rk-download:hover { background: darken($accent, 8%); }
+.rk-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; margin: 1rem 0; }
+.rk-step { padding: .9rem 1rem; border: 1px solid $line; border-radius: 10px; background: $surface; }
+.rk-step .rk-n { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  background: rgba($accent, .12); color: $accent; font-weight: 600; font-size: .9rem; margin-bottom: .4rem; }
+.rk-step p { margin: 0; font-size: .95rem; line-height: 1.5; }
+.rk-score { display: flex; height: 2.4rem; border-radius: 8px; overflow: hidden; margin: 1rem 0 .4rem; font-size: .85rem; font-weight: 600; }
+.rk-score span { display: grid; place-items: center; color: #fff; }
+.rk-score .q { flex: 10; background: rgba($accent, .55); border-right: 2px solid #fff; }
+.rk-score .t { flex: 30; background: $accent; }
+.rk-pass { color: $muted; font-size: .92rem; }
+@media (max-width: 700px) { .rk-steps { grid-template-columns: 1fr; } }
+
+.rk-score > p { display: flex; width: 100%; margin: 0; }
+.rk-score > p > span { display: grid; place-items: center; color: #fff; }
+
+// ---- Статусы занятий в расписании ----
+.next-class-topic strong, .next-class-topic em,
+.schedule-calendar td:not(:first-child) strong,
+.schedule-calendar td:not(:first-child) em {
+  display: inline-block; padding: .02rem .5rem; border-radius: 999px;
+  font-size: .76rem; font-style: normal; font-weight: 600; white-space: nowrap;
+}
+.next-class-topic strong, .schedule-calendar td:not(:first-child) strong { background: rgba(#1E7A46, .1); color: #1E7A46; }
+.next-class-topic em, .schedule-calendar td:not(:first-child) em { background: $surface; color: $muted; border: 1px solid $line; }
+.schedule-calendar table { border: 1px solid $line; border-radius: 12px; overflow: hidden; border-collapse: separate; border-spacing: 0; }
+
+// ---- Номера занятий как метки ----
+.lesson-table td:first-child a, .lesson-table td:first-child {
+  font-weight: 700;
+}
+.lesson-table td:first-child a {
+  display: inline-block; min-width: 2.2rem; padding: .1rem .45rem; border-radius: 7px; text-align: center;
+  background: rgba($accent, .1); text-decoration: none;
+}
+.lesson-table td:first-child a:hover { background: $accent; color: #fff; }
+
+// ---- Навбар: заметный пункт РК ----
+.navbar .nav-link[href$="rk1.html"] { color: #C0362C !important; font-weight: 600; }
+.navbar .nav-link.active { box-shadow: inset 0 -2px 0 $accent; }
+.navbar { backdrop-filter: saturate(1.4) blur(8px); background: rgba(#fff, .88) !important; }
+
+// ---- Кнопки-ссылки и footer ----
+.nav-footer { color: $muted; }
