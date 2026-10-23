@@ -261,3 +261,8 @@ $rk: #C0362C;
 
 // ---- Кнопки-ссылки и footer ----
 .nav-footer { color: $muted; }
+
+// ---- Таблица билетов РК ----
+.rk-roster table { max-width: 30rem; }
+.rk-roster td:last-child strong { display: inline-grid; place-items: center; width: 1.8rem; height: 1.8rem;
+  border-radius: 50%; background: rgba($accent, .1); color: $accent; }
