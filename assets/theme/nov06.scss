@@ -1,0 +1,50 @@
+/*-- scss:rules --*/
+.reveal .record-lab {
+  display: grid;
+  grid-template-columns: 62% 36%;
+  gap: 2%;
+  align-items: center;
+}
+.reveal .record-lab svg { width: 100%; max-height: 380px; }
+.reveal .record-lab svg text { font-size: 14px; fill: #5a626a; }
+.reveal .record-lab .axis { stroke: #8796a8; stroke-width: 1.5; }
+.reveal .record-lab .grid { stroke: #e7e9ec; stroke-width: 1; }
+.reveal .record-lab .rec { fill: #215caf; }
+.reveal .record-lab .rec.off { fill: #c9ced4; }
+.reveal .record-lab .rec.later { fill: #d77b26; }
+.reveal .record-lab .future { fill: #f3ede4; }
+.reveal .record-lab .fit { stroke: #b7352d; stroke-width: 3; }
+.reveal .lab-controls { font-size: .66em; }
+.reveal .lab-controls label { display: block; margin: .5em 0; }
+.reveal .lab-controls input[type=range] { width: 100%; accent-color: #215caf; }
+.reveal .lab-readout { min-height: 4.6em; color: #20232a; }
+.reveal .lab-legend { color: #5a626a; font-size: .9em; }
+.reveal .lab-legend span { display: inline-block; width: .8em; height: .8em; border-radius: 50%; vertical-align: middle; }
+.reveal .lab-legend .rec-key { background: #215caf; }
+.reveal .lab-legend .later-key { background: #d77b26; }
+
+.reveal .record-lab button,
+.reveal .task-quiz button {
+  font: inherit;
+  padding: .3em .7em;
+  border: 2px solid #215caf;
+  border-radius: 6px;
+  background: white;
+  color: #215caf;
+  cursor: pointer;
+}
+.reveal .record-lab button:hover,
+.reveal .task-quiz button:hover,
+.reveal .task-quiz button[aria-pressed="true"] { background: #215caf; color: white; }
+.reveal .record-lab button:focus-visible,
+.reveal .task-quiz button:focus-visible { outline: 3px solid #20232a; outline-offset: 3px; }
+.reveal .task-quiz button:disabled { cursor: default; }
+
+.reveal .task-quiz { min-height: 330px; }
+.reveal .task-quiz [hidden] { display: none !important; }
+.reveal .task-quiz-progress { font-size: .65em; color: #6b7178; margin-bottom: .2em; }
+.reveal .task-card { font-size: 1.05em; font-weight: 600; min-height: 2.6em; }
+.reveal .task-quiz-choices { display: flex; gap: .5em; font-size: .8em; }
+.reveal .task-quiz-feedback { min-height: 3.2em; font-size: .72em; }
+.reveal .task-quiz [data-next] { font-size: .7em; }
+.reveal .meme img { max-height: 470px; }

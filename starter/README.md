@@ -29,6 +29,8 @@ Jupyter откроет каталог `notebooks`. Выберите Python из 
 |---|---|---|---|
 | S7 · Учим сеть узнавать рисунки | [S07](notebooks/S07-live-coding.ipynb) | [С результатами](notebooks/solutions/S07-complete.ipynb) | [s07.py](lessons/s07.py) |
 | S8 · Прогноз победы в Counter-Strike | [S08](notebooks/S08-live-coding.ipynb) | [С результатами](notebooks/solutions/S08-complete.ipynb) | [s08.py](lessons/s08.py) |
+| S9 · Обвинение детектора | [S09](notebooks/S09-live-coding.ipynb) | [С результатами](notebooks/solutions/S09-complete.ipynb) |
+| S10 · Рэп, рок или поп: деревья и лес | [S10](notebooks/S10-live-coding.ipynb) | [С результатами](notebooks/solutions/S10-complete.ipynb) |
 
 S7 обучает небольшую сеть PyTorch на настоящих рисунках
 [Google Quick, Draw!](data/QUICKDRAW-README.md). В локальном файле 1200

@@ -12,6 +12,7 @@ project:
     - "lectures/L01-how-models-learn.qmd"
     - "lectures/L02-linear-regression.qmd"
     - "lectures/L03-neural-networks.qmd"
+    - "lectures/L04-expected-error.qmd"
     - "seminars/index.qmd"
     - "seminars/S01-first-classifier.qmd"
     - "seminars/S02-sensor-data-pipeline.qmd"
@@ -21,10 +22,13 @@ project:
     - "seminars/S06-regression-limits.qmd"
     - "seminars/S07-neurons-and-nonlinearity.qmd"
     - "seminars/S08-csgo-forecast.qmd"
+    - "seminars/S09-rare-class.qmd"
+    - "seminars/S10-trees-and-forests.qmd"
     - "!lectures/L00-speaker-script.md"
     - "!lectures/L01-speaker-script.md"
     - "!lectures/L02-speaker-script.md"
     - "!lectures/L03-speaker-script.md"
+    - "!lectures/L04-speaker-script.md"
     - "!seminars/S01-speaker-script.md"
     - "!seminars/S02-speaker-script.md"
     - "!seminars/S03-speaker-script.md"
@@ -33,6 +37,8 @@ project:
     - "!seminars/S06-speaker-script.md"
     - "!seminars/S07-speaker-script.md"
     - "!seminars/S08-speaker-script.md"
+    - "!seminars/S09-speaker-script.md"
+    - "!seminars/S10-speaker-script.md"
   resources:
     - "!teaching/**"
     - "!**/*-speaker-script.*"
@@ -51,6 +57,8 @@ project:
     - starter/notebooks/S06-live-coding.ipynb
     - starter/notebooks/S07-live-coding.ipynb
     - starter/notebooks/S08-live-coding.ipynb
+    - starter/notebooks/S09-live-coding.ipynb
+    - starter/notebooks/S10-live-coding.ipynb
     - starter/notebooks/solutions/S01-complete.ipynb
     - starter/notebooks/solutions/S02-complete.ipynb
     - starter/notebooks/solutions/S03-complete.ipynb
@@ -59,12 +67,16 @@ project:
     - starter/notebooks/solutions/S06-complete.ipynb
     - starter/notebooks/solutions/S07-complete.ipynb
     - starter/notebooks/solutions/S08-complete.ipynb
+    - starter/notebooks/solutions/S09-complete.ipynb
+    - starter/notebooks/solutions/S10-complete.ipynb
     - starter/lessons/s03.py
     - starter/lessons/s04.py
     - starter/lessons/s05.py
     - starter/lessons/s06.py
     - starter/lessons/s07.py
     - starter/lessons/s08.py
+    - starter/lessons/s09.py
+    - starter/lessons/s10.py
     - starter/lessons/s01.py
     - starter/lessons/s02.py
     - starter/data/**
@@ -73,6 +85,8 @@ project:
     - assets/rk1-tickets.pdf
     - assets/drawing-quiz.js
     - assets/net-lab.js
+    - assets/record-lab.js
+    - assets/generated/nov06/smb.js
     - assets/generated/oct23/s7-net.js
     - assets/vendor/katex/**
     - starter/configs/first-model.json

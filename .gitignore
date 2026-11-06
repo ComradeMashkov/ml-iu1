@@ -12,6 +12,7 @@ _quarto_internal_scss_error.scss
 /lectures/L01-speaker-script.md
 /lectures/L02-speaker-script.md
 /lectures/L03-speaker-script.md
+/lectures/L04-speaker-script.md
 /seminars/S01-speaker-script.md
 /seminars/S02-speaker-script.md
 /seminars/S03-speaker-script.md
@@ -20,6 +21,8 @@ _quarto_internal_scss_error.scss
 /seminars/S06-speaker-script.md
 /seminars/S07-speaker-script.md
 /seminars/S08-speaker-script.md
+/seminars/S09-speaker-script.md
+/seminars/S10-speaker-script.md
 /teaching/
 /lectures/*-speaker-script.pdf
 /seminars/*-speaker-script.pdf
@@ -66,6 +69,9 @@ venv/
 !/assets/generated/oct23/rabbit.png
 !/assets/generated/oct23/drawing-0[1-6].png
 !/assets/generated/oct23/mistake-0[1-6].png
+!/assets/generated/nov06/records.png
+!/assets/generated/nov06/histories.png
+!/assets/generated/nov06/split.png
 /assets/media/*
 !/assets/media/gofman-algorithm-meme.png
 !/assets/media/delivery-helldivers.jpg
@@ -74,6 +80,9 @@ venv/
 !/assets/media/astrologer-ai.jpg
 !/assets/media/be-a-freak-cat.jpg
 !/assets/media/casino-starting-capital.jpg
+!/assets/media/xkcd-605-extrapolating-ru.png
+!/assets/media/xkcd-2048-bottom-row-ru.png
+!/assets/media/xkcd-1725-linear-regression-ru.png
 /starter/tools/build_sep25_notebooks.py
 /.codex/
 /.agents/
